@@ -1,0 +1,35 @@
+name: Autograding Tests
+"on":
+  - push
+  - repository_dispatch
+  - workflow_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Tests Pass
+        id: tests-pass
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Tests Pass
+          setup-command: docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Password123!"
+            -p 1433:1433 --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2022-latest
+          command: DOTNET_CLI_HOME=/home/runner dotnet test
+          timeout: 10
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          TESTS-PASS_RESULTS: "${{steps.tests-pass.outputs.result}}"
+        with:
+          runners: tests-pass
