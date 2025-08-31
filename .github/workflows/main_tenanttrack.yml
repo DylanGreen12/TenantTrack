@@ -23,6 +23,21 @@ jobs:
         with:
           dotnet-version: '9.x'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'Selu383.SP25.P03.Web/package-lock.json'
+
+      - name: Clean and install npm dependencies for Web project
+        run: |
+          cd Selu383.SP25.P03.Web
+          # Remove problematic files to fix the rollup issue
+          rm -rf node_modules
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
+
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
@@ -38,6 +53,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: none
     
     steps:
       - name: Download artifact from build job
