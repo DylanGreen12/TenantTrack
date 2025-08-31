@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - TenantTrack
 
 on:
@@ -13,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +30,6 @@ jobs:
       - name: Clean and install npm dependencies for Web project
         run: |
           cd Selu383.SP25.P03.Web
-          # Remove problematic files to fix the rollup issue
           rm -rf node_modules
           rm -f package-lock.json
           npm install --legacy-peer-deps
@@ -42,31 +38,35 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish -c Release -o ./publish-output
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: dotnet-app
+          path: ./publish-output/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
       contents: none
-    
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-      
+          name: dotnet-app
+          path: ./deployment-files
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'TenantTrack'
           slot-name: 'Production'
-          package: .
+          package: ./deployment-files
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_65CDBB63618F4C88AB0093BE294D4292 }}
