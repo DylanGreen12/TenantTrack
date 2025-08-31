@@ -1,16 +1,21 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - TenantTrack
+name: Build and deploy ASP.Net Core app to an Azure Web App
+
+env:
+  AZURE_WEBAPP_NAME: TenantTrack
+  AZURE_WEBAPP_PACKAGE_PATH: './publish-output'
+  DOTNET_VERSION: '9.0.x'
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -18,41 +23,64 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Set up Node.js
+      - name: Set up Node.js for Linux
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
           cache-dependency-path: 'Selu383.SP25.P03.Web/package-lock.json'
+          check-latest: true
 
-      - name: Clean and install npm dependencies for Web project
+      - name: Fix Linux npm dependencies
         run: |
           cd Selu383.SP25.P03.Web
+          # Clean up any existing node modules
           rm -rf node_modules
           rm -f package-lock.json
-          npm install --legacy-peer-deps
+          # Clear npm cache
+          npm cache clean --force
+          # Install dependencies with Linux compatibility
+          npm install --no-optional --legacy-peer-deps
+          # Explicitly install rollup for Linux
+          npm install @rollup/rollup-linux-x64-gnu --no-save
+
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.nuget/packages
+            Selu383.SP25.P03.Web/node_modules
+          key: ${{ runner.os }}-build-${{ hashFiles('**/packages.lock.json', '**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ./publish-output
+        run: dotnet publish -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: Verify publish output
+        run: |
+          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          echo "Publish contents:"
+          find ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} -type f -name "*.dll" | head -10
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: dotnet-app
-          path: ./publish-output/
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: build
     permissions:
       contents: none
+    runs-on: ubuntu-latest
+    needs: build
     environment:
-      name: 'Production'
+      name: 'Development'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
@@ -60,13 +88,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dotnet-app
-          path: ./deployment-files
+          path: ./deployment-package
+
+      - name: List deployment files
+        run: ls -la ./deployment-package
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: 'TenantTrack'
-          slot-name: 'Production'
-          package: ./deployment-files
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_65CDBB63618F4C88AB0093BE294D4292 }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./deployment-package
