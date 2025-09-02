@@ -19,12 +19,12 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          cd Selu383.SP25.P03.Web
+          cd TenantTrack.Web
           npm install --legacy-peer-deps
 
       - name: Build the frontend
         run: |
-          cd Selu383.SP25.P03.Web
+          cd TenantTrack.Web
           npm run build
           
 
