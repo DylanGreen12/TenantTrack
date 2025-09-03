@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TenantTrack.Api.Features.Users;
-using TenantTrack.Api.Features.Theaters;
+using TenantTrack.Api.Features.Properties;
 
 namespace TenantTrack.Api.Data
 {
@@ -12,7 +12,7 @@ namespace TenantTrack.Api.Data
         {
         }
 
-        public DbSet<Theater> Theaters { get; set; }
+       public DbSet<Property> Properties { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
