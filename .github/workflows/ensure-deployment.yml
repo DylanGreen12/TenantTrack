@@ -9,8 +9,8 @@ jobs:
 
     steps:
       - name: Warm up URL
-        run: curl -s ${{ github.event.deployment_status.environment_url }}/api/properties
-      - name: Test properties API
-        run: curl -sSf ${{ github.event.deployment_status.environment_url }}/api/properties
+        run: curl -s ${{ github.event.deployment_status.environment_url }}/api/theaters
+      - name: Test theaters API
+        run: curl -sSf ${{ github.event.deployment_status.environment_url }}/api/theaters
       - name: Test React
         run: curl -sSf ${{ github.event.deployment_status.environment_url }}/index.html
