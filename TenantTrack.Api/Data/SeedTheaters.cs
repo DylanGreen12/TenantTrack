@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*
+
+using Microsoft.EntityFrameworkCore;
 using TenantTrack.Api.Features.Theaters;
 
 namespace TenantTrack.Api.Data
@@ -45,3 +47,5 @@ namespace TenantTrack.Api.Data
         }
     }
 }
+
+*/

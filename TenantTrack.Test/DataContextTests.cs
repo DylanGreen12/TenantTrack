@@ -71,7 +71,7 @@ public class DataContextTests
     }
 
     [TestMethod]
-    public void DataContext_HasTheater()
+    public void DataContext_HasProperty()
     {
         using var scope = context.GetServices().CreateScope();
         var dbContext = GetDataContext(scope);
@@ -81,7 +81,7 @@ public class DataContextTests
             return;
         }
 
-        EnsureSet("Theater", dbContext);
+        EnsureSet("Property", dbContext);
     }
 
     [TestMethod]

@@ -17,7 +17,7 @@ namespace TenantTrack.Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -110,7 +110,7 @@ namespace TenantTrack.Api.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TenantTrack.Api.Features.Theaters.Theater", b =>
+            modelBuilder.Entity("TenantTrack.Api.Features.Properties.Property", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -122,22 +122,33 @@ namespace TenantTrack.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ManagerId")
-                        .HasColumnType("int");
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
-                    b.Property<int>("SeatCount")
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagerId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("Theaters");
+                    b.ToTable("Properties");
                 });
 
             modelBuilder.Entity("TenantTrack.Api.Features.Users.Role", b =>
@@ -289,13 +300,15 @@ namespace TenantTrack.Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TenantTrack.Api.Features.Theaters.Theater", b =>
+            modelBuilder.Entity("TenantTrack.Api.Features.Properties.Property", b =>
                 {
-                    b.HasOne("TenantTrack.Api.Features.Users.User", "Manager")
+                    b.HasOne("TenantTrack.Api.Features.Users.User", "User")
                         .WithMany()
-                        .HasForeignKey("ManagerId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Manager");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TenantTrack.Api.Features.Users.UserRole", b =>
