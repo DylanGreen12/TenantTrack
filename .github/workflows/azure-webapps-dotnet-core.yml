@@ -30,11 +30,11 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
-          cache-dependency-path: 'TenantTrack.Web/package-lock.json'
+          cache-dependency-path: 'Selu383.SP25.P03.Web/package-lock.json'
 
       - name: Fix Linux npm dependencies (CRITICAL FIX)
         run: |
-          cd TenantTrack.Web
+          cd Selu383.SP25.P03.Web
           # Clean up problematic files
           rm -rf node_modules
           rm -f package-lock.json
@@ -50,7 +50,7 @@ jobs:
         with:
           path: |
             ~/.nuget/packages
-            TenantTrack.Web/node_modules
+            Selu383.SP25.P03.Web/node_modules
           key: ${{ runner.os }}-build-${{ hashFiles('**/packages.lock.json', '**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-
