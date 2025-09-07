@@ -7,7 +7,7 @@ namespace Selu383.SP25.P03.Api.Features.Tenants
     public class Tenant
     {
         [Key]
-        public required int Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(120)]
