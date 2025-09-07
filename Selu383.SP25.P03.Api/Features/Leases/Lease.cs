@@ -8,27 +8,23 @@ namespace Selu383.SP25.P03.Api.Features.Leases
     {
         [Key]
         public int Id { get; set; }
-
         [Required]
+
         [MaxLength(120)]
-        public int TenantId { get; set; }
+        public required int TenantId { get; set; }
 
         [ForeignKey("TenantId")]
-        [Required]
         [MaxLength(120)]
-        public date StartDate { get; set; }
+        public required DateOnly StartDate { get; set; }
 
-        [Required]
-        public date EndDate { get; set; }
+        public required DateOnly EndDate { get; set; }
+        
+        public required decimal Rent { get; set; }
 
-        [Required]
-        public decimal Rent { get; set; }
+        public required decimal Deposit { get; set; }
 
-        [Required]
-        public decimal Deposit { get; set; }
-
-        [Required]
-        public string Status { get; set; } 
+        
+        public required string Status { get; set; } 
         
         public virtual Tenant Tenant { get; set; } 
     }
