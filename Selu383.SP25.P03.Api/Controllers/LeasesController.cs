@@ -74,7 +74,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 return NotFound("Tenant not found");
             }
-
+            
             var lease = new Lease
             {
                 TenantId = dto.TenantId,

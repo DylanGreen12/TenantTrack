@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Tenants;
-using Selu383.SP25.P03.Api.Features.Units;
+//using Selu383.SP25.P03.Api.Features.Units;
 using System.Threading.Tasks;
 
 namespace Selu383.SP25.P03.Api.Controllers
@@ -70,12 +70,13 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TenantDto>> CreateTenant(TenantDto dto)
         {
-            
+            /*
             var tenant = await _context.Tenants.FindAsync(dto.TenantId);
             if (tenant == null)
             {
                 return NotFound("Tenant not found");
             }
+            */
 
             var tenant = new Tenant
             {
@@ -106,7 +107,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
-           
+           /*
             if (tenant.Unit != dto.Unit)
             {
                 var newUnit = await _context.Units.FindAsync(dto.UnitId);
@@ -115,6 +116,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     return NotFound("New unit not found");
                 }
             }
+            */
 
             tenant.Unit = dto.Unit;
             tenant.FirstName = dto.FirstName;
