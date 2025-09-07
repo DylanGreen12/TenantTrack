@@ -8,7 +8,6 @@ namespace Selu383.SP25.P03.Api.Features.Leases
     {
         [Key]
         public int Id { get; set; }
-        [Required]
 
         [MaxLength(120)]
         public required int TenantId { get; set; }

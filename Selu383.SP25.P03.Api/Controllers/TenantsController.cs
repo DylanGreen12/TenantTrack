@@ -70,13 +70,6 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TenantDto>> CreateTenant(TenantDto dto)
         {
-            /*
-            var tenant = await _context.Tenants.FindAsync(dto.TenantId);
-            if (tenant == null)
-            {
-                return NotFound("Tenant not found");
-            }
-            */
 
             var tenant = new Tenant
             {
@@ -86,8 +79,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 LastName = dto.LastName,
                 PhoneNumber = dto.PhoneNumber,
                 Email = dto.Email,
-                CreatedAt = dto.CreatedAt,
-                UpdatedAt = dto.UpdatedAt
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow 
             };
 
             _context.Tenants.Add(tenant);
@@ -123,7 +116,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             tenant.LastName = dto.LastName;
             tenant.PhoneNumber = dto.PhoneNumber;
             tenant.Email = dto.Email;
-            tenant.UpdatedAt = dto.UpdatedAt; 
+            tenant.UpdatedAt = DateTime.UtcNow; 
 
             _context.Tenants.Update(tenant);
             await _context.SaveChangesAsync();
