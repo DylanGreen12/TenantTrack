@@ -73,7 +73,6 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             var tenant = new Tenant
             {
-                Id = dto.Id,
                 Unit = dto.Unit,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -84,7 +83,19 @@ namespace Selu383.SP25.P03.Api.Controllers
             };
 
             _context.Tenants.Add(tenant);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // log it for your server console
+                Console.WriteLine(ex);
+
+                // return it in API response
+                return BadRequest(new { message = ex.Message });
+            }
 
             dto.Id = tenant.Id;
             return CreatedAtAction(nameof(GetTenantById), new { id = dto.Id }, dto);
@@ -136,7 +147,19 @@ namespace Selu383.SP25.P03.Api.Controllers
 
 
             _context.Tenants.Remove(tenant);
-            await _context.SaveChangesAsync();
+        
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // log it for your server console
+                Console.WriteLine(ex);
+
+                // return it in API response
+                return BadRequest(new { message = ex.Message });
+            }
 
             return NoContent();
         }
