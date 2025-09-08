@@ -28,7 +28,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!dto.Roles.Any() || !dto.Roles.All(x => roles.Any(y => x == y.Name)))
