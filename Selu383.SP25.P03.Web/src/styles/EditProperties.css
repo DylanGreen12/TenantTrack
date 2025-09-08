@@ -5,7 +5,7 @@
   }
   
   .property-form {
-    background: #f5f5f5;
+    background: #00061f;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
@@ -81,7 +81,7 @@
   }
   
   .properties-list th {
-    background: #f8f9fa;
+    background: #01101f;
     font-weight: bold;
   }
   
