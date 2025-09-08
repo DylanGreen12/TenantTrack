@@ -4,6 +4,8 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import EditProperties from './pages/EditProperties'
+import EditTenants from './pages/EditTenants'
+import EditLeases from './pages/EditLeases'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -13,11 +15,14 @@ function App() {
       <div className="app-container">
         {/* Navigation */}
         <nav className="navigation">
-          <div className="nav-links">
+          <div style={{ display: "flex", gap: "1rem" }}>
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/editproperties" className="nav-link">Manage Properties</Link>
+            <Link to="/edittenants" className="nav-link">Manage Tenants</Link>
+            <Link to="/editleases" className="nav-link">Manage Leases</Link>
           </div>
         </nav>
+
 
         {/* Routes */}
         <Routes>
@@ -46,6 +51,8 @@ function App() {
             </>
           } />
           <Route path="/editproperties" element={<EditProperties />} />
+          <Route path="/edittenants" element={<EditTenants />} />
+          <Route path="/editleases" element={<EditLeases />} />
         </Routes>
       </div>
     </Router>

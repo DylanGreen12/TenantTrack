@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Features.Users;
 using Selu383.SP25.P03.Api.Features.Theaters;
 using Selu383.SP25.P03.Api.Features.Properties;
+using Selu383.SP25.P03.Api.Features.Tenants;
+using Selu383.SP25.P03.Api.Features.Leases;
 
 namespace Selu383.SP25.P03.Api.Data
 {
@@ -15,6 +17,9 @@ namespace Selu383.SP25.P03.Api.Data
 
         public DbSet<Theater> Theaters { get; set; }
         public DbSet<Property> Properties { get; set; }
+        public DbSet<Lease> Leases { get; set; }
+
+        public DbSet<Tenant> Tenants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
