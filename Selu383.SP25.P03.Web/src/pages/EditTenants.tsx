@@ -192,7 +192,7 @@ export default function EditTenants() {
       </form>
 
       <div className="tenants-list">
-        <h2>Properties</h2>
+        <h2>Tenants</h2>
         {tenants.length === 0 ? (
           <p>No tenants found.</p>
         ) : (
