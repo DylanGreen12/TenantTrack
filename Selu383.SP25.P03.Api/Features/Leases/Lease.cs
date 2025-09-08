@@ -9,11 +9,9 @@ namespace Selu383.SP25.P03.Api.Features.Leases
         [Key]
         public int Id { get; set; }
 
-        [MaxLength(120)]
         public required int TenantId { get; set; }
 
         [ForeignKey("TenantId")]
-        [MaxLength(120)]
         public required DateOnly StartDate { get; set; }
 
         public required DateOnly EndDate { get; set; }
