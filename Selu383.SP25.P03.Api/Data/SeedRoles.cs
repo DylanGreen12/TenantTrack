@@ -18,6 +18,9 @@ namespace Selu383.SP25.P03.Api.Data
                 var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
                 await roleManager.CreateAsync(new Role { Name = UserRoleNames.Admin });
                 await roleManager.CreateAsync(new Role { Name = UserRoleNames.User });
+                await roleManager.CreateAsync(new Role { Name = UserRoleNames.Landlord });
+                await roleManager.CreateAsync(new Role { Name = UserRoleNames.Tenant });
+                await roleManager.CreateAsync(new Role { Name = UserRoleNames.Maintenance });
                 context.SaveChanges();
             }
         }
