@@ -12,8 +12,15 @@ interface PropertyDto {
   userId: number;
 }
 
+interface CurrentUser {
+  id: number;
+  userName: string;
+  roles?: string[];
+}
+
 export default function EditProperties() {
-  const [properties, setProperties] = useState<PropertyDto[]>([]);
+  const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<PropertyDto>({
     name: "",
     address: "",
@@ -27,43 +34,76 @@ export default function EditProperties() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchProperties();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get<CurrentUser>("/api/authentication/me");
+      setCurrentUser(response.data);
+      // Set the user ID in form data for new properties
+      setFormData(prev => ({
+        ...prev,
+        userId: response.data.id
+      }));
+    } catch (err) {
+      console.error("Error fetching current user:", err);
+      setError("Please log in to manage properties");
+    }
+  };
 
   const fetchProperties = async () => {
     try {
       const response = await axios.get<PropertyDto[]>("/api/properties");
-      setProperties(response.data);
+      setAllProperties(response.data);
     } catch (err) {
       setError("Failed to fetch properties");
       console.error("Error fetching properties:", err);
     }
   };
 
+  // Filter properties to only show current user's properties
+  const userProperties = allProperties.filter(property => 
+    currentUser && property.userId === currentUser.id
+  );
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "userId" ? parseInt(value) || 0 : value
+      [name]: value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      setError("Please log in to manage properties");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
+      // Ensure the current user's ID is always used
+      const payload = {
+        ...formData,
+        userId: currentUser.id
+      };
+
       if (editingId) {
         // Update existing property
-        await axios.put(`/api/properties/${editingId}`, formData);
+        await axios.put(`/api/properties/${editingId}`, payload);
       } else {
         // Create new property
-        await axios.post("/api/properties", formData);
+        await axios.post("/api/properties", payload);
       }
 
       resetForm();
-      await fetchProperties();
+      await fetchProperties(); // Refresh the properties list
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save property");
       console.error("Error saving property:", err);
@@ -91,7 +131,7 @@ export default function EditProperties() {
 
     try {
       await axios.delete(`/api/properties/${id}`);
-      await fetchProperties();
+      await fetchProperties(); // Refresh the properties list
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to delete property");
       console.error("Error deleting property:", err);
@@ -105,15 +145,27 @@ export default function EditProperties() {
       city: "",
       state: "",
       zipCode: "",
-      userId: 0
+      userId: currentUser?.id || 0
     });
     setEditingId(null);
     setError("");
   };
 
+  if (!currentUser) {
+    return (
+      <div className="edit-properties">
+        <h1>Manage Properties</h1>
+        <div className="error-message">
+          Please log in to manage properties
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="edit-properties">
       <h1>Manage Properties</h1>
+      <p className="user-info">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
       <form onSubmit={handleSubmit} className="property-form">
         <h2>{editingId ? "Edit Property" : "Add New Property"}</h2>
@@ -180,18 +232,8 @@ export default function EditProperties() {
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="userId">Owner User ID:</label>
-          <input
-            type="number"
-            id="userId"
-            name="userId"
-            value={formData.userId}
-            onChange={handleInputChange}
-            required
-            min="1"
-          />
-        </div>
+        {/* Hidden field for user ID - automatically set to current user */}
+        <input type="hidden" name="userId" value={currentUser.id} />
 
         {error && <div className="error-message">{error}</div>}
 
@@ -208,9 +250,9 @@ export default function EditProperties() {
       </form>
 
       <div className="properties-list">
-        <h2>Properties</h2>
-        {properties.length === 0 ? (
-          <p>No properties found.</p>
+        <h2>Your Properties ({userProperties.length})</h2>
+        {userProperties.length === 0 ? (
+          <p>You don't have any properties yet. Add your first property above!</p>
         ) : (
           <table>
             <thead>
@@ -220,19 +262,17 @@ export default function EditProperties() {
                 <th>City</th>
                 <th>State</th>
                 <th>Zip Code</th>
-                <th>Owner ID</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {properties.map(property => (
+              {userProperties.map(property => (
                 <tr key={property.id}>
                   <td>{property.name}</td>
                   <td>{property.address}</td>
                   <td>{property.city}</td>
                   <td>{property.state}</td>
                   <td>{property.zipCode}</td>
-                  <td>{property.userId}</td>
                   <td>
                     <button
                       onClick={() => handleEdit(property)}
