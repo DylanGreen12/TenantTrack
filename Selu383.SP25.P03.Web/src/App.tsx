@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import EditProperties from './pages/EditProperties'
+import EditUnits from './pages/EditUnits'
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
@@ -33,6 +34,9 @@ function App() {
             </li>
             <li style={{ margin: '5px 0' }}>
               <Link to="/editproperties" style={{ textDecoration: 'none', color: 'blue' }}>Manage Properties</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/editunits" style={{ textDecoration: 'none', color: 'blue' }}>Manage Units</Link>
             </li>
             {!currentUser ? (
               <>
@@ -68,6 +72,7 @@ function App() {
         <Routes>
           
           <Route path="/editproperties" element={<EditProperties />} />
+          <Route path="/editunits" element={<EditUnits />} />
           
           <Route path="/login" element={
             <LoginForm
