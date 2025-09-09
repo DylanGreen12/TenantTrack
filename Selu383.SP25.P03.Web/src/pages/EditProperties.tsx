@@ -5,10 +5,12 @@ import "../styles/EditProperties.css";
 interface PropertyDto {
   id?: number;
   name: string;
+  description?: string;
   address: string;
   city: string;
   state: string;
   zipCode: string;
+  imageUrl?: string;
   userId: number;
 }
 
@@ -23,10 +25,12 @@ export default function EditProperties() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<PropertyDto>({
     name: "",
+    description: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
+    imageUrl: "",
     userId: 0
   });
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -42,7 +46,6 @@ export default function EditProperties() {
     try {
       const response = await axios.get<CurrentUser>("/api/authentication/me");
       setCurrentUser(response.data);
-      // Set the user ID in form data for new properties
       setFormData(prev => ({
         ...prev,
         userId: response.data.id
@@ -63,12 +66,11 @@ export default function EditProperties() {
     }
   };
 
-  // Filter properties to only show current user's properties
   const userProperties = allProperties.filter(property => 
     currentUser && property.userId === currentUser.id
   );
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -88,22 +90,19 @@ export default function EditProperties() {
     setError("");
 
     try {
-      // Ensure the current user's ID is always used
       const payload = {
         ...formData,
         userId: currentUser.id
       };
 
       if (editingId) {
-        // Update existing property
         await axios.put(`/api/properties/${editingId}`, payload);
       } else {
-        // Create new property
         await axios.post("/api/properties", payload);
       }
 
       resetForm();
-      await fetchProperties(); // Refresh the properties list
+      await fetchProperties();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save property");
       console.error("Error saving property:", err);
@@ -115,10 +114,12 @@ export default function EditProperties() {
   const handleEdit = (property: PropertyDto) => {
     setFormData({
       name: property.name,
+      description: property.description || "",
       address: property.address,
       city: property.city,
       state: property.state,
       zipCode: property.zipCode,
+      imageUrl: property.imageUrl || "",
       userId: property.userId
     });
     setEditingId(property.id || null);
@@ -131,7 +132,7 @@ export default function EditProperties() {
 
     try {
       await axios.delete(`/api/properties/${id}`);
-      await fetchProperties(); // Refresh the properties list
+      await fetchProperties();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to delete property");
       console.error("Error deleting property:", err);
@@ -141,10 +142,12 @@ export default function EditProperties() {
   const resetForm = () => {
     setFormData({
       name: "",
+      description: "",
       address: "",
       city: "",
       state: "",
       zipCode: "",
+      imageUrl: "",
       userId: currentUser?.id || 0
     });
     setEditingId(null);
@@ -179,6 +182,17 @@ export default function EditProperties() {
             value={formData.name}
             onChange={handleInputChange}
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description:</label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            rows={3}
           />
         </div>
 
@@ -232,7 +246,18 @@ export default function EditProperties() {
           />
         </div>
 
-        {/* Hidden field for user ID - automatically set to current user */}
+        <div className="form-group">
+          <label htmlFor="imageUrl">Image URL:</label>
+          <input
+            type="text"
+            id="imageUrl"
+            name="imageUrl"
+            value={formData.imageUrl}
+            onChange={handleInputChange}
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+
         <input type="hidden" name="userId" value={currentUser.id} />
 
         {error && <div className="error-message">{error}</div>}
@@ -258,10 +283,12 @@ export default function EditProperties() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Description</th>
                 <th>Address</th>
                 <th>City</th>
                 <th>State</th>
                 <th>Zip Code</th>
+                <th>Image</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -269,10 +296,27 @@ export default function EditProperties() {
               {userProperties.map(property => (
                 <tr key={property.id}>
                   <td>{property.name}</td>
+                  <td className="description-cell">{property.description}</td>
                   <td>{property.address}</td>
                   <td>{property.city}</td>
                   <td>{property.state}</td>
                   <td>{property.zipCode}</td>
+                  <td>
+                    {property.imageUrl && (
+                      <div className="property-image">
+                        <img
+                          src={property.imageUrl}
+                          alt={property.name}
+                          style={{
+                            maxWidth: '80px',
+                            maxHeight: '80px',
+                            objectFit: 'cover',
+                            borderRadius: '4px'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <button
                       onClick={() => handleEdit(property)}
