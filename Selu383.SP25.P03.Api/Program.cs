@@ -19,6 +19,7 @@ namespace Selu383.SP25.P03.Api
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddRazorPages();
 
             builder.Services.AddIdentity<User, Role>()
@@ -79,9 +80,15 @@ namespace Selu383.SP25.P03.Api
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
+{
+    app.MapOpenApi();
+    // Add these lines:
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/openapi/v1.json", "My API V1");
+    });
+}
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
