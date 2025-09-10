@@ -6,6 +6,8 @@ import PropertiesView from "./pages/PropertiesView";
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
+import EditTenants from './pages/EditTenants'
+import EditLeases from './pages/EditLeases'
 
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
@@ -38,6 +40,12 @@ function App() {
             </li>
             <li style={{ margin: '5px 0' }}>
               <Link to="/editunits" style={{ textDecoration: 'none', color: 'blue' }}>Manage Units</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/edittenants" style={{ textDecoration: 'none', color: 'blue' }}>Manage Tenants</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/editleases" style={{ textDecoration: 'none', color: 'blue' }}>Manage Leases</Link>
             </li>
             <li style={{ margin: '5px 0' }}>
               <Link to="/properties" style={{ textDecoration: 'none', color: 'blue' }}>View Properties</Link>
@@ -77,6 +85,8 @@ function App() {
           
           <Route path="/editproperties" element={<EditProperties />} />
           <Route path="/editunits" element={<EditUnits />} />
+          <Route path="/edittenants" element={<EditTenants />} />
+          <Route path="/editleases" element={<EditLeases />} />
           <Route path="/properties" element={<PropertiesView />} />
           
           <Route path="/login" element={
