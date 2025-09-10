@@ -6,6 +6,7 @@ using Selu383.SP25.P03.Api.Features.Theaters;
 using Selu383.SP25.P03.Api.Features.Properties;
 using Selu383.SP25.P03.Api.Features.Tenants;
 using Selu383.SP25.P03.Api.Features.Leases;
+using Selu383.SP25.P03.Api.Features.Staff;
 
 namespace Selu383.SP25.P03.Api.Data
 {
@@ -20,6 +21,7 @@ namespace Selu383.SP25.P03.Api.Data
         public DbSet<Lease> Leases { get; set; }
 
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<Staff> Staff { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -40,6 +42,18 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasForeignKey(e => e.RoleId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Staff>()
+                .HasOne(s => s.Property)
+                .WithMany()
+                .HasForeignKey(s => s.PropertyId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Staff>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
