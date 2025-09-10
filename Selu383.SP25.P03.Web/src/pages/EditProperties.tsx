@@ -5,21 +5,32 @@ import "../styles/EditProperties.css";
 interface PropertyDto {
   id?: number;
   name: string;
+  description?: string;
   address: string;
   city: string;
   state: string;
   zipCode: string;
+  imageUrl?: string;
   userId: number;
 }
 
+interface CurrentUser {
+  id: number;
+  userName: string;
+  roles?: string[];
+}
+
 export default function EditProperties() {
-  const [properties, setProperties] = useState<PropertyDto[]>([]);
+  const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<PropertyDto>({
     name: "",
+    description: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
+    imageUrl: "",
     userId: 0
   });
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -27,39 +38,67 @@ export default function EditProperties() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchProperties();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get<CurrentUser>("/api/authentication/me");
+      setCurrentUser(response.data);
+      setFormData(prev => ({
+        ...prev,
+        userId: response.data.id
+      }));
+    } catch (err) {
+      console.error("Error fetching current user:", err);
+      setError("Please log in to manage properties");
+    }
+  };
 
   const fetchProperties = async () => {
     try {
       const response = await axios.get<PropertyDto[]>("/api/properties");
-      setProperties(response.data);
+      setAllProperties(response.data);
     } catch (err) {
       setError("Failed to fetch properties");
       console.error("Error fetching properties:", err);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const userProperties = allProperties.filter(property => 
+    currentUser && property.userId === currentUser.id
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "userId" ? parseInt(value) || 0 : value
+      [name]: value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      setError("Please log in to manage properties");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
+      const payload = {
+        ...formData,
+        userId: currentUser.id
+      };
+
       if (editingId) {
-        // Update existing property
-        await axios.put(`/api/properties/${editingId}`, formData);
+        await axios.put(`/api/properties/${editingId}`, payload);
       } else {
-        // Create new property
-        await axios.post("/api/properties", formData);
+        await axios.post("/api/properties", payload);
       }
 
       resetForm();
@@ -75,10 +114,12 @@ export default function EditProperties() {
   const handleEdit = (property: PropertyDto) => {
     setFormData({
       name: property.name,
+      description: property.description || "",
       address: property.address,
       city: property.city,
       state: property.state,
       zipCode: property.zipCode,
+      imageUrl: property.imageUrl || "",
       userId: property.userId
     });
     setEditingId(property.id || null);
@@ -101,19 +142,33 @@ export default function EditProperties() {
   const resetForm = () => {
     setFormData({
       name: "",
+      description: "",
       address: "",
       city: "",
       state: "",
       zipCode: "",
-      userId: 0
+      imageUrl: "",
+      userId: currentUser?.id || 0
     });
     setEditingId(null);
     setError("");
   };
 
+  if (!currentUser) {
+    return (
+      <div className="edit-properties">
+        <h1>Manage Properties</h1>
+        <div className="error-message">
+          Please log in to manage properties
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="edit-properties">
       <h1>Manage Properties</h1>
+      <p className="user-info">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
       <form onSubmit={handleSubmit} className="property-form">
         <h2>{editingId ? "Edit Property" : "Add New Property"}</h2>
@@ -127,6 +182,17 @@ export default function EditProperties() {
             value={formData.name}
             onChange={handleInputChange}
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Description:</label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            rows={3}
           />
         </div>
 
@@ -181,17 +247,18 @@ export default function EditProperties() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="userId">Owner User ID:</label>
+          <label htmlFor="imageUrl">Image URL:</label>
           <input
-            type="number"
-            id="userId"
-            name="userId"
-            value={formData.userId}
+            type="text"
+            id="imageUrl"
+            name="imageUrl"
+            value={formData.imageUrl}
             onChange={handleInputChange}
-            required
-            min="1"
+            placeholder="https://example.com/image.jpg"
           />
         </div>
+
+        <input type="hidden" name="userId" value={currentUser.id} />
 
         {error && <div className="error-message">{error}</div>}
 
@@ -208,31 +275,48 @@ export default function EditProperties() {
       </form>
 
       <div className="properties-list">
-        <h2>Properties</h2>
-        {properties.length === 0 ? (
-          <p>No properties found.</p>
+        <h2>Your Properties ({userProperties.length})</h2>
+        {userProperties.length === 0 ? (
+          <p>You don't have any properties yet. Add your first property above!</p>
         ) : (
           <table>
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Description</th>
                 <th>Address</th>
                 <th>City</th>
                 <th>State</th>
                 <th>Zip Code</th>
-                <th>Owner ID</th>
+                <th>Image</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {properties.map(property => (
+              {userProperties.map(property => (
                 <tr key={property.id}>
                   <td>{property.name}</td>
+                  <td className="description-cell">{property.description}</td>
                   <td>{property.address}</td>
                   <td>{property.city}</td>
                   <td>{property.state}</td>
                   <td>{property.zipCode}</td>
-                  <td>{property.userId}</td>
+                  <td>
+                    {property.imageUrl && (
+                      <div className="property-image">
+                        <img
+                          src={property.imageUrl}
+                          alt={property.name}
+                          style={{
+                            maxWidth: '80px',
+                            maxHeight: '80px',
+                            objectFit: 'cover',
+                            borderRadius: '4px'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <button
                       onClick={() => handleEdit(property)}
