@@ -1,6 +1,7 @@
 
 import axios from "axios";
 import "../styles/PropertiesView.css";
+import { useEffect, useState } from "react";
 
 interface PropertyDto {
   id: number;
