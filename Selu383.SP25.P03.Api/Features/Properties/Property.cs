@@ -13,6 +13,8 @@ namespace Selu383.SP25.P03.Api.Features.Properties
         [MaxLength(120)]
         public string Name { get; set; }
 
+        public string? Description { get; set; }
+
         [Required]
         public string Address { get; set; }
 
@@ -27,10 +29,12 @@ namespace Selu383.SP25.P03.Api.Features.Properties
         [StringLength(10)]
         public string ZipCode { get; set; }
 
+        public string? ImageUrl { get; set; }
+
         [Required]
-        public int UserId { get; set; } 
+        public int UserId { get; set; }
         
         [ForeignKey("UserId")]
-        public virtual User User { get; set; } 
+        public virtual User User { get; set; }
     }
 }
