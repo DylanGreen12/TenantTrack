@@ -1,58 +1,107 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import EditProperties from './pages/EditProperties'
+import EditUnits from './pages/EditUnits'
+import PropertiesView from "./pages/PropertiesView";
+import { LoginForm } from "./pages/LoginForm";
+import { SignUpForm } from "./pages/SignUpForm";
+import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
   return (
     <Router>
-      <div className="app-container">
-        {/* Navigation */}
-        <nav className="navigation">
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <Link to="/" className="nav-link">Home</Link>
-            <Link to="/editproperties" className="nav-link">Manage Properties</Link>
-            <Link to="/edittenants" className="nav-link">Manage Tenants</Link>
-            <Link to="/editleases" className="nav-link">Manage Leases</Link>
-          </div>
-        </nav>
+      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+        {/* User Info at the top */}
+        <div style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+          <h1>TenantTrack</h1>
+          {currentUser ? (
+            <div>
+              <p><strong>Current User:</strong> {currentUser.userName}</p>
+              <p><strong>Role:</strong> {currentUser.roles?.join(', ') || 'No roles'}</p>
+            </div>
+          ) : (
+            <p>No user logged in</p>
+          )}
+        </div>
 
-
-        {/* Routes */}
-        <Routes>
-          <Route path="/" element={
-            <>
-              <div>
-                <a href="https://vite.dev" target="_blank">
-                  <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                  <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-              </div>
-              <h1>Vite + React</h1>
-              <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                  count is {count}
+        {/* Navigation Links in list order */}
+        <div style={{ marginBottom: '30px' }}>
+          <h2>Navigation</h2>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/" style={{ textDecoration: 'none', color: 'blue' }}>Home</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/editproperties" style={{ textDecoration: 'none', color: 'blue' }}>Manage Properties</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/editunits" style={{ textDecoration: 'none', color: 'blue' }}>Manage Units</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/edittenants" style={{ textDecoration: 'none', color: 'blue' }}>Manage Tenants</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/editleases" style={{ textDecoration: 'none', color: 'blue' }}>Manage Leases</Link>
+            </li>
+            <li style={{ margin: '5px 0' }}>
+              <Link to="/properties" style={{ textDecoration: 'none', color: 'blue' }}>View Properties</Link>
+            </li>
+            {!currentUser ? (
+              <>
+                <li style={{ margin: '5px 0' }}>
+                  <Link to="/login" style={{ textDecoration: 'none', color: 'blue' }}>Login</Link>
+                </li>
+                <li style={{ margin: '5px 0' }}>
+                  <Link to="/signup" style={{ textDecoration: 'none', color: 'blue' }}>Sign Up</Link>
+                </li>
+              </>
+            ) : (
+              <li style={{ margin: '5px 0' }}>
+                <button 
+                  onClick={() => setCurrentUser(null)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: 'blue', 
+                    textDecoration: 'underline', 
+                    cursor: 'pointer',
+                    padding: 0,
+                    font: 'inherit'
+                  }}
+                >
+                  Logout
                 </button>
-                <p>
-                  Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-              </div>
-              <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-              </p>
-            </>
-          } />
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {/* Main Content */}
+        <Routes>
+          
           <Route path="/editproperties" element={<EditProperties />} />
+          <Route path="/editunits" element={<EditUnits />} />
           <Route path="/edittenants" element={<EditTenants />} />
           <Route path="/editleases" element={<EditLeases />} />
+          <Route path="/properties" element={<PropertiesView />} />
+          
+          <Route path="/login" element={
+            <LoginForm
+              onLoginSuccess={(user) => setCurrentUser(user)}
+              onSwitchToSignUp={() => window.location.href = '/signup'}
+            />
+          } />
+          
+          <Route path="/signup" element={
+            <SignUpForm
+              onSignUpSuccess={(user) => setCurrentUser(user)}
+              onSwitchToLogin={() => window.location.href = '/login'}
+            />
+          } />
         </Routes>
       </div>
     </Router>
