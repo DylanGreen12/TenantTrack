@@ -138,6 +138,7 @@ export default function EditUnits() {
 
   const handleEdit = (unit: UnitDto) => {
     setFormData({
+      id: unit.id,
       unitNumber: unit.unitNumber,
       propertyId: unit.propertyId,
       description: unit.description || "",
