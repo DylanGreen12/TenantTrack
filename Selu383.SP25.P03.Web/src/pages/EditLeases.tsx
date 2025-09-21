@@ -106,6 +106,7 @@ export default function EditLeases() {
 
   const handleEdit = (lease: LeaseDto) => {
     setFormData({
+      id: lease.id,
       unitNumber: lease.unitNumber,
       tenantId: lease.tenantId,
       firstName: lease.firstName,

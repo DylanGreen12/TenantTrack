@@ -78,9 +78,38 @@ namespace Selu383.SP25.P03.Api.Controllers
             var tenant = await _context.Tenants.FindAsync(dto.TenantId);
             if (tenant == null)
             {
-                return NotFound("Tenant not found");
+                return NotFound(new { message = "Tenant not found" });
+            }
+
+            var existingLease = await _context.Leases
+                .FirstOrDefaultAsync(l => l.TenantId == dto.TenantId);
+
+            if (existingLease != null)
+            {
+                return BadRequest(new { message = "This tenant already has another lease." });
+            }
+
+            var leaseDuration = dto.EndDate.ToDateTime(TimeOnly.MinValue) - dto.StartDate.ToDateTime(TimeOnly.MinValue);
+
+            if (dto.StartDate >= dto.EndDate)
+            {
+                return BadRequest(new { message = "Start date must be before end date." });
+            }
+
+            if (leaseDuration.TotalDays < 180)
+            {
+                return BadRequest(new { message ="Lease duration must be at least 6 months." });
             }
             
+            if (dto.Rent < 0)
+            {
+                return BadRequest(new { message = "Rent cannot be negative." });
+            }
+            if (dto.Deposit < 0)
+            {
+                return BadRequest(new { message = "Deposit cannot be negative." });
+            }
+
             var lease = new Lease
             {
                 TenantId = dto.TenantId,
@@ -109,6 +138,35 @@ namespace Selu383.SP25.P03.Api.Controllers
             if (lease == null)
             {
                 return NotFound();
+            }
+
+            var duplicateLease = await _context.Leases
+                .FirstOrDefaultAsync(l => l.TenantId == dto.TenantId && l.Id != id);
+
+            if (duplicateLease != null)
+            {
+                return BadRequest(new { message = "This tenant is already assigned to another lease." });
+            }
+
+            var leaseDuration = dto.EndDate.ToDateTime(TimeOnly.MinValue) - dto.StartDate.ToDateTime(TimeOnly.MinValue);
+
+            if (dto.StartDate >= dto.EndDate)
+            {
+                return BadRequest(new { message = "Start date must be before end date." });
+            }
+
+            if (leaseDuration.TotalDays < 180)
+            {
+                return BadRequest(new { message = "Lease duration must be at least 6 months." });
+            }
+
+            if (dto.Rent < 0)
+            {
+                return BadRequest(new { message = "Rent cannot be negative." });
+            }
+            if (dto.Deposit < 0)
+            {
+                return BadRequest(new { message = "Deposit cannot be negative." });
             }
 
             lease.UnitNumber = dto.UnitNumber;

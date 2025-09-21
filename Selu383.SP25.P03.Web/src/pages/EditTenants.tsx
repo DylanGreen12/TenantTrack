@@ -93,6 +93,7 @@ export default function EditTenants() {
 
   const handleEdit = (tenant: TenantDto) => {
     setFormData({
+      id: tenant.id,
       unitId: tenant.unitId,
       unitNumber: tenant.unitNumber,
       firstName: tenant.firstName,
