@@ -280,7 +280,6 @@ export default function EditLeases() {
           <table>
             <thead>
               <tr>
-                <th>Unit</th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Start Date</th>
@@ -293,7 +292,6 @@ export default function EditLeases() {
             <tbody>
               {leases.map(lease=> (
                 <tr key={lease.id}>
-                  <td>{lease.unitNumber}</td>
                   <td>{lease.firstName}</td>
                   <td>{lease.lastName}</td>
                   <td>{lease.startDate}</td>

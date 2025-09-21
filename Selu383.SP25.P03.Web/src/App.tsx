@@ -9,103 +9,81 @@ import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 
+// Importing the CSS file
+import './App.css';  // <-- Add this line
+
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
   return (
     <Router>
-      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-        {/* User Info at the top */}
-        <div style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
-          <h1>TenantTrack</h1>
-          {currentUser ? (
-            <div>
-              <p><strong>Current User:</strong> {currentUser.userName}</p>
-              <p><strong>Role:</strong> {currentUser.roles?.join(', ') || 'No roles'}</p>
-            </div>
-          ) : (
-            <p>No user logged in</p>
-          )}
-        </div>
+      <div className="app-container">
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <h2 className="brand-name">TenantTrack</h2>
+          </div>
+          <nav className="sidebar-nav">
+            <ul>
+              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
+              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
+              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
+              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
+              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
+              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
+            </ul>
+          </nav>
 
-        {/* Navigation Links in list order */}
-        <div style={{ marginBottom: '30px' }}>
-          <h2>Navigation</h2>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/" style={{ textDecoration: 'none', color: 'blue' }}>Home</Link>
-            </li>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/editproperties" style={{ textDecoration: 'none', color: 'blue' }}>Manage Properties</Link>
-            </li>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/editunits" style={{ textDecoration: 'none', color: 'blue' }}>Manage Units</Link>
-            </li>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/edittenants" style={{ textDecoration: 'none', color: 'blue' }}>Manage Tenants</Link>
-            </li>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/editleases" style={{ textDecoration: 'none', color: 'blue' }}>Manage Leases</Link>
-            </li>
-            <li style={{ margin: '5px 0' }}>
-              <Link to="/properties" style={{ textDecoration: 'none', color: 'blue' }}>View Properties</Link>
-            </li>
-            {!currentUser ? (
-              <>
-                <li style={{ margin: '5px 0' }}>
-                  <Link to="/login" style={{ textDecoration: 'none', color: 'blue' }}>Login</Link>
-                </li>
-                <li style={{ margin: '5px 0' }}>
-                  <Link to="/signup" style={{ textDecoration: 'none', color: 'blue' }}>Sign Up</Link>
-                </li>
-              </>
-            ) : (
-              <li style={{ margin: '5px 0' }}>
-                <button 
+          {/* User Info */}
+          <div className="user-info">
+            {currentUser ? (
+              <div>
+                <p><strong>{currentUser.userName}</strong></p>
+                <p>{currentUser.roles?.join(', ') || "No roles"}</p>
+                <button
                   onClick={() => setCurrentUser(null)}
-                  style={{ 
-                    background: 'none', 
-                    border: 'none', 
-                    color: 'blue', 
-                    textDecoration: 'underline', 
-                    cursor: 'pointer',
-                    padding: 0,
-                    font: 'inherit'
-                  }}
+                  className="logout-button"
                 >
                   Logout
                 </button>
-              </li>
+              </div>
+            ) : (
+              <div>
+                <Link to="/login" className="sidebar-link">🔑 Login</Link>
+                <br />
+                <Link to="/signup" className="sidebar-link">📝 Sign Up</Link>
+              </div>
             )}
-          </ul>
-        </div>
+          </div>
+        </aside>
 
         {/* Main Content */}
-        <Routes>
-          
-          <Route path="/editproperties" element={<EditProperties />} />
-          <Route path="/editunits" element={<EditUnits />} />
-          <Route path="/edittenants" element={<EditTenants />} />
-          <Route path="/editleases" element={<EditLeases />} />
-          <Route path="/properties" element={<PropertiesView />} />
-          
-          <Route path="/login" element={
-            <LoginForm
-              onLoginSuccess={(user) => setCurrentUser(user)}
-              onSwitchToSignUp={() => window.location.href = '/signup'}
-            />
-          } />
-          
-          <Route path="/signup" element={
-            <SignUpForm
-              onSignUpSuccess={(user) => setCurrentUser(user)}
-              onSwitchToLogin={() => window.location.href = '/login'}
-            />
-          } />
-        </Routes>
+        <main className="main-content">
+          <Routes>
+            <Route path="/editproperties" element={<EditProperties />} />
+            <Route path="/editunits" element={<EditUnits />} />
+            <Route path="/edittenants" element={<EditTenants />} />
+            <Route path="/editleases" element={<EditLeases />} />
+            <Route path="/properties" element={<PropertiesView />} />
+
+            <Route path="/login" element={
+              <LoginForm
+                onLoginSuccess={(user) => setCurrentUser(user)}
+                onSwitchToSignUp={() => window.location.href = '/signup'}
+              />
+            } />
+
+            <Route path="/signup" element={
+              <SignUpForm
+                onSignUpSuccess={(user) => setCurrentUser(user)}
+                onSwitchToLogin={() => window.location.href = '/login'}
+              />
+            } />
+          </Routes>
+        </main>
       </div>
     </Router>
   )
 }
 
-export default App
+export default App;
