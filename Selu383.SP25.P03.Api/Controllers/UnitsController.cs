@@ -98,7 +98,7 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
             var property = await _context.Properties.FindAsync(unitDto.PropertyId);
             if (property == null)
             {
-                return NotFound("Property not found");
+                return NotFound(new { message = "Property not found" });
             }
 
             var unit = new Unit
@@ -127,13 +127,13 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
         {
             if (id != unitDto.Id)
             {
-                return BadRequest();
+                return BadRequest(new {message = "Mismatch of ids."});
             }
 
             var unit = await _context.Units.FindAsync(id);
             if (unit == null)
             {
-                return NotFound();
+                return NotFound(new {message = "Unit not found."});
             }
 
             // Verify property exists if changing property
@@ -142,7 +142,7 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
                 var property = await _context.Properties.FindAsync(unitDto.PropertyId);
                 if (property == null)
                 {
-                    return NotFound("Property not found");
+                    return NotFound(new { message = "Property not found" });
                 }
             }
 
