@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/EditProperties.css";
+import "../styles/EditTenants.css"
 
 interface TenantDto {
   id?: number;
-  unit: number;
+  unitId: number;
+  unitNumber: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
@@ -13,10 +14,17 @@ interface TenantDto {
   updatedAt: string;
 }
 
+interface UnitDto {
+  id: number;
+  unitNumber: string;
+}
+
 export default function EditTenants() {
   const [tenants, setTenants] = useState<TenantDto[]>([]);
+  const [units, setUnits] = useState<UnitDto[]>([]);
   const [formData, setFormData] = useState<Omit<TenantDto, "createdAt" | "updatedAt">>({
-    unit: 0,
+    unitId: 0,
+    unitNumber: "",
     firstName: "",
     lastName: "",
     phoneNumber: "",
@@ -28,6 +36,7 @@ export default function EditTenants() {
 
   useEffect(() => {
     fetchTenants();
+    fetchUnits();
   }, []);
 
   const fetchTenants = async () => {
@@ -40,11 +49,21 @@ export default function EditTenants() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fetchUnits = async () => {
+    try {
+      const response = await axios.get<UnitDto[]>("/api/units");
+      setUnits(response.data);
+    } catch (err) {
+      setError("Failed to fetch units");
+      console.error("Error fetching units:", err);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "userId" ? parseInt(value) || 0 : value
+      [name]: name === "userId" ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -55,10 +74,10 @@ export default function EditTenants() {
 
     try {
       if (editingId) {
-        // Update existing property
+        // Update existing tenant
         await axios.put(`/api/tenants/${editingId}`, formData);
       } else {
-        // Create new property
+        // Create new tenant
         await axios.post("/api/tenants", formData);
       }
 
@@ -74,7 +93,8 @@ export default function EditTenants() {
 
   const handleEdit = (tenant: TenantDto) => {
     setFormData({
-      unit: tenant.unit,
+      unitId: tenant.unitId,
+      unitNumber: tenant.unitNumber,
       firstName: tenant.firstName,
       lastName: tenant.lastName,
       phoneNumber: tenant.phoneNumber,
@@ -99,7 +119,8 @@ export default function EditTenants() {
 
   const resetForm = () => {
     setFormData({
-        unit: 0,
+        unitId: 0,
+        unitNumber: "",
         firstName: "",
         lastName: "",
         phoneNumber: "",
@@ -117,15 +138,21 @@ export default function EditTenants() {
         <h2>{editingId ? "Edit Tenant" : "Add New Tenant"}</h2>
         
         <div className="form-group">
-          <label htmlFor="unit">Unit:</label>
-          <input
-            type="number"
-            id="unit"
-            name="unit"
-            value={formData.unit}
+          <label htmlFor="unitId">Unit:</label>
+          <select
+            id="unitId"
+            name="unitId"
+            value={formData.unitId}
             onChange={handleInputChange}
             required
-          />
+          >
+            <option value="">-- Select Unit --</option>
+            {units.map((unit) => (
+              <option key={unit.id} value={unit.id}>
+                {unit.unitNumber}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
@@ -211,7 +238,7 @@ export default function EditTenants() {
             <tbody>
               {tenants.map(tenant => (
                 <tr key={tenant.id}>
-                  <td>{tenant.unit}</td>
+                  <td>{tenant.unitNumber}</td>
                   <td>{tenant.firstName}</td>
                   <td>{tenant.lastName}</td>
                   <td>{tenant.phoneNumber}</td>

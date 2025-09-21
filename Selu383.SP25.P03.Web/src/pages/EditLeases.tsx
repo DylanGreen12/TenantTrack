@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/EditProperties.css";
+import "../styles/EditLeases.css";
 
 interface LeaseDto {
   id?: number;
+  unitNumber: string;
   tenantId: number;
+  firstName: string;
+  lastName: string;
   startDate: string;
   endDate: string;
   rent: number;
@@ -12,10 +15,22 @@ interface LeaseDto {
   status: string;
 }
 
+interface TenantDto {
+  id?: number;
+  unitNumber: string;
+  firstName: string;
+  lastName: string;
+}
+
+
 export default function EditLeases() {
   const [leases, setLeases] = useState<LeaseDto[]>([]);
+  const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [formData, setFormData] = useState<LeaseDto>({
     tenantId: 0,
+    unitNumber: "",
+    firstName: "",
+    lastName: "",
     startDate: "",
     endDate: "",
     rent: 0,
@@ -28,6 +43,7 @@ export default function EditLeases() {
 
   useEffect(() => {
     fetchLeases();
+    fetchTenants();
   }, []);
 
   const fetchLeases = async () => {
@@ -37,6 +53,16 @@ export default function EditLeases() {
     } catch (err) {
       setError("Failed to fetch leases");
       console.error("Error fetching leases:", err);
+    }
+  };
+
+  const fetchTenants = async () => {
+    try {
+      const response = await axios.get<TenantDto[]>("/api/tenants");
+      setTenants(response.data);
+    } catch (err) {
+      setError("Failed to fetch tenants");
+      console.error("Error fetching tenants:", err);
     }
   };
 
@@ -53,15 +79,6 @@ export default function EditLeases() {
                 : value,
     }));
   };
-/*
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === "userId" ? parseInt(value) || 0 : value
-    }));
-  };
-  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +106,10 @@ export default function EditLeases() {
 
   const handleEdit = (lease: LeaseDto) => {
     setFormData({
+      unitNumber: lease.unitNumber,
       tenantId: lease.tenantId,
+      firstName: lease.firstName,
+      lastName: lease.lastName,
       startDate: lease.startDate,
       endDate: lease.endDate,
       rent: lease.rent,
@@ -115,7 +135,10 @@ export default function EditLeases() {
 
   const resetForm = () => {
     setFormData({
+        unitNumber: "",
         tenantId: 0,
+        firstName: "",
+        lastName: "",
         startDate: "",
         endDate: "",
         rent: 0,
@@ -136,15 +159,32 @@ export default function EditLeases() {
         <h2>{editingId ? "Edit Lease" : "Add New Lease"}</h2>
         
         <div className="form-group">
-          <label htmlFor="name">TenantId:</label>
-          <input
-            type="number"
+          <label htmlFor="tenantId">Tenant:</label>
+          <select
             id="tenantId"
             name="tenantId"
             value={formData.tenantId}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              const tenantId = Number(e.target.value);
+              const tenant = tenants.find(t => t.id === tenantId);
+
+              setFormData(prev => ({
+                ...prev,
+                tenantId,
+                unitNumber: tenant?.unitNumber || "",
+                firstName: tenant?.firstName || "",
+                lastName: tenant?.lastName || ""
+              }));
+            }}
             required
-          />
+          >
+            <option value="">-- Select Tenant --</option>
+            {tenants.map(tenant => (
+              <option key={tenant.id} value={tenant.id}>
+                {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
@@ -240,7 +280,9 @@ export default function EditLeases() {
           <table>
             <thead>
               <tr>
-                <th>TenantId</th>
+                <th>Unit</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Rent</th>
@@ -251,7 +293,9 @@ export default function EditLeases() {
             <tbody>
               {leases.map(lease=> (
                 <tr key={lease.id}>
-                  <td>{lease.tenantId}</td>
+                  <td>{lease.unitNumber}</td>
+                  <td>{lease.firstName}</td>
+                  <td>{lease.lastName}</td>
                   <td>{lease.startDate}</td>
                   <td>{lease.endDate}</td>
                   <td>{lease.rent}</td>

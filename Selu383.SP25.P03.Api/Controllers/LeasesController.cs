@@ -26,7 +26,10 @@ namespace Selu383.SP25.P03.Api.Controllers
                 .Select(l => new LeaseDto
                 {
                     Id = l.Id,
+                    UnitNumber = l.Tenant.UnitNumber,
                     TenantId = l.TenantId,
+                    FirstName = l.Tenant.FirstName,
+                    LastName = l.Tenant.LastName,
                     StartDate = l.StartDate,
                     EndDate = l.EndDate,
                     Rent = l.Rent,
@@ -47,7 +50,10 @@ namespace Selu383.SP25.P03.Api.Controllers
                 .Select(l => new LeaseDto
                 {
                     Id = l.Id,
+                    UnitNumber = l.Tenant.UnitNumber,
                     TenantId = l.TenantId,
+                    FirstName = l.Tenant.FirstName,
+                    LastName = l.Tenant.LastName,
                     StartDate = l.StartDate,
                     EndDate = l.EndDate,
                     Rent = l.Rent,
@@ -78,6 +84,9 @@ namespace Selu383.SP25.P03.Api.Controllers
             var lease = new Lease
             {
                 TenantId = dto.TenantId,
+                UnitNumber = dto.UnitNumber,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 Rent = dto.Rent,
@@ -102,7 +111,10 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
+            lease.UnitNumber = dto.UnitNumber;
             lease.TenantId = dto.TenantId;
+            lease.FirstName = dto.FirstName;
+            lease.LastName = dto.LastName;
             lease.StartDate = dto.StartDate;
             lease.EndDate = dto.EndDate;
             lease.Rent = dto.Rent;

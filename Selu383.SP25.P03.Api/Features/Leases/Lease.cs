@@ -9,9 +9,21 @@ namespace Selu383.SP25.P03.Api.Features.Leases
         [Key]
         public int Id { get; set; }
 
+        public required string UnitNumber { get; set; }
+
+        [ForeignKey("UnitNumber")]
+
         public required int TenantId { get; set; }
 
         [ForeignKey("TenantId")]
+
+        public required string FirstName { get; set; }
+
+        [ForeignKey("FirstName")]
+
+        public required string LastName { get; set; }
+
+        [ForeignKey("LastName")]
         public required DateOnly StartDate { get; set; }
 
         public required DateOnly EndDate { get; set; }
