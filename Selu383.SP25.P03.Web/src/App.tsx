@@ -6,6 +6,7 @@ import './App.css'
 import EditProperties from './pages/EditProperties'
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
+import EditStaff from './pages/EditStaff'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -20,6 +21,8 @@ function App() {
             <Link to="/editproperties" className="nav-link">Manage Properties</Link>
             <Link to="/edittenants" className="nav-link">Manage Tenants</Link>
             <Link to="/editleases" className="nav-link">Manage Leases</Link>
+            <Link to="/editstaff" className="nav-link">Manage Staff</Link>
+
           </div>
         </nav>
 
@@ -53,6 +56,7 @@ function App() {
           <Route path="/editproperties" element={<EditProperties />} />
           <Route path="/edittenants" element={<EditTenants />} />
           <Route path="/editleases" element={<EditLeases />} />
+          <Route path="/editstaff" element={<EditStaff />} />
         </Routes>
       </div>
     </Router>
