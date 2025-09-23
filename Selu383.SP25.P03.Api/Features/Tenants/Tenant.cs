@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-//using Selu383.SP25.P03.Api.Features.Units;
+using Selu383.SP25.P03.Api.Features.Units;
 
 namespace Selu383.SP25.P03.Api.Features.Tenants
 {
@@ -11,10 +11,18 @@ namespace Selu383.SP25.P03.Api.Features.Tenants
 
         [Required]
         [MaxLength(120)]
-        public required int Unit { get; set; }
 
-        //[ForeignKey("UnitId")]
+        public required int UnitId { get; set; }
+
+        [ForeignKey("UnitId")]
         [MaxLength(120)]
+
+        public required string UnitNumber { get; set; }
+
+        [ForeignKey("UnitNumber")]
+        [MaxLength(120)]
+
+
         public required string FirstName { get; set; }
 
         public required string LastName { get; set; }
@@ -27,6 +35,6 @@ namespace Selu383.SP25.P03.Api.Features.Tenants
 
         public DateTime UpdatedAt { get; set; } 
         
-        //public virtual Unit Unit { get; set; } 
+        public virtual Unit Unit { get; set; } 
     }
 }

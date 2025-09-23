@@ -1,62 +1,89 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import EditProperties from './pages/EditProperties'
+import EditUnits from './pages/EditUnits'
+import PropertiesView from "./pages/PropertiesView";
+import { LoginForm } from "./pages/LoginForm";
+import { SignUpForm } from "./pages/SignUpForm";
+import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 
+// Importing the CSS file
+import './App.css';  // <-- Add this line
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
   return (
     <Router>
       <div className="app-container">
-        {/* Navigation */}
-        <nav className="navigation">
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <Link to="/" className="nav-link">Home</Link>
-            <Link to="/editproperties" className="nav-link">Manage Properties</Link>
-            <Link to="/edittenants" className="nav-link">Manage Tenants</Link>
-            <Link to="/editleases" className="nav-link">Manage Leases</Link>
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <h2 className="brand-name">TenantTrack</h2>
           </div>
-        </nav>
+          <nav className="sidebar-nav">
+            <ul>
+              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
+              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
+              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
+              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
+              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
+              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
+            </ul>
+          </nav>
 
-
-        {/* Routes */}
-        <Routes>
-          <Route path="/" element={
-            <>
+          {/* User Info */}
+          <div className="user-info">
+            {currentUser ? (
               <div>
-                <a href="https://vite.dev" target="_blank">
-                  <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                  <img src={reactLogo} className="logo react" alt="React logo" />
-                </a>
-              </div>
-              <h1>Vite + React</h1>
-              <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                  count is {count}
+                <p><strong>{currentUser.userName}</strong></p>
+                <p>{currentUser.roles?.join(', ') || "No roles"}</p>
+                <button
+                  onClick={() => setCurrentUser(null)}
+                  className="logout-button"
+                >
+                  Logout
                 </button>
-                <p>
-                  Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
               </div>
-              <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-              </p>
-            </>
-          } />
-          <Route path="/editproperties" element={<EditProperties />} />
-          <Route path="/edittenants" element={<EditTenants />} />
-          <Route path="/editleases" element={<EditLeases />} />
-        </Routes>
+            ) : (
+              <div>
+                <Link to="/login" className="sidebar-link">🔑 Login</Link>
+                <br />
+                <Link to="/signup" className="sidebar-link">📝 Sign Up</Link>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="main-content">
+          <Routes>
+            <Route path="/editproperties" element={<EditProperties />} />
+            <Route path="/editunits" element={<EditUnits />} />
+            <Route path="/edittenants" element={<EditTenants />} />
+            <Route path="/editleases" element={<EditLeases />} />
+            <Route path="/properties" element={<PropertiesView />} />
+
+            <Route path="/login" element={
+              <LoginForm
+                onLoginSuccess={(user) => setCurrentUser(user)}
+                onSwitchToSignUp={() => window.location.href = '/signup'}
+              />
+            } />
+
+            <Route path="/signup" element={
+              <SignUpForm
+                onSignUpSuccess={(user) => setCurrentUser(user)}
+                onSwitchToLogin={() => window.location.href = '/login'}
+              />
+            } />
+          </Routes>
+        </main>
       </div>
     </Router>
   )
 }
 
-export default App
+export default App;
