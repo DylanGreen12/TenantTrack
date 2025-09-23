@@ -9,56 +9,208 @@ import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 
-// Importing the CSS file
-import './App.css';  // <-- Add this line
+// Chakra UI imports
+import { 
+  Box, 
+  Text, 
+  Button, 
+  Flex,
+  Heading
+} from '@chakra-ui/react'
 
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
   return (
     <Router>
-      <div className="app-container">
+      <Flex height="100vh" fontFamily="Arial, sans-serif">
         {/* Sidebar */}
-        <aside className="sidebar">
-          <div className="sidebar-header">
-            <h2 className="brand-name">TenantTrack</h2>
-          </div>
-          <nav className="sidebar-nav">
-            <ul>
-              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
-              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
-              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
-              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
-              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
-              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
-            </ul>
-          </nav>
+        <Box 
+          width="250px" 
+          bg="blue.700" 
+          color="white"
+          p={6}
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+          boxShadow="2px 0 10px rgba(0, 0, 0, 0.1)"
+        >
+          <Box>
+            {/* Sidebar Header */}
+            <Box mb={10} textAlign="center">
+              <Heading as="h2" size="lg" color="white">
+                TenantTrack
+              </Heading>
+            </Box>
+
+            {/* Navigation */}
+            <nav>
+              <Box as="ul" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <Box as="li" mb={5}>
+                  <Link to="/">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      🏠 Home
+                    </Button>
+                  </Link>
+                </Box>
+                <Box as="li" mb={5}>
+                  <Link to="/editproperties">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      🏢 Manage Properties
+                    </Button>
+                  </Link>
+                </Box>
+                <Box as="li" mb={5}>
+                  <Link to="/editunits">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      📦 Manage Units
+                    </Button>
+                  </Link>
+                </Box>
+                <Box as="li" mb={5}>
+                  <Link to="/edittenants">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      👤 Manage Tenants
+                    </Button>
+                  </Link>
+                </Box>
+                <Box as="li" mb={5}>
+                  <Link to="/editleases">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      📄 Manage Leases
+                    </Button>
+                  </Link>
+                </Box>
+                <Box as="li" mb={5}>
+                  <Link to="/properties">
+                    <Button 
+                      variant="ghost" 
+                      justifyContent="flex-start"
+                      color="white"
+                      width="100%"
+                      _hover={{ 
+                        color: 'blue.200',
+                        bg: 'rgba(255, 255, 255, 0.1)',
+                        transform: 'translateX(10px)'
+                      }}
+                      transition="all 0.3s ease"
+                    >
+                      📋 View Properties
+                    </Button>
+                  </Link>
+                </Box>
+              </Box>
+            </nav>
+          </Box>
 
           {/* User Info */}
-          <div className="user-info">
+          <Box mt="auto" textAlign="center" fontSize="sm">
             {currentUser ? (
-              <div>
-                <p><strong>{currentUser.userName}</strong></p>
-                <p>{currentUser.roles?.join(', ') || "No roles"}</p>
-                <button
+              <Box>
+                <Text fontWeight="bold">{currentUser.userName}</Text>
+                <Text>{currentUser.roles?.join(', ') || "No roles"}</Text>
+                <Button
                   onClick={() => setCurrentUser(null)}
-                  className="logout-button"
+                  colorScheme="red"
+                  size="sm"
+                  width="100%"
+                  mt={4}
                 >
                   Logout
-                </button>
-              </div>
+                </Button>
+              </Box>
             ) : (
-              <div>
-                <Link to="/login" className="sidebar-link">🔑 Login</Link>
-                <br />
-                <Link to="/signup" className="sidebar-link">📝 Sign Up</Link>
-              </div>
+              <Box>
+                <Link to="/login">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    color="white"
+                    width="100%"
+                    mb={2}
+                    _hover={{ color: 'blue.200', bg: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    🔑 Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    color="white"
+                    width="100%"
+                    _hover={{ color: 'blue.200', bg: 'rgba(255, 255, 255, 0.1)' }}
+                  >
+                    📝 Sign Up
+                  </Button>
+                </Link>
+              </Box>
             )}
-          </div>
-        </aside>
+          </Box>
+        </Box>
 
         {/* Main Content */}
-        <main className="main-content">
+        <Box 
+          flex={1} 
+          p={8} 
+          overflowY="auto" 
+          bg="gray.50"
+        >
           <Routes>
             <Route path="/editproperties" element={<EditProperties />} />
             <Route path="/editunits" element={<EditUnits />} />
@@ -80,10 +232,10 @@ function App() {
               />
             } />
           </Routes>
-        </main>
-      </div>
+        </Box>
+      </Flex>
     </Router>
   )
 }
 
-export default App;
+export default App
