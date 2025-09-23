@@ -1,10 +1,10 @@
-.edit-properties {
+.edit-leases {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
   }
   
-  .property-form {
+  .lease-form {
     background: #00061f;
     padding: 20px;
     border-radius: 8px;
@@ -67,25 +67,25 @@
     cursor: not-allowed;
   }
   
-  .properties-list table {
+  .leases-list table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
   }
   
-  .properties-list th,
-  .properties-list td {
+  .leases-list th,
+  .leases-list td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
   }
   
-  .properties-list th {
+  .leases-list th {
     background: #01101f;
     font-weight: bold;
   }
   
-  .properties-list button {
+  .leases-list button {
     padding: 6px 12px;
     margin-right: 5px;
     border: none;
@@ -94,21 +94,21 @@
     font-size: 12px;
   }
   
-  .properties-list button:first-child {
+  .leases-list button:first-child {
     background: #28a745;
     color: white;
   }
   
-  .properties-list button:first-child:hover {
+  .leases-list button:first-child:hover {
     background: #1e7e34;
   }
   
-  .properties-list .delete-btn {
+  .leases-list .delete-btn {
     background: #dc3545;
     color: white;
   }
   
-  .properties-list .delete-btn:hover {
+  .leases-list .delete-btn:hover {
     background: #c82333;
   }
   
