@@ -254,7 +254,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="bg-[#00061f] p-20px rounded-8px mb-30px">
+      <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Lease" : "Add New Lease"}</h2>
         
         <div className="mb-15px">
@@ -401,7 +401,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
         {userLeases.length === 0 ? (
           <p>You don't have any leases yet. Add your first lease above!</p>
         ) : (
-          <table className="w-full border-collapse mt-20px">
+          <table className="w-full text-white border-collapse mt-20px">
             <thead>
               <tr>
                 <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Unit</th>
