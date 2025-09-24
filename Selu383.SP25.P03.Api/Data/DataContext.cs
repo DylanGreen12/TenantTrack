@@ -56,11 +56,6 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasForeignKey(s => s.PropertyId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.Entity<Staff>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

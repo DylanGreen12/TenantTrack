@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Selu383.SP25.P03.Api.Features.Properties;
-using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Features.Staff
 {
@@ -34,11 +33,5 @@ namespace Selu383.SP25.P03.Api.Features.Staff
 
         [ForeignKey("PropertyId")]
         public virtual Property Property { get; set; }
-
-        [Required]
-        public required int UserId { get; set; }
-
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; }
     }
 }
