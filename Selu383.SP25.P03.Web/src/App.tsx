@@ -142,14 +142,14 @@ function App() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-30px overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-30px text-gray-800 overflow-y-auto bg-gray-50">
           <Routes>
             <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
-            <Route path="/editproperties" element={<EditProperties />} />
-            <Route path="/editunits" element={<EditUnits />} />
-            <Route path="/edittenants" element={<EditTenants />} />
-            <Route path="/editleases" element={<EditLeases />} />
-            <Route path="/properties" element={<PropertiesView />} />
+            <Route path="/editproperties" element={<EditProperties currentUser={currentUser || undefined} />} />
+            <Route path="/editunits" element={<EditUnits currentUser={currentUser || undefined} />} />
+            <Route path="/edittenants" element={<EditTenants currentUser={currentUser || undefined} />} />
+            <Route path="/editleases" element={<EditLeases currentUser={currentUser || undefined} />} />
+            <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
 
             <Route path="/login" element={
               <LoginForm

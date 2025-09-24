@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { UserDto } from "../models/UserDto";
 
 interface PropertyDto {
   id?: number;
@@ -13,15 +14,12 @@ interface PropertyDto {
   userId: number;
 }
 
-interface CurrentUser {
-  id: number;
-  userName: string;
-  roles?: string[];
+interface EditPropertiesProps {
+  currentUser?: UserDto; 
 }
 
-export default function EditProperties() {
+const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
   const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<PropertyDto>({
     name: "",
     description: "",
@@ -35,25 +33,20 @@ export default function EditProperties() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
-    fetchCurrentUser();
-    fetchProperties();
-  }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await axios.get<CurrentUser>("/api/authentication/me");
-      setCurrentUser(response.data);
+    if (currentUser) {
+      // Convert string ID to number for the backend
+      const userIdNumber = parseInt(currentUser.id);
       setFormData(prev => ({
         ...prev,
-        userId: response.data.id
+        userId: userIdNumber
       }));
-    } catch (err) {
-      console.error("Error fetching current user:", err);
-      setError("Please log in to manage properties");
+      fetchProperties();
     }
-  };
+  }, [currentUser]);
 
   const fetchProperties = async () => {
     try {
@@ -61,12 +54,14 @@ export default function EditProperties() {
       setAllProperties(response.data);
     } catch (err) {
       setError("Failed to fetch properties");
+      setMessage("Failed to fetch properties.");
+      setShowMessage(true);
       console.error("Error fetching properties:", err);
     }
   };
 
   const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === currentUser.id
+    currentUser && property.userId === parseInt(currentUser.id)
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -82,28 +77,37 @@ export default function EditProperties() {
     
     if (!currentUser) {
       setError("Please log in to manage properties");
+      setMessage("Please log in to manage properties.");
+      setShowMessage(true);
       return;
     }
 
     setLoading(true);
     setError("");
+    setShowMessage(false);
 
     try {
       const payload = {
         ...formData,
-        userId: currentUser.id
+        userId: parseInt(currentUser.id) 
       };
 
       if (editingId) {
         await axios.put(`/api/properties/${editingId}`, payload);
+        setMessage("Property updated successfully!");
       } else {
         await axios.post("/api/properties", payload);
+        setMessage("Property added successfully!");
       }
+      setShowMessage(true);
 
       resetForm();
       await fetchProperties();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save property");
+      const errorMsg = err.response?.data?.message || "Failed to save property";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
       console.error("Error saving property:", err);
     } finally {
       setLoading(false);
@@ -131,9 +135,14 @@ export default function EditProperties() {
 
     try {
       await axios.delete(`/api/properties/${id}`);
+      setMessage("Property deleted successfully!");
+      setShowMessage(true);
       await fetchProperties();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to delete property");
+      const errorMsg = err.response?.data?.message || "Failed to delete property";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
       console.error("Error deleting property:", err);
     }
   };
@@ -147,10 +156,11 @@ export default function EditProperties() {
       state: "",
       zipCode: "",
       imageUrl: "",
-      userId: currentUser?.id || 0
+      userId: currentUser ? parseInt(currentUser.id) : 0
     });
     setEditingId(null);
     setError("");
+    setShowMessage(false);
   };
 
   if (!currentUser) {
@@ -168,6 +178,12 @@ export default function EditProperties() {
     <div className="p-20px max-w-1200px mx-auto">
       <h1 className="text-gray-800">Manage Properties</h1>
       <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
+      
+      {showMessage && (
+        <div className={`message-popup ${error ? "error" : "success"}`}>
+          {message}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="bg-[#00061f] p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Property" : "Add New Property"}</h2>
@@ -266,7 +282,7 @@ export default function EditProperties() {
 
         <input type="hidden" name="userId" value={currentUser.id} />
 
-        {error && (
+        {error && !showMessage && (
           <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
             {error}
           </div>
@@ -355,4 +371,6 @@ export default function EditProperties() {
       </div>
     </div>
   );
-}
+};
+
+export default EditProperties;
