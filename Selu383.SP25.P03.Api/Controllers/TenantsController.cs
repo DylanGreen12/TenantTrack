@@ -171,6 +171,14 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Unit does not exist or is not available for tenant assignment" });
             }
 
+            // Update unit status to "Rented"
+            var unit = await _context.Units.FindAsync(dto.UnitId);
+            if (unit != null)
+            {
+                unit.Status = "Rented";
+                _context.Units.Update(unit);
+            }
+
             var tenant = new Tenant
             {
                 UnitId = dto.UnitId,
@@ -275,12 +283,29 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Phone number must be between 10-15 digits" });
             }
 
-            // Validate unit exists and is available (only if changing unit)
+            // Handle unit changes
             if (tenant.UnitId != dto.UnitId)
             {
+                // Validate new unit exists and is available
                 if (!await IsUnitAvailableAsync(dto.UnitId))
                 {
                     return BadRequest(new { message = "Unit does not exist or is not available for tenant assignment" });
+                }
+
+                // Update old unit status back to "Available"
+                var oldUnit = await _context.Units.FindAsync(tenant.UnitId);
+                if (oldUnit != null)
+                {
+                    oldUnit.Status = "Available";
+                    _context.Units.Update(oldUnit);
+                }
+
+                // Update new unit status to "Rented"
+                var newUnit = await _context.Units.FindAsync(dto.UnitId);
+                if (newUnit != null)
+                {
+                    newUnit.Status = "Rented";
+                    _context.Units.Update(newUnit);
                 }
             }
 
@@ -336,6 +361,13 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
+            // Update unit status back to "Available"
+            var unit = await _context.Units.FindAsync(tenant.UnitId);
+            if (unit != null)
+            {
+                unit.Status = "Available";
+                _context.Units.Update(unit);
+            }
 
             _context.Tenants.Remove(tenant);
         
