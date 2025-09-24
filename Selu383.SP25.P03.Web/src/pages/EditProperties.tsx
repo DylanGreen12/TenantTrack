@@ -185,7 +185,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="bg-[#00061f] p-20px rounded-8px mb-30px">
+      <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Property" : "Add New Property"}</h2>
         
         <div className="mb-15px">
@@ -314,7 +314,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
         {userProperties.length === 0 ? (
           <p>You don't have any properties yet. Add your first property above!</p>
         ) : (
-          <table className="w-full border-collapse mt-20px">
+          <table className="w-full text-white border-collapse mt-20px">
             <thead>
               <tr>
                 <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Name</th>
