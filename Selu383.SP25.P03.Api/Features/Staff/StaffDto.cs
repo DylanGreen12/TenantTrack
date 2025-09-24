@@ -10,7 +10,5 @@ namespace Selu383.SP25.P03.Api.Features.Staff
         public required string Position { get; set; }
         public required int PropertyId { get; set; }
         public required string PropertyName { get; set; }
-        public required int UserId { get; set; }
-        public required string UserName { get; set; }
     }
 }

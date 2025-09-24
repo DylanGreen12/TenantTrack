@@ -68,18 +68,12 @@ namespace Selu383.SP25.P03.Api.Controllers
             return await _context.Properties.AnyAsync(p => p.Id == propertyId);
         }
 
-        private async Task<bool> IsUserValidAsync(int userId)
-        {
-            return await _context.Users.AnyAsync(u => u.Id == userId);
-        }
-
         // GET: api/staff
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaff()
         {
             var staff = await _context.Staff
                 .Include(s => s.Property)
-                .Include(s => s.User)
                 .Select(s => new StaffDto
                 {
                     Id = s.Id,
@@ -89,9 +83,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name,
-                    UserId = s.UserId,
-                    UserName = s.User.UserName ?? ""
+                    PropertyName = s.Property.Name
                 })
                 .ToListAsync();
 
@@ -104,7 +96,6 @@ namespace Selu383.SP25.P03.Api.Controllers
         {
             var staff = await _context.Staff
                 .Include(s => s.Property)
-                .Include(s => s.User)
                 .Where(s => s.Id == id)
                 .Select(s => new StaffDto
                 {
@@ -115,9 +106,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name,
-                    UserId = s.UserId,
-                    UserName = s.User.UserName ?? ""
+                    PropertyName = s.Property.Name
                 })
                 .FirstOrDefaultAsync();
 
@@ -187,12 +176,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Property does not exist" });
             }
 
-            // Validate user exists
-            if (!await IsUserValidAsync(dto.UserId))
-            {
-                return BadRequest(new { message = "User does not exist" });
-            }
-
             var staff = new Staff
             {
                 FirstName = dto.FirstName.Trim(),
@@ -200,8 +183,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Email = dto.Email.Trim().ToLower(),
                 Phone = dto.Phone.Trim(),
                 Position = dto.Position.Trim(),
-                PropertyId = dto.PropertyId,
-                UserId = dto.UserId
+                PropertyId = dto.PropertyId
             };
 
             _context.Staff.Add(staff);
@@ -235,7 +217,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             // Reload with related data for response
             var createdStaff = await _context.Staff
                 .Include(s => s.Property)
-                .Include(s => s.User)
                 .Where(s => s.Id == staff.Id)
                 .Select(s => new StaffDto
                 {
@@ -246,9 +227,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name,
-                    UserId = s.UserId,
-                    UserName = s.User.UserName ?? ""
+                    PropertyName = s.Property.Name
                 })
                 .FirstAsync();
 
@@ -325,12 +304,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Property does not exist" });
             }
 
-            // Validate user exists
-            if (!await IsUserValidAsync(dto.UserId))
-            {
-                return BadRequest(new { message = "User does not exist" });
-            }
-
             // Update staff properties
             staff.FirstName = dto.FirstName.Trim();
             staff.LastName = dto.LastName.Trim();
@@ -338,7 +311,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             staff.Phone = dto.Phone.Trim();
             staff.Position = dto.Position.Trim();
             staff.PropertyId = dto.PropertyId;
-            staff.UserId = dto.UserId;
 
             _context.Staff.Update(staff);
 
@@ -371,7 +343,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             // Reload with related data for response
             var updatedStaff = await _context.Staff
                 .Include(s => s.Property)
-                .Include(s => s.User)
                 .Where(s => s.Id == staff.Id)
                 .Select(s => new StaffDto
                 {
@@ -382,9 +353,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name,
-                    UserId = s.UserId,
-                    UserName = s.User.UserName ?? ""
+                    PropertyName = s.Property.Name
                 })
                 .FirstAsync();
 

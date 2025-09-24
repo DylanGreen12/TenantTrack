@@ -11,8 +11,6 @@ interface StaffDto {
   position: string;
   propertyId: number;
   propertyName: string;
-  userId: number;
-  userName: string;
 }
 
 interface PropertyDto {
@@ -20,23 +18,16 @@ interface PropertyDto {
   name: string;
 }
 
-interface UserDto {
-  id: number;
-  userName: string;
-}
-
 export default function EditStaff() {
   const [staff, setStaff] = useState<StaffDto[]>([]);
   const [properties, setProperties] = useState<PropertyDto[]>([]);
-  const [users, setUsers] = useState<UserDto[]>([]);
-  const [formData, setFormData] = useState<Omit<StaffDto, "propertyName" | "userName">>({
+  const [formData, setFormData] = useState<Omit<StaffDto, "propertyName">>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     position: "",
-    propertyId: 0,
-    userId: 0
+    propertyId: 0
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,7 +36,6 @@ export default function EditStaff() {
   useEffect(() => {
     fetchStaff();
     fetchProperties();
-    fetchUsers();
   }, []);
 
   const fetchStaff = async () => {
@@ -68,21 +58,11 @@ export default function EditStaff() {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get<UserDto[]>("/api/users");
-      setUsers(response.data);
-    } catch (err) {
-      setError("Failed to fetch users");
-      console.error("Error fetching users:", err);
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "propertyId" || name === "userId" ? parseInt(value) || 0 : value,
+      [name]: name === "propertyId" ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -118,8 +98,7 @@ export default function EditStaff() {
       email: staffMember.email,
       phone: staffMember.phone,
       position: staffMember.position,
-      propertyId: staffMember.propertyId,
-      userId: staffMember.userId
+      propertyId: staffMember.propertyId
     });
     setEditingId(staffMember.id || null);
   };
@@ -145,8 +124,7 @@ export default function EditStaff() {
       email: "",
       phone: "",
       position: "",
-      propertyId: 0,
-      userId: 0
+      propertyId: 0
     });
     setEditingId(null);
     setError("");
@@ -242,24 +220,6 @@ export default function EditStaff() {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="userId">User:</label>
-          <select
-            id="userId"
-            name="userId"
-            value={formData.userId}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">-- Select User --</option>
-            {users?.map?.(user => (
-              <option key={user.id} value={user.id}>
-                {user.userName}
-              </option>
-            )) || null}
-          </select>
-        </div>
-
         {error && <div className="error-message">{error}</div>}
 
         <div className="form-buttons">
@@ -288,7 +248,6 @@ export default function EditStaff() {
                 <th>Phone</th>
                 <th>Position</th>
                 <th>Property</th>
-                <th>User</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -301,7 +260,6 @@ export default function EditStaff() {
                   <td>{staffMember.phone}</td>
                   <td>{staffMember.position}</td>
                   <td>{staffMember.propertyName}</td>
-                  <td>{staffMember.userName}</td>
                   <td>
                     <button
                       onClick={() => handleEdit(staffMember)}
@@ -320,7 +278,7 @@ export default function EditStaff() {
                 </tr>
               )) || (
                 <tr>
-                  <td colSpan="8">
+                  <td colSpan="7">
                     {loading ? "Loading staff..." : "No staff found"}
                   </td>
                 </tr>
