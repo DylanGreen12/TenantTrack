@@ -8,6 +8,7 @@ import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
+import EditStaff from './pages/EditStaff'
 
 // Importing the CSS file
 import './App.css';  // <-- Add this line
@@ -31,6 +32,7 @@ function App() {
               <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
               <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
               <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
+              <li><Link to="/editstaff" className="sidebar-link">👥 Manage Staff</Link></li>
             </ul>
           </nav>
 
@@ -65,6 +67,7 @@ function App() {
             <Route path="/edittenants" element={<EditTenants />} />
             <Route path="/editleases" element={<EditLeases />} />
             <Route path="/properties" element={<PropertiesView />} />
+            <Route path="/editstaff" element={<EditStaff />} />
 
             <Route path="/login" element={
               <LoginForm
