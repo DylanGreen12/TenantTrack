@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Properties;
@@ -141,6 +141,13 @@ namespace Selu383.SP25.P03.Api.Controllers
             if (property == null)
             {
                 return NotFound();
+            }
+
+            // Check if there are any units assigned to this property
+            var hasUnits = await _context.Units.AnyAsync(u => u.PropertyId == id);
+            if (hasUnits)
+            {
+                return BadRequest(new { message = "Cannot delete property that has units assigned. Please remove all units first." });
             }
 
             _context.Properties.Remove(property);
