@@ -10,7 +10,6 @@ interface StaffDto {
   phone: string;
   position: string;
   propertyId: number;
-  propertyName: string;
 }
 
 interface PropertyDto {
@@ -364,25 +363,27 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-white bg-[#01101f] border border-gray-300">
               <thead>
-                <tr className="bg-gray-100 text-gray-800">
-                  <th className="p-3 text-left border border-gray-300 font-semibold">First Name</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Last Name</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Email</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Phone</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Position</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Property</th>
-                  <th className="p-3 text-left border border-gray-300 font-semibold">Actions</th>
+                <tr className="bg-gray-100 text-white">
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">First Name</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Last Name</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Email</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Phone</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Position</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Property</th>
+                  <th className="p-3 text-left border border-gray-300 bg-[#01101f] font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {userStaff.map(staffMember => (
-                  <tr key={staffMember.id} className="hover:bg-gray-50 bg-[#322c35] text-white">
+                {userStaff.map(staffMember => {
+                  const property = userProperties.find(p => p.id === staffMember.propertyId);
+                  return (
+                  <tr key={staffMember.id} className="bg-[#322c35] text-white">
                     <td className="p-3 border border-gray-300">{staffMember.firstName}</td>
                     <td className="p-3 border border-gray-300">{staffMember.lastName}</td>
                     <td className="p-3 border border-gray-300">{staffMember.email}</td>
                     <td className="p-3 border border-gray-300">{staffMember.phone}</td>
                     <td className="p-3 border border-gray-300">{staffMember.position}</td>
-                    <td className="p-3 border border-gray-300">{staffMember.propertyName}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{property?.name || staffMember.propertyId}</td>
                     <td className="p-3 border border-gray-300">
                       <div className="flex gap-2">
                         <button
@@ -402,7 +403,8 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>
