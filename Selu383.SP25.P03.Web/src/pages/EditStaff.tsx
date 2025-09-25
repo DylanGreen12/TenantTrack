@@ -278,7 +278,7 @@ export default function EditStaff() {
                 </tr>
               )) || (
                 <tr>
-                  <td colSpan="7">
+                  <td colSpan={7}>
                     {loading ? "Loading staff..." : "No staff found"}
                   </td>
                 </tr>
