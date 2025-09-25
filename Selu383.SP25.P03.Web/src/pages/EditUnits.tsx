@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/EditUnits.css";
+import { UserDto } from "../models/UserDto";
 
 interface UnitDto {
   id?: number;
@@ -21,16 +21,13 @@ interface PropertyDto {
   userId: number;
 }
 
-interface CurrentUser {
-  id: number;
-  userName: string;
-  roles?: string[];
+interface EditUnitsProps {
+  currentUser?: UserDto;
 }
 
-export default function EditUnits() {
+const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
   const [units, setUnits] = useState<UnitDto[]>([]);
   const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<UnitDto>({
     unitNumber: "",
     propertyId: 0,
@@ -45,10 +42,8 @@ export default function EditUnits() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+  const [message, setMessage] = useState("");
+  const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -56,16 +51,6 @@ export default function EditUnits() {
       fetchUnits();
     }
   }, [currentUser]);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await axios.get<CurrentUser>("/api/authentication/me");
-      setCurrentUser(response.data);
-    } catch (err) {
-      console.error("Error fetching current user:", err);
-      setError("Please log in to manage units");
-    }
-  };
 
   const fetchProperties = async () => {
     try {
@@ -82,13 +67,15 @@ export default function EditUnits() {
       setUnits(response.data);
     } catch (err) {
       setError("Failed to fetch units");
+      setMessage("Failed to fetch units.");
+      setShowMessage(true);
       console.error("Error fetching units:", err);
     }
   };
 
   // Filter properties to only show current user's properties
   const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === currentUser.id
+    currentUser && property.userId === parseInt(currentUser.id)
   );
 
   // Filter units to only show units from user's properties
@@ -113,23 +100,32 @@ export default function EditUnits() {
     
     if (!currentUser) {
       setError("Please log in to manage units");
+      setMessage("Please log in to manage units.");
+      setShowMessage(true);
       return;
     }
 
     setLoading(true);
     setError("");
+    setShowMessage(false);
 
     try {
       if (editingId) {
         await axios.put(`/api/units/${editingId}`, formData);
+        setMessage("Unit updated successfully!");
       } else {
         await axios.post("/api/units", formData);
+        setMessage("Unit added successfully!");
       }
+      setShowMessage(true);
 
       resetForm();
       await fetchUnits();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save unit");
+      const errorMsg = err.response?.data?.message || "Failed to save unit";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
       console.error("Error saving unit:", err);
     } finally {
       setLoading(false);
@@ -159,9 +155,14 @@ export default function EditUnits() {
 
     try {
       await axios.delete(`/api/units/${id}`);
+      setMessage("Unit deleted successfully!");
+      setShowMessage(true);
       await fetchUnits();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to delete unit");
+      const errorMsg = err.response?.data?.message || "Failed to delete unit";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
       console.error("Error deleting unit:", err);
     }
   };
@@ -180,13 +181,14 @@ export default function EditUnits() {
     });
     setEditingId(null);
     setError("");
+    setShowMessage(false);
   };
 
   if (!currentUser) {
     return (
-      <div className="edit-units">
-        <h1>Manage Units</h1>
-        <div className="error-message">
+      <div className="p-20px max-w-1200px mx-auto">
+        <h1 className="text-gray-800">Manage Units</h1>
+        <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
           Please log in to manage units
         </div>
       </div>
@@ -194,32 +196,40 @@ export default function EditUnits() {
   }
 
   return (
-    <div className="edit-units">
-      <h1>Manage Units</h1>
-      <p className="user-info">Logged in as: {currentUser.userName}</p>
+    <div className="p-20px max-w-1200px mx-auto">
+      <h1 className="text-gray-800">Manage Units</h1>
+      <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
-      <form onSubmit={handleSubmit} className="unit-form">
+      {showMessage && (
+        <div className={`message-popup ${error ? "error" : "success"}`}>
+          {message}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Unit" : "Add New Unit"}</h2>
         
-        <div className="form-group">
-          <label htmlFor="unitNumber">Unit Number:</label>
+        <div className="mb-15px">
+          <label htmlFor="unitNumber" className="block mb-5px font-bold">Unit Number:</label>
           <input
             type="text"
             id="unitNumber"
             name="unitNumber"
             value={formData.unitNumber}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="propertyId">Property:</label>
+        <div className="mb-15px">
+          <label htmlFor="propertyId" className="block mb-5px font-bold">Property:</label>
           <select
             id="propertyId"
             name="propertyId"
             value={formData.propertyId}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
           >
             <option value={0}>Select Property</option>
@@ -231,108 +241,128 @@ export default function EditUnits() {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Description:</label>
+        <div className="mb-15px">
+          <label htmlFor="description" className="block mb-5px font-bold">Description:</label>
           <textarea
             id="description"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
             rows={3}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="imageUrl">Image URL:</label>
+        <div className="mb-15px">
+          <label htmlFor="imageUrl" className="block mb-5px font-bold">Image URL:</label>
           <input
             type="text"
             id="imageUrl"
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             placeholder="https://example.com/image.jpg"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="bedrooms">Bedrooms:</label>
+        <div className="mb-15px">
+          <label htmlFor="bedrooms" className="block mb-5px font-bold">Bedrooms:</label>
           <input
             type="number"
             id="bedrooms"
             name="bedrooms"
             value={formData.bedrooms}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
             min="0"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="bathrooms">Bathrooms:</label>
+        <div className="mb-15px">
+          <label htmlFor="bathrooms" className="block mb-5px font-bold">Bathrooms:</label>
           <input
             type="number"
             id="bathrooms"
             name="bathrooms"
             value={formData.bathrooms}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
             min="0"
             step="0.5"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="squareFeet">Square Feet:</label>
+        <div className="mb-15px">
+          <label htmlFor="squareFeet" className="block mb-5px font-bold">Square Feet:</label>
           <input
             type="number"
             id="squareFeet"
             name="squareFeet"
             value={formData.squareFeet}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
             min="0"
             step="0.01"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="rent">Rent ($):</label>
+        <div className="mb-15px">
+          <label htmlFor="rent" className="block mb-5px font-bold">Rent ($):</label>
           <input
             type="number"
             id="rent"
             name="rent"
             value={formData.rent}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
             min="0"
             step="0.01"
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="status">Status:</label>
+        <div className="mb-15px">
+          <label htmlFor="status" className="block mb-5px font-bold">Status:</label>
           <select
             id="status"
             name="status"
             value={formData.status}
             onChange={handleInputChange}
+            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
           >
             <option value="Available">Available</option>
-            <option value="Rented">Rented</option>
+            <option value="Occupied">Occupied</option>
             <option value="Maintenance">Maintenance</option>
             <option value="Unavailable">Unavailable</option>
           </select>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && !showMessage && (
+          <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
+            {error}
+          </div>
+        )}
 
-        <div className="form-buttons">
-          <button type="submit" disabled={loading}>
+        <div className="flex gap-10px mt-20px">
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="bg-[#007bff] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#0056b3] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             {loading ? "Saving..." : editingId ? "Update Unit" : "Add Unit"}
           </button>
           {editingId && (
-            <button type="button" onClick={resetForm} disabled={loading}>
+            <button 
+              type="button" 
+              onClick={resetForm} 
+              disabled={loading}
+              className="bg-[#6c757d] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#545b62] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               Cancel
             </button>
           )}
@@ -344,59 +374,55 @@ export default function EditUnits() {
         {userUnits.length === 0 ? (
           <p>You don't have any units yet. Add your first unit above!</p>
         ) : (
-          <table>
+          <table className="w-full text-white border-collapse mt-20px">
             <thead>
               <tr>
-                <th>Unit #</th>
-                <th>Property</th>
-                <th>Description</th>
-                <th>Bed/Bath</th>
-                <th>Square Feet</th>
-                <th>Rent</th>
-                <th>Status</th>
-                <th>Image</th>
-                <th>Actions</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Unit #</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Property</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Description</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Bed/Bath</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Square Feet</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Rent</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Status</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Image</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {userUnits.map(unit => {
                 const property = userProperties.find(p => p.id === unit.propertyId);
                 return (
-                  <tr key={unit.id}>
-                    <td>{unit.unitNumber}</td>
-                    <td>{property?.name || unit.propertyId}</td>
-                    <td className="description-cell">{unit.description}</td>
-                    <td>{unit.bedrooms} BR / {unit.bathrooms} BA</td>
-                    <td>{unit.squareFeet.toLocaleString()} sq ft</td>
-                    <td>${unit.rent.toFixed(2)}</td>
-                    <td>{unit.status}</td>
-                    <td>
+                  <tr key={unit.id} className="bg-[#322c35]">
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{unit.unitNumber}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{property?.name || unit.propertyId}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd] description-cell">{unit.description}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{unit.bedrooms} BR / {unit.bathrooms} BA</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{unit.squareFeet.toLocaleString()} sq ft</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">${unit.rent.toFixed(2)}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">{unit.status}</td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">
                       {unit.imageUrl && (
                         <div className="unit-image">
                           <img
                             src={unit.imageUrl}
                             alt={`Unit ${unit.unitNumber}`}
-                            style={{
-                              maxWidth: '60px',
-                              maxHeight: '60px',
-                              objectFit: 'cover',
-                              borderRadius: '4px'
-                            }}
+                            className="max-w-60px max-h-60px object-cover rounded-4px"
                           />
                         </div>
                       )}
                     </td>
-                    <td>
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">
                       <button
                         onClick={() => handleEdit(unit)}
                         disabled={loading}
+                        className="bg-[#28a745] text-white py-6px px-12px mr-5px border-none rounded-4px cursor-pointer text-12px hover:bg-[#1e7e34] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => unit.id && handleDelete(unit.id)}
                         disabled={loading}
-                        className="delete-btn"
+                        className="bg-[#dc3545] text-white py-6px px-12px border-none rounded-4px cursor-pointer text-12px hover:bg-[#c82333] disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         Delete
                       </button>
@@ -410,4 +436,6 @@ export default function EditUnits() {
       </div>
     </div>
   );
-}
+};
+
+export default EditUnits;
