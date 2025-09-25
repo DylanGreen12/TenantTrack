@@ -9,6 +9,5 @@ namespace Selu383.SP25.P03.Api.Features.Staff
         public required string Phone { get; set; }
         public required string Position { get; set; }
         public required int PropertyId { get; set; }
-        public required string PropertyName { get; set; }
     }
 }
