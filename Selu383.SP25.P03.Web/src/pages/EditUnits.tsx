@@ -336,7 +336,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             required
           >
             <option value="Available">Available</option>
-            <option value="Occupied">Occupied</option>
+            <option value="Rented">Rented</option>
             <option value="Maintenance">Maintenance</option>
             <option value="Unavailable">Unavailable</option>
           </select>
