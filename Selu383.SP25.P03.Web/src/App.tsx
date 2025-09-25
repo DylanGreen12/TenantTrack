@@ -72,43 +72,48 @@ function App() {
     <Router>
       <div className="flex h-screen font-sans">
         {/* Sidebar */}
-        <aside className="w-250px bg-gradient-to-br from-[#667eea] to-[#764ba2] text-[#ecf0f1] p-30px-20px flex flex-col justify-between shadow-lg">
+        <aside className="w-64 bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white p-6 flex flex-col justify-between shadow-lg">
           <div>
             {/* Sidebar Header */}
-            <div className="mb-40px text-center">
-              <h2 className="text-1.6rem font-600 text-[#ecf0f1]">TenantTrack</h2>
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold text-white">TenantTrack</h2>
             </div>
 
             {/* Navigation */}
             <nav>
-              <ul className="list-none p-0 m-0">
-                <li className="mb-20px">
-                  <Link to="/" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+              <ul className="list-none p-0 m-0 space-y-2">
+                <li>
+                  <Link to="/" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     🏠 Home
                   </Link>
                 </li>
-                <li className="mb-20px">
-                  <Link to="/editproperties" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+                <li>
+                  <Link to="/editproperties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     🏢 Manage Properties
                   </Link>
                 </li>
-                <li className="mb-20px">
-                  <Link to="/editunits" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+                <li>
+                  <Link to="/editunits" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     📦 Manage Units
                   </Link>
                 </li>
-                <li className="mb-20px">
-                  <Link to="/edittenants" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+                <li>
+                  <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    👥 Manage Staff
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     👤 Manage Tenants
                   </Link>
                 </li>
-                <li className="mb-20px">
-                  <Link to="/editleases" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+                <li>
+                  <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     📄 Manage Leases
                   </Link>
                 </li>
-                <li className="mb-20px">
-                  <Link to="/properties" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] hover:translate-x-10px">
+                <li>
+                  <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     📋 View Properties
                   </Link>
                 </li>
@@ -116,38 +121,25 @@ function App() {
             </nav>
           </div>
 
-          <nav className="sidebar-nav">
-            <ul>
-              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
-              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
-              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
-              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
-              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
-              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
-              <li><Link to="/editstaff" className="sidebar-link">👥 Manage Staff</Link></li>
-            </ul>
-          </nav>
-
-
           {/* User Info */}
-          <div className="mt-auto text-center text-0.9rem">
+          <div className="mt-auto text-center text-sm">
             {currentUser ? (
               <div>
-                <p><strong>{currentUser.userName}</strong></p>
-                <p>{currentUser.roles?.join(', ') || "No roles"}</p>
+                <p className="font-semibold">{currentUser.userName}</p>
+                <p className="text-white/80">{currentUser.roles?.join(', ') || "No roles"}</p>
                 <button
                   onClick={handleLogout}
-                  className="bg-[#e74c3c] text-white border-none py-10px px-15px rounded-4px cursor-pointer w-full mt-15px transition-background-300 ease hover:bg-[#c0392b]"
+                  className="bg-red-500 text-white border-none py-2 px-4 rounded-md cursor-pointer w-full mt-3 transition-colors duration-200 ease hover:bg-red-600"
                 >
                   Logout
                 </button>
               </div>
             ) : (
-              <div>
-                <Link to="/login" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)]">
+              <div className="space-y-2">
+                <Link to="/login" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
                   🔑 Login
                 </Link>
-                <Link to="/signup" className="text-[#ecf0f1] no-underline text-1.1rem transition-all-300 ease hover:text-[#3498db] hover:pl-10px block py-10px rounded-5px hover:bg-[rgba(52,152,219,0.2)] mt-10px">
+                <Link to="/signup" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
                   📝 Sign Up
                 </Link>
               </div>
@@ -156,17 +148,15 @@ function App() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-30px text-gray-800 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-8 text-gray-800 overflow-y-auto bg-gray-50">
           <Routes>
-
             <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
             <Route path="/editproperties" element={<EditProperties currentUser={currentUser || undefined} />} />
             <Route path="/editunits" element={<EditUnits currentUser={currentUser || undefined} />} />
             <Route path="/edittenants" element={<EditTenants currentUser={currentUser || undefined} />} />
             <Route path="/editleases" element={<EditLeases currentUser={currentUser || undefined} />} />
             <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
-            <Route path="/editstaff" element={<EditStaff />} />
-
+            <Route path="/editstaff" element={<EditStaff currentUser={currentUser || undefined} />} />
 
             <Route path="/login" element={
               <LoginForm
