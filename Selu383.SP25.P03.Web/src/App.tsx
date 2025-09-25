@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import EditProperties from './pages/EditProperties'
 import EditUnits from './pages/EditUnits'
@@ -10,75 +10,164 @@ import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 import EditStaff from './pages/EditStaff'
 
-// Importing the CSS file
-import './App.css';  // <-- Add this line
+// Auth service functions
+const authService = {
+  getCurrentUser: (): UserDto | null => {
+    try {
+      const userData = localStorage.getItem('currentUser');
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error('Error getting current user from storage:', error);
+      return null;
+    }
+  },
+
+  setCurrentUser: (user: UserDto | null): void => {
+    try {
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('currentUser');
+      }
+    } catch (error) {
+      console.error('Error setting current user in storage:', error);
+    }
+  },
+
+  logout: (): void => {
+    try {
+      localStorage.removeItem('currentUser');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+};
 
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
+  // Load user from localStorage on component mount
+  useEffect(() => {
+    const savedUser = authService.getCurrentUser();
+    if (savedUser) {
+      setCurrentUser(savedUser);
+    }
+  }, []);
+
+  // Update localStorage whenever currentUser changes
+  useEffect(() => {
+    authService.setCurrentUser(currentUser);
+  }, [currentUser]);
+
+  const handleLoginSuccess = (user: UserDto) => {
+    setCurrentUser(user);
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+  };
+
   return (
     <Router>
-      <div className="app-container">
+      <div className="flex h-screen font-sans">
         {/* Sidebar */}
-        <aside className="sidebar">
-          <div className="sidebar-header">
-            <h2 className="brand-name">TenantTrack</h2>
+        <aside className="w-64 bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white p-6 flex flex-col justify-between shadow-lg">
+          <div>
+            {/* Sidebar Header */}
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold text-white">TenantTrack</h2>
+            </div>
+
+            {/* Navigation */}
+            <nav>
+              <ul className="list-none p-0 m-0 space-y-2">
+                <li>
+                  <Link to="/" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    🏠 Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/editproperties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    🏢 Manage Properties
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/editunits" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    📦 Manage Units
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    👥 Manage Staff
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    👤 Manage Tenants
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    📄 Manage Leases
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                    📋 View Properties
+                  </Link>
+                </li>
+              </ul>
+            </nav>
           </div>
-          <nav className="sidebar-nav">
-            <ul>
-              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
-              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
-              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
-              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
-              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
-              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
-              <li><Link to="/editstaff" className="sidebar-link">👥 Manage Staff</Link></li>
-            </ul>
-          </nav>
 
           {/* User Info */}
-          <div className="user-info">
+          <div className="mt-auto text-center text-sm">
             {currentUser ? (
               <div>
-                <p><strong>{currentUser.userName}</strong></p>
-                <p>{currentUser.roles?.join(', ') || "No roles"}</p>
+                <p className="font-semibold">{currentUser.userName}</p>
+                <p className="text-white/80">{currentUser.roles?.join(', ') || "No roles"}</p>
                 <button
-                  onClick={() => setCurrentUser(null)}
-                  className="logout-button"
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white border-none py-2 px-4 rounded-md cursor-pointer w-full mt-3 transition-colors duration-200 ease hover:bg-red-600"
                 >
                   Logout
                 </button>
               </div>
             ) : (
-              <div>
-                <Link to="/login" className="sidebar-link">🔑 Login</Link>
-                <br />
-                <Link to="/signup" className="sidebar-link">📝 Sign Up</Link>
+              <div className="space-y-2">
+                <Link to="/login" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
+                  🔑 Login
+                </Link>
+                <Link to="/signup" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
+                  📝 Sign Up
+                </Link>
               </div>
             )}
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="main-content">
+        <main className="flex-1 p-8 text-gray-800 overflow-y-auto bg-gray-50">
           <Routes>
-            <Route path="/editproperties" element={<EditProperties />} />
-            <Route path="/editunits" element={<EditUnits />} />
-            <Route path="/edittenants" element={<EditTenants />} />
-            <Route path="/editleases" element={<EditLeases />} />
-            <Route path="/properties" element={<PropertiesView />} />
-            <Route path="/editstaff" element={<EditStaff />} />
+            <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
+            <Route path="/editproperties" element={<EditProperties currentUser={currentUser || undefined} />} />
+            <Route path="/editunits" element={<EditUnits currentUser={currentUser || undefined} />} />
+            <Route path="/edittenants" element={<EditTenants currentUser={currentUser || undefined} />} />
+            <Route path="/editleases" element={<EditLeases currentUser={currentUser || undefined} />} />
+            <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
+            <Route path="/editstaff" element={<EditStaff currentUser={currentUser || undefined} />} />
 
             <Route path="/login" element={
               <LoginForm
-                onLoginSuccess={(user) => setCurrentUser(user)}
+                onLoginSuccess={handleLoginSuccess}
                 onSwitchToSignUp={() => window.location.href = '/signup'}
               />
             } />
 
             <Route path="/signup" element={
               <SignUpForm
-                onSignUpSuccess={(user) => setCurrentUser(user)}
+                onSignUpSuccess={handleLoginSuccess}
                 onSwitchToLogin={() => window.location.href = '/login'}
               />
             } />
@@ -89,4 +178,4 @@ function App() {
   )
 }
 
-export default App;
+export default App

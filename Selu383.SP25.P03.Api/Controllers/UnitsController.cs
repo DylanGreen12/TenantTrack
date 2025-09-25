@@ -172,6 +172,13 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
                 return NotFound();
             }
 
+            // Check if there are any tenants assigned to this unit
+            var hasTenants = await _context.Tenants.AnyAsync(t => t.UnitId == id);
+            if (hasTenants)
+            {
+                return BadRequest(new { message = "Cannot delete unit that has tenants assigned." });
+            }
+
             _context.Units.Remove(unit);
             await _context.SaveChangesAsync();
 
