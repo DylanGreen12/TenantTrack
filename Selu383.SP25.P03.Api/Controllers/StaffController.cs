@@ -83,7 +83,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name
                 })
                 .ToListAsync();
 
@@ -106,7 +105,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name
                 })
                 .FirstOrDefaultAsync();
 
@@ -227,7 +225,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name
                 })
                 .FirstAsync();
 
@@ -353,7 +350,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Phone = s.Phone,
                     Position = s.Position,
                     PropertyId = s.PropertyId,
-                    PropertyName = s.Property.Name
                 })
                 .FirstAsync();
 
