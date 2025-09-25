@@ -8,6 +8,7 @@ import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
+import EditStaff from './pages/EditStaff'
 
 // Auth service functions
 const authService = {
@@ -115,6 +116,19 @@ function App() {
             </nav>
           </div>
 
+          <nav className="sidebar-nav">
+            <ul>
+              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
+              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
+              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
+              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
+              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
+              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
+              <li><Link to="/editstaff" className="sidebar-link">👥 Manage Staff</Link></li>
+            </ul>
+          </nav>
+
+
           {/* User Info */}
           <div className="mt-auto text-center text-0.9rem">
             {currentUser ? (
@@ -144,12 +158,15 @@ function App() {
         {/* Main Content */}
         <main className="flex-1 p-30px text-gray-800 overflow-y-auto bg-gray-50">
           <Routes>
+
             <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
             <Route path="/editproperties" element={<EditProperties currentUser={currentUser || undefined} />} />
             <Route path="/editunits" element={<EditUnits currentUser={currentUser || undefined} />} />
             <Route path="/edittenants" element={<EditTenants currentUser={currentUser || undefined} />} />
             <Route path="/editleases" element={<EditLeases currentUser={currentUser || undefined} />} />
             <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
+            <Route path="/editstaff" element={<EditStaff />} />
+
 
             <Route path="/login" element={
               <LoginForm
