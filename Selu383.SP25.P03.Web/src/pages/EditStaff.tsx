@@ -225,12 +225,6 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
       <h1 className="text-gray-800">Manage Staff</h1>
       <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
-      {showMessage && (
-        <div className={`my-2 py-2 px-4 rounded-md ${error ? "bg-red-50 border border-red-300 text-red-600" : "bg-green-50 border border-green-300 text-green-600"}`}>
-          {message}
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-6 rounded-lg mb-8 border border-gray-200">
         <h2 className="text-xl font-bold mb-4">{editingId ? "Edit Staff Member" : "Add New Staff Member"}</h2>
         
@@ -328,9 +322,15 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
           )}
         </div>
 
-        {error && !showMessage && (
-          <div className="text-red-400 my-2 py-2 bg-red-900 border border-red-700 rounded-md">
+        {error && showMessage && (
+          <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
             {error}
+          </div>
+        )}
+
+        {!error && message && (
+          <div className="text-[#155724] my-10px py-10px px-15px bg-[#d4edda] border border-[#c3e6cb] rounded-4px">
+            {message}
           </div>
         )}
 
