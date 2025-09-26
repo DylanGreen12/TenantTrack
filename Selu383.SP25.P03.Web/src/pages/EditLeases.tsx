@@ -248,12 +248,6 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
       <h1 className="text-gray-800">Manage Leases</h1>
       <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
-      {showMessage && (
-        <div className={`message-popup ${error ? "error" : "success"}`}>
-          {message}
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Lease" : "Add New Lease"}</h2>
         
@@ -324,12 +318,10 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                     type="number"
                     id="rent"
                     name="rent"
-                    value={formData.rent}
+                    value={formData.rent === 0 ? "" : formData.rent}
                     onChange={handleInputChange}
                     className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
                     required
-                    min="0"
-                    step="0.01"
                 />
             </div>
         </div>
@@ -342,12 +334,10 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                     type="number"
                     id="deposit"
                     name="deposit"
-                    value={formData.deposit}
+                    value={formData.deposit === 0 ? "" : formData.deposit}
                     onChange={handleInputChange}
                     className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
                     required
-                    min="0"
-                    step="0.01"
                 />
             </div>
         </div>
@@ -369,9 +359,15 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
             </select>
         </div>
 
-        {error && !showMessage && (
-          <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
+        {error && (
+          <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
             {error}
+          </div>
+        )}
+
+        {!error && message && (
+          <div className="text-[#155724] my-10px py-10px px-15px bg-[#d4edda] border border-[#c3e6cb] rounded-4px">
+            {message}
           </div>
         )}
 

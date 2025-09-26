@@ -200,12 +200,6 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
       <h1 className="text-gray-800">Manage Units</h1>
       <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
       
-      {showMessage && (
-        <div className={`message-popup ${error ? "error" : "success"}`}>
-          {message}
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
         <h2>{editingId ? "Edit Unit" : "Add New Unit"}</h2>
         
@@ -272,7 +266,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             type="number"
             id="bedrooms"
             name="bedrooms"
-            value={formData.bedrooms}
+            value={formData.bedrooms === 0 ? "" : formData.bedrooms}
             onChange={handleInputChange}
             className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
@@ -286,7 +280,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             type="number"
             id="bathrooms"
             name="bathrooms"
-            value={formData.bathrooms}
+            value={formData.bathrooms === 0 ? "" : formData.bathrooms}
             onChange={handleInputChange}
             className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
@@ -301,7 +295,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             type="number"
             id="squareFeet"
             name="squareFeet"
-            value={formData.squareFeet}
+            value={formData.squareFeet === 0 ? "" : formData.squareFeet}
             onChange={handleInputChange}
             className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
@@ -316,7 +310,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             type="number"
             id="rent"
             name="rent"
-            value={formData.rent}
+            value={formData.rent === 0 ? "" : formData.rent}
             onChange={handleInputChange}
             className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
             required
@@ -342,9 +336,15 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
           </select>
         </div>
 
-        {error && !showMessage && (
-          <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
+        {error && (
+          <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
             {error}
+          </div>
+        )}
+
+        {!error && message && (
+          <div className="text-[#155724] my-10px py-10px px-15px bg-[#d4edda] border border-[#c3e6cb] rounded-4px">
+            {message}
           </div>
         )}
 
