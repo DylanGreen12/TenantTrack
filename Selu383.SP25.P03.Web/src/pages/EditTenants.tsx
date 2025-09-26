@@ -296,7 +296,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
           />
         </div>
 
-        {error && (
+        {error && showMessage && (
           <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
             {error}
           </div>
