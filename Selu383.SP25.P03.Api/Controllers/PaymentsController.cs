@@ -25,17 +25,16 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = p.Id,
                     Amount = p.Amount,
-                    PaymentDate = p.PaymentDate,
+                    Date = p.Date,
+                    PaymentMethod = p.PaymentMethod,
                     Status = p.Status,
-                    Name = p.Name,
-                    BillingAddressStreet = p.BillingAddressStreet,
-                    BillingAddressCity = p.BillingAddressCity,
-                    BillingAddressCountry = p.BillingAddressCountry
+                    TenantId = p.TenantId
                 })
                 .ToListAsync();
 
             return Ok(payments);
-        }
+}
+
 
         // GET: api/payments/5
         [HttpGet("{id}")]
@@ -47,12 +46,10 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = p.Id,
                     Amount = p.Amount,
-                    PaymentDate = p.PaymentDate,
+                    Date = p.Date,
+                    PaymentMethod = p.PaymentMethod,
                     Status = p.Status,
-                    Name = p.Name,
-                    BillingAddressStreet = p.BillingAddressStreet,
-                    BillingAddressCity = p.BillingAddressCity,
-                    BillingAddressCountry = p.BillingAddressCountry
+                    TenantId = p.TenantId
                 })
                 .FirstOrDefaultAsync();
 
@@ -66,40 +63,27 @@ namespace Selu383.SP25.P03.Api.Controllers
 
         // POST: api/payments
         [HttpPost]
-        public async Task<ActionResult<PaymentGetDto>> CreatePayment(PaymentCreateDto dto)
+        public async Task<ActionResult<Payment>> CreatePayment(PaymentCreateDto dto)
         {
+            // Map only DB fields
             var payment = new Payment
             {
                 Amount = dto.Amount,
-                PaymentDate = dto.PaymentDate,
-                Name = dto.Name,
-                CardNumber = dto.CardNumber,
-                ExpirationDate = dto.ExpirationDate,
-                SecurityCode = dto.SecurityCode,
-                BillingAddressStreet = dto.BillingAddressStreet,
-                BillingAddressCity = dto.BillingAddressCity,
-                BillingAddressCountry = dto.BillingAddressCountry,
-                UserId = dto.UserId,
-                Status = "Pending"
+                Date = dto.Date,
+                PaymentMethod = dto.PaymentMethod,
+                Status = "Pending",
+                TenantId = dto.TenantId
             };
 
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            var resultDto = new PaymentGetDto
-            {
-                Id = payment.Id,
-                Amount = payment.Amount,
-                PaymentDate = payment.PaymentDate,
-                Status = payment.Status,
-                Name = payment.Name,
-                BillingAddressStreet = payment.BillingAddressStreet,
-                BillingAddressCity = payment.BillingAddressCity,
-                BillingAddressCountry = payment.BillingAddressCountry
-            };
+            // TODO: use dto.CardNumber, dto.ExpirationDate, etc. for future payment gateway
+            // but do NOT save them to the database.
 
-            return CreatedAtAction(nameof(GetPaymentById), new { id = payment.Id }, resultDto);
+            return CreatedAtAction(nameof(GetPaymentById), new { id = payment.Id }, payment);
         }
+
 
         // PUT: api/payments/5
         [HttpPut("{id}")]
@@ -112,8 +96,9 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             payment.Amount = dto.Amount;
-            payment.PaymentDate = dto.PaymentDate;
+            payment.Date = dto.Date;
             payment.Status = dto.Status;
+            payment.PaymentMethod = dto.PaymentMethod;
 
             _context.Payments.Update(payment);
             await _context.SaveChangesAsync();
@@ -122,12 +107,10 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 Id = payment.Id,
                 Amount = payment.Amount,
-                PaymentDate = payment.PaymentDate,
+                Date = payment.Date,
+                PaymentMethod = payment.PaymentMethod,
                 Status = payment.Status,
-                Name = payment.Name,
-                BillingAddressStreet = payment.BillingAddressStreet,
-                BillingAddressCity = payment.BillingAddressCity,
-                BillingAddressCountry = payment.BillingAddressCountry
+                TenantId = payment.TenantId
             };
 
             return Ok(resultDto);
