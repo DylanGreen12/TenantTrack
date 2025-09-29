@@ -7,7 +7,9 @@ import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
-import EditLeases from './pages/EditLeases'
+import EditLeases from './pages/EditLeases';
+import PaymentsPage from "./pages/PaymentsPage";
+import MaintenanceRequestsPage from "./pages/MaintenanceRequestsPage";
 
 // Importing the CSS file
 import './App.css';  // <-- Add this line
@@ -31,6 +33,8 @@ function App() {
               <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
               <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
               <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
+              <li><Link to="/payments" className="sidebar-link">💵 Payments</Link></li>
+              <li><Link to="/maintenance-requests" className="sidebar-link">🛠️ Maintenance Requests</Link></li>
             </ul>
           </nav>
 
@@ -65,6 +69,8 @@ function App() {
             <Route path="/edittenants" element={<EditTenants />} />
             <Route path="/editleases" element={<EditLeases />} />
             <Route path="/properties" element={<PropertiesView />} />
+            <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/maintenance-requests" element={<MaintenanceRequestsPage />} />
 
             <Route path="/login" element={
               <LoginForm

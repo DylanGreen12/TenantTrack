@@ -13,38 +13,20 @@ namespace Selu383.SP25.P03.Api.Features.Payments
         public decimal Amount { get; set; }
 
         [Required]
-        public DateOnly PaymentDate { get; set; }
+        public DateOnly Date { get; set; }
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, Completed, Failed
+        public string PaymentMethod { get; set; } = "Card"; // e.g. Card, Bank Transfer
 
         [Required]
-        [StringLength(100)]
-        public string Name { get; set; } = default!;
+        [StringLength(20)]
+        public string Status { get; set; } = "Pending"; // Paid, Pending, Failed
 
+        // Foreign key
         [Required]
-        [CreditCard]
-        public string CardNumber { get; set; } = default!;
-
-        [Required]
-        public string ExpirationDate { get; set; } = default!;
-
-        [Required]
-        [StringLength(4, MinimumLength = 3)]
-        public string SecurityCode { get; set; } = default!;
-
-        [Required]
-        public string BillingAddressStreet { get; set; } = default!;
-
-        [Required]
-        public string BillingAddressCity { get; set; } = default!;
-
-        [Required]
-        public string BillingAddressCountry { get; set; } = default!;
-
-        [Required]
-        public int UserId { get; set; }
-        public virtual User User { get; set; } = default!;
+        public int TenantId { get; set; }
+        public virtual User Tenant { get; set; } = default!;
     }
 }
+
