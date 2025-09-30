@@ -150,12 +150,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Invalid email format" });
             }
 
-            // Validate email uniqueness
-            if (!await IsEmailUniqueAsync(dto.Email))
-            {
-                return BadRequest(new { message = "Email address is already in use" });
-            }
-
             // Validate phone number
             if (!IsValidPhoneNumber(dto.Phone))
             {
@@ -189,19 +183,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                // Log the exception
-                Console.WriteLine($"Database error creating staff: {ex.Message}");
-                
-                // Check for specific database constraint violations
-                if (ex.InnerException?.Message.Contains("UNIQUE") == true)
-                {
-                    return BadRequest(new { message = "Email address is already in use" });
-                }
-                
-                return BadRequest(new { message = "Failed to create staff member due to database constraint violation" });
             }
             catch (Exception ex)
             {
@@ -277,12 +258,6 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Invalid email format" });
             }
 
-            // Validate email uniqueness (excluding current staff)
-            if (!await IsEmailUniqueAsync(dto.Email, id))
-            {
-                return BadRequest(new { message = "Email address is already in use by another staff member" });
-            }
-
             // Validate phone number
             if (!IsValidPhoneNumber(dto.Phone))
             {
@@ -314,19 +289,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                // Log the exception
-                Console.WriteLine($"Database error updating staff: {ex.Message}");
-                
-                // Check for specific database constraint violations
-                if (ex.InnerException?.Message.Contains("UNIQUE") == true)
-                {
-                    return BadRequest(new { message = "Email address is already in use by another staff member" });
-                }
-                
-                return BadRequest(new { message = "Failed to update staff member due to database constraint violation" });
             }
             catch (Exception ex)
             {
