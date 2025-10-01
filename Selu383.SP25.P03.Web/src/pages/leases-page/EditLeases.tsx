@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { UserDto } from "../models/UserDto";
+import { UserDto } from "../../models/UserDto";
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface LeaseDto {
   id?: number;
@@ -40,7 +42,6 @@ interface EditLeasesProps {
 }
 
 const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
-  const [leases, setLeases] = useState<LeaseDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [units, setUnits] = useState<UnitDto[]>([]);
   const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
@@ -55,6 +56,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     deposit: 0,
     status: ""
   });
+  const { id } = useParams<{ id: string }>();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -63,22 +65,36 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
 
   useEffect(() => {
     if (currentUser) {
-      fetchLeases();
       fetchTenants();
       fetchUnits();
       fetchProperties();
     }
   }, [currentUser]);
 
-  const fetchLeases = async () => {
+  useEffect(() => {
+      if (id) {
+        setEditingId(parseInt(id));
+        fetchLease(parseInt(id));
+      }
+    }, [id]);
+
+  const fetchLease = async (leaseId: number) => {
     try {
-      const response = await axios.get<LeaseDto[]>("/api/leases");
-      setLeases(response.data);
+      const response = await axios.get<LeaseDto>(`/api/leases/${leaseId}`);
+      setFormData({
+        id: response.data.id,
+        unitNumber: response.data.unitNumber,
+        tenantId: response.data.tenantId,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        startDate: response.data.startDate,
+        endDate: response.data.endDate,
+        rent: response.data.rent,
+        deposit: response.data.deposit,
+        status: response.data.status
+      });
     } catch (err) {
-      setError("Failed to fetch leases");
-      setMessage("Failed to fetch leases.");
-      setShowMessage(true);
-      console.error("Error fetching leases:", err);
+      console.error("Error fetching lease:", err);
     }
   };
 
@@ -124,11 +140,6 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     )
   );
 
-  // Filter leases to only show leases from user's properties
-  const userLeases = leases.filter(lease => 
-    userTenants.some(tenant => tenant.id === lease.tenantId)
-  );
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -168,7 +179,6 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
       setShowMessage(true);
 
       resetForm();
-      await fetchLeases();
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to save lease";
       setError(errorMsg);
@@ -177,41 +187,6 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
       console.error("Error saving lease:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEdit = (lease: LeaseDto) => {
-    setFormData({
-      id: lease.id,
-      unitNumber: lease.unitNumber,
-      tenantId: lease.tenantId,
-      firstName: lease.firstName,
-      lastName: lease.lastName,
-      startDate: lease.startDate,
-      endDate: lease.endDate,
-      rent: lease.rent,
-      deposit: lease.deposit,
-      status: lease.status,
-    });
-    setEditingId(lease.id || null);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this lease?")) {
-      return;
-    }
-
-    try {
-      await axios.delete(`/api/leases/${id}`);
-      setMessage("Lease deleted successfully!");
-      setShowMessage(true);
-      await fetchLeases();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Failed to delete lease";
-      setError(errorMsg);
-      setMessage(errorMsg);
-      setShowMessage(true);
-      console.error("Error deleting lease:", err);
     }
   };
 
@@ -389,61 +364,14 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               Cancel
             </button>
           )}
+          <Link 
+            to="/leases"
+            className="bg-green-600 text-white py-2 px-4 rounded-md text-sm hover:bg-green-700 transition-colors duration-200"
+          >
+            View All Leases
+          </Link>
         </div>
       </form>
-
-      <div className="leases-list">
-        <h2>Your Leases ({userLeases.length})</h2>
-        {userLeases.length === 0 ? (
-          <p>You don't have any leases yet. Add your first lease above!</p>
-        ) : (
-          <table className="w-full text-white border-collapse mt-20px">
-            <thead>
-              <tr>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Unit</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">First Name</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Last Name</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Start Date</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">End Date</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Rent</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Deposit</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Status</th>
-                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userLeases.map(lease => (
-                <tr key={lease.id} className="bg-[#322c35]">
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{lease.unitNumber}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{lease.firstName}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{lease.lastName}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{new Date(lease.startDate).toLocaleDateString()}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{new Date(lease.endDate).toLocaleDateString()}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">${lease.rent.toFixed(2)}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">${lease.deposit.toFixed(2)}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">{lease.status}</td>
-                  <td className="p-12px text-left border-b-1 border-[#ddd]">
-                    <button
-                      onClick={() => handleEdit(lease)}
-                      disabled={loading}
-                      className="bg-[#28a745] text-white py-6px px-12px mr-5px border-none rounded-4px cursor-pointer text-12px hover:bg-[#1e7e34] disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => lease.id && handleDelete(lease.id)}
-                      disabled={loading}
-                      className="bg-[#dc3545] text-white py-6px px-12px border-none rounded-4px cursor-pointer text-12px hover:bg-[#c82333] disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
     </div>
   );
 };
