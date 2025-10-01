@@ -9,6 +9,7 @@ import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
 import EditLeases from './pages/EditLeases'
 import EditStaff from './pages/EditStaff'
+import LandlordDashboard from './pages/LandlordDashboard'
 
 // Auth service functions
 const authService = {
@@ -124,6 +125,11 @@ function App() {
                         📄 Manage Leases
                       </Link>
                     </li>
+                    <li>
+                      <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                         📊 Landlord Dashboard
+                      </Link>
+                    </li>
                   </>
                 )}
                 
@@ -208,6 +214,15 @@ function App() {
             <Route path="/editleases" element={
               canManage ? 
                 <EditLeases currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+
+            <Route path="/landlord-dashboard" element={
+              canManage ? 
+                <LandlordDashboard currentUser={currentUser || undefined} /> : 
                 <div className="text-center py-8">
                   <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                   <p>You need to be a Landlord or Admin to access this page.</p>
