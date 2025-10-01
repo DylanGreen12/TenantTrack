@@ -1,0 +1,226 @@
+.landlord-dashboard {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: white;
+  min-height: 100vh;
+}
+
+.landlord-dashboard h1 {
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.summary-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  text-align: center;
+}
+
+.summary-card.highlight {
+  background: #e7f5ff;
+  border-color: #007bff;
+}
+
+.summary-card h3 {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.properties-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.property-card {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.property-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  cursor: pointer;
+  background: #f8f9fa;
+  transition: background 0.2s;
+}
+
+.property-header:hover {
+  background: #e9ecef;
+}
+
+.property-info h3 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.property-info p {
+  margin: 5px 0;
+  color: #666;
+}
+
+.property-stats {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.property-details {
+  padding: 20px;
+  border-top: 2px solid #ddd;
+}
+
+.owner-contact {
+  background: #fff3cd;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #ffc107;
+}
+
+.owner-contact h4 {
+  margin: 0 0 10px 0;
+  color: #856404;
+}
+
+.owner-contact p {
+  margin: 5px 0;
+  color: #856404;
+}
+
+.units-section h4 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.units-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.units-table th,
+.units-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.units-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.units-table tr:hover {
+  background: #f8f9fa;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.rented {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.status-badge.maintenance {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.tenant-info p {
+  margin: 3px 0;
+}
+
+.contact-small {
+  font-size: 12px;
+  color: #666;
+}
+
+.lease-info p {
+  margin: 3px 0;
+  font-size: 13px;
+}
+
+.text-muted {
+  color: #999;
+  font-style: italic;
+}
+
+.error-message {
+  color: #dc3545;
+  background: #f8d7da;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .units-table {
+    font-size: 12px;
+  }
+  
+  .units-table th,
+  .units-table td {
+    padding: 8px 4px;
+  }
+  
+  .property-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .expand-btn {
+    align-self: flex-end;
+  }
+}
