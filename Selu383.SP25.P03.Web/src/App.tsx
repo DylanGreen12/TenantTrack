@@ -45,6 +45,12 @@ const authService = {
   }
 };
 
+// Role-based access control helper
+const hasManagementAccess = (user: UserDto | null): boolean => {
+  if (!user || !user.roles) return false;
+  return user.roles.includes('Landlord') || user.roles.includes('Admin');
+};
+
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
 
@@ -69,6 +75,8 @@ function App() {
     authService.logout();
     setCurrentUser(null);
   };
+
+  const canManage = hasManagementAccess(currentUser);
 
   return (
     <Router>
@@ -105,31 +113,39 @@ function App() {
                     🏠 Home
                   </Link>
                 </li>
-                <li>
-                  <Link to="/editproperties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    🏢 Manage Properties
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/editunits" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    📦 Manage Units
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    👥 Manage Staff
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    👤 Manage Tenants
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    📄 Manage Leases
-                  </Link>
-                </li>
+                
+                {/* Management Links - Only show for Landlords and Admins */}
+                {canManage && (
+                  <>
+                    <li>
+                      <Link to="/editproperties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        🏢 Manage Properties
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/editunits" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        📦 Manage Units
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        👥 Manage Staff
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        👤 Manage Tenants
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        📄 Manage Leases
+                      </Link>
+                    </li>
+                  </>
+                )}
+                
+                {/* Public Links - Show to everyone */}
                 <li>
                   <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     📋 View Properties
@@ -176,12 +192,55 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/maintenance-requests" element={<MaintenanceRequestsPage />} />
             <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
-            <Route path="/editproperties" element={<EditProperties currentUser={currentUser || undefined} />} />
-            <Route path="/editunits" element={<EditUnits currentUser={currentUser || undefined} />} />
-            <Route path="/edittenants" element={<EditTenants currentUser={currentUser || undefined} />} />
-            <Route path="/editleases" element={<EditLeases currentUser={currentUser || undefined} />} />
+            
+            {/* Management Routes - Protected by role */}
+            <Route path="/editproperties" element={
+              canManage ? 
+                <EditProperties currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+            
+            <Route path="/editunits" element={
+              canManage ? 
+                <EditUnits currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+            
+            <Route path="/editstaff" element={
+              canManage ? 
+                <EditStaff currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+            
+            <Route path="/edittenants" element={
+              canManage ? 
+                <EditTenants currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+            
+            <Route path="/editleases" element={
+              canManage ? 
+                <EditLeases currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+            
+            {/* Public Routes */}
             <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
-            <Route path="/editstaff" element={<EditStaff currentUser={currentUser || undefined} />} />
 
             <Route path="/login" element={
               <LoginForm
