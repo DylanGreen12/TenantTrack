@@ -6,9 +6,13 @@ import PropertiesView from "./pages/PropertiesView";
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
-import EditTenants from './pages/EditTenants'
-import EditLeases from './pages/EditLeases'
+import EditTenants from './pages/tenants-page/EditTenants'
+import ListTenants from './pages/tenants-page/ListTenants';
+import EditLeases from './pages/leases-page/EditLeases'
+import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/EditStaff'
+import TenantUnit from './pages/TenantUnit';
+
 
 // Auth service functions
 const authService = {
@@ -95,6 +99,17 @@ function App() {
                     🏠 Home
                   </Link>
                 </li>
+                {/* Tenant-only link */}
+                {currentUser?.roles?.includes("Tenant") && (
+                  <li>
+                    <Link
+                      to="/my-unit"
+                      className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10"
+                    >
+                      🏠 My Unit
+                    </Link>
+                  </li>
+                )}
                 
                 {/* Management Links - Only show for Landlords and Admins */}
                 {canManage && (
@@ -204,6 +219,24 @@ function App() {
                   <p>You need to be a Landlord or Admin to access this page.</p>
                 </div>
             } />
+
+            <Route path="/tenants" element={
+              canManage ? 
+                <ListTenants currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+
+            <Route path="/edittenants/:id" element={
+              canManage ? 
+                <EditTenants currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
             
             <Route path="/editleases" element={
               canManage ? 
@@ -212,6 +245,35 @@ function App() {
                   <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                   <p>You need to be a Landlord or Admin to access this page.</p>
                 </div>
+            } />
+
+            <Route path="/leases" element={
+              canManage ? 
+                <ListLeases currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+
+            <Route path="/editleases/:id" element={
+              canManage ? 
+                <EditLeases currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
+
+            <Route path="/my-unit" element={
+              currentUser?.roles?.includes("Tenant") ? (
+                <TenantUnit />
+              ) : (
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Tenant to access this page.</p>
+                </div>
+              )
             } />
             
             {/* Public Routes */}
