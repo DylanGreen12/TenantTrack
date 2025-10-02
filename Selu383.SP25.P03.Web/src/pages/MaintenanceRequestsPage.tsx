@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { UserDto } from "../models/UserDto";
 
 interface MaintenanceRequestDto {
   id?: number;
-  tenantId: string; 
+  tenantId: number;
   description: string;
   status: string;
   priority: string;
-  assignedTo?: string | null; 
+  assignedTo?: number | null;
   requestedAt?: string;
   updatedAt?: string;
   completedAt?: string | null;
 }
 
 interface TenantDto {
-  id: string; 
+  id: number;
   unitNumber: string;
   firstName: string;
   lastName: string;
@@ -29,7 +29,7 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
   const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [formData, setFormData] = useState<MaintenanceRequestDto>({
-    tenantId: "",
+    tenantId: 0,
     description: "",
     status: "Open",
     priority: "Medium",
@@ -39,8 +39,13 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Check user roles
+  const isLandlord = currentUser?.roles?.includes("Landlord") || currentUser?.roles?.includes("Admin");
+  const isTenant = currentUser?.roles?.includes("Tenant");
+  const isStaff = currentUser?.roles?.includes("Staff");
+
   useEffect(() => {
-    fetchTenants();
+    fetchTenants(); // Always fetch tenants for name lookup
     if (currentUser) {
       fetchRequests();
     }
@@ -58,16 +63,17 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get<MaintenanceRequestDto[]>("/api/maintenanceRequests");
-      if (currentUser?.roles?.includes("Tenant")) {
-        setRequests(response.data.filter((r) => r.tenantId === currentUser.id));
-      } else {
-        setRequests(response.data);
-      }
+      const response = await axios.get<MaintenanceRequestDto[]>("/api/maintenancerequests");
+      setRequests(response.data);
     } catch (err) {
       setError("Failed to fetch maintenance requests");
       console.error("Error fetching maintenance requests:", err);
     }
+  };
+
+  const getTenantName = (tenantId: number): string => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Tenant ID: ${tenantId}`;
   };
 
   const handleInputChange = (
@@ -76,13 +82,13 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "tenantId" ? parseInt(value) : value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.tenantId) {
+    if (!formData.tenantId || formData.tenantId === 0) {
       setError("Please select a tenant");
       return;
     }
@@ -92,13 +98,13 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
 
     try {
       if (editingId) {
-        await axios.put(`/api/maintenanceRequests/${editingId}`, formData);
+        await axios.put(`/api/maintenancerequests/${editingId}`, formData);
       } else {
-        await axios.post("/api/maintenanceRequests", formData);
+        await axios.post("/api/maintenancerequests", formData);
       }
 
       setFormData({
-        tenantId: "",
+        tenantId: 0,
         description: "",
         status: "Open",
         priority: "Medium",
@@ -124,19 +130,25 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
     setEditingId(req.id!);
   };
 
-  const handleCancel = async (id: number) => {
-    if (!window.confirm("Cancel this request?")) return;
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this request?")) return;
     try {
-      await axios.put(`/api/maintenanceRequests/${id}`, { status: "Cancelled" });
+      await axios.delete(`/api/maintenancerequests/${id}`);
       await fetchRequests();
     } catch (err) {
-      console.error("Error cancelling request:", err);
+      console.error("Error deleting request:", err);
     }
   };
 
   const handleStatusChange = async (id: number, status: string) => {
     try {
-      await axios.put(`/api/maintenanceRequests/${id}`, { status });
+      const request = requests.find(r => r.id === id);
+      if (!request) return;
+      
+      await axios.put(`/api/maintenancerequests/${id}`, {
+        ...request,
+        status
+      });
       await fetchRequests();
     } catch (err) {
       console.error("Error updating status:", err);
@@ -145,134 +157,187 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
 
   if (!currentUser) {
     return (
-      <div className="maintenance-requests-page">
-        <h1>Maintenance Requests</h1>
-        <div className="error-message">Please log in to view maintenance requests</div>
+      <div className="p-20px max-w-1200px mx-auto">
+        <h1 className="text-gray-800">Maintenance Requests</h1>
+        <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
+          Please log in to view maintenance requests
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="maintenance-requests-page">
-      <h1>Maintenance Requests</h1>
-      <p className="user-info">Logged in as: {currentUser.userName}</p>
+    <div className="p-20px max-w-1200px mx-auto">
+      <h1 className="text-gray-800">Maintenance Requests</h1>
+      <p className="text-gray-700">Logged in as: {currentUser.userName} ({currentUser.roles?.join(", ")})</p>
 
-      <form onSubmit={handleSubmit} className="request-form">
-        <h2>{editingId ? "Edit Request" : "Submit a New Request"}</h2>
+      {/* Only Landlords can create requests for any tenant */}
+      {isLandlord && (
+        <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
+          <h2>{editingId ? "Edit Request" : "Submit a New Request"}</h2>
 
-        <div className="form-group">
-          <label htmlFor="tenantId">Tenant:</label>
-          <select
-            id="tenantId"
-            name="tenantId"
-            value={formData.tenantId}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">-- Select Tenant --</option>
-            {tenants.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.firstName} {t.lastName} (Unit {t.unitNumber})
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="mb-15px">
+            <label htmlFor="tenantId" className="block mb-5px font-bold">Tenant:</label>
+            <select
+              id="tenantId"
+              name="tenantId"
+              value={formData.tenantId}
+              onChange={handleInputChange}
+              className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-black"
+              required
+            >
+              <option value={0}>-- Select Tenant --</option>
+              {tenants.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.firstName} {t.lastName} (Unit {t.unitNumber})
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Description:</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            required
-            rows={3}
-          />
-        </div>
+          <div className="mb-15px">
+            <label htmlFor="description" className="block mb-5px font-bold">Description:</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-black"
+              required
+              rows={3}
+            />
+          </div>
 
-        <div className="form-group">
-          <label htmlFor="priority">Priority:</label>
-          <select
-            id="priority"
-            name="priority"
-            value={formData.priority}
-            onChange={handleInputChange}
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Emergency</option>
-          </select>
-        </div>
+          <div className="mb-15px">
+            <label htmlFor="priority" className="block mb-5px font-bold">Priority:</label>
+            <select
+              id="priority"
+              name="priority"
+              value={formData.priority}
+              onChange={handleInputChange}
+              className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-black"
+            >
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Emergency</option>
+            </select>
+          </div>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && (
+            <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
+              {error}
+            </div>
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Submitting..." : editingId ? "Update Request" : "Submit Request"}
-        </button>
+          <div className="flex gap-10px mt-20px">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="bg-[#007bff] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#0056b3] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? "Submitting..." : editingId ? "Update Request" : "Submit Request"}
+            </button>
 
-        {editingId && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditingId(null);
-              setFormData({
-                tenantId: "",
-                description: "",
-                status: "Open",
-                priority: "Medium",
-                assignedTo: null,
-              });
-            }}
-          >
-            Cancel
-          </button>
-        )}
-      </form>
+            {editingId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingId(null);
+                  setFormData({
+                    tenantId: 0,
+                    description: "",
+                    status: "Open",
+                    priority: "Medium",
+                    assignedTo: null,
+                  });
+                }}
+                className="bg-[#6c757d] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#545b62] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      )}
 
       <div className="requests-list">
-        <h2>{currentUser.roles?.includes("Tenant") ? "My Requests" : "All Requests"}</h2>
+        <h2>
+          {isLandlord && `All Requests (${requests.length})`}
+          {isTenant && `Tenant View (${requests.length})`}
+          {isStaff && `All Requests - Staff View (${requests.length})`}
+        </h2>
+        
+        {!isLandlord && !isStaff && (
+          <p className="text-gray-600 mb-10px">
+            Tenants: Contact your landlord to submit maintenance requests.
+          </p>
+        )}
+
         {requests.length === 0 ? (
           <p>No maintenance requests found.</p>
         ) : (
-          <table>
+          <table className="w-full text-white border-collapse mt-20px">
             <thead>
               <tr>
-                <th>Description</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Requested At</th>
-                <th>Tenant ID</th>
-                <th>Actions</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Tenant</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Description</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Priority</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Status</th>
+                <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Requested</th>
+                {(isLandlord || isStaff) && (
+                  <th className="p-12px text-left border-b-1 border-[#ddd] bg-[#01101f] font-bold">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {requests.map((req) => (
-                <tr key={req.id}>
-                  <td>{req.description}</td>
-                  <td>{req.priority}</td>
-                  <td>{req.status}</td>
-                  <td>{req.requestedAt ? new Date(req.requestedAt).toLocaleString() : "-"}</td>
-                  <td>{req.tenantId}</td>
-                  <td>
-                    {req.status === "Open" && (
-                      <>
-                        <button onClick={() => handleEdit(req)}>Edit</button>
-                        <button onClick={() => handleCancel(req.id!)}>Cancel</button>
-                      </>
-                    )}
-                    {!currentUser.roles?.includes("Tenant") && (
+                <tr key={req.id} className="bg-[#322c35]">
+                  <td className="p-12px text-left border-b-1 border-[#ddd]">{getTenantName(req.tenantId)}</td>
+                  <td className="p-12px text-left border-b-1 border-[#ddd]">{req.description}</td>
+                  <td className="p-12px text-left border-b-1 border-[#ddd]">{req.priority}</td>
+                  <td className="p-12px text-left border-b-1 border-[#ddd]">
+                    {(isLandlord || isStaff) ? (
                       <select
                         value={req.status}
                         onChange={(e) => handleStatusChange(req.id!, e.target.value)}
+                        className="bg-[#00061f] text-white p-4px rounded-4px border-1 border-[#ddd]"
                       >
                         <option>Open</option>
                         <option>In Progress</option>
                         <option>Completed</option>
                         <option>Cancelled</option>
                       </select>
+                    ) : (
+                      req.status
                     )}
                   </td>
+                  <td className="p-12px text-left border-b-1 border-[#ddd]">
+                    {req.requestedAt ? new Date(req.requestedAt).toLocaleDateString() : "-"}
+                  </td>
+                  {(isLandlord || isStaff) && (
+                    <td className="p-12px text-left border-b-1 border-[#ddd]">
+                      {isLandlord && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(req)}
+                            disabled={loading}
+                            className="bg-[#28a745] text-white py-6px px-12px mr-5px border-none rounded-4px cursor-pointer text-12px hover:bg-[#1e7e34] disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => req.id && handleDelete(req.id)}
+                            disabled={loading}
+                            className="bg-[#dc3545] text-white py-6px px-12px border-none rounded-4px cursor-pointer text-12px hover:bg-[#c82333] disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                      {isStaff && <span className="text-gray-400 text-12px">Status update only</span>}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
