@@ -220,7 +220,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className="w-100 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-100 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               maxLength={50}
             />
@@ -236,7 +236,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className="w-105 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-105 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               maxLength={50}
             />
@@ -253,7 +253,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             maxLength={100}
           />
@@ -269,7 +269,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             maxLength={15}
             placeholder="e.g., 123-456-7890"
@@ -286,7 +286,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
             name="position"
             value={formData.position}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             maxLength={50}
             placeholder="e.g., Manager, Receptionist"
@@ -302,7 +302,7 @@ const EditStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
             name="propertyId"
             value={formData.propertyId}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>-- Select Property --</option>
