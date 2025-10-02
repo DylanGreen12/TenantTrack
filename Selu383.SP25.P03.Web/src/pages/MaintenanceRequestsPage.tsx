@@ -171,8 +171,8 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
       <h1 className="text-gray-800">Maintenance Requests</h1>
       <p className="text-gray-700">Logged in as: {currentUser.userName} ({currentUser.roles?.join(", ")})</p>
 
-      {/* Only Landlords can create requests for any tenant */}
-      {isLandlord && (
+      {/* Landlords and Tenants can create requests */}
+      {(isLandlord || isTenant) && (
         <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
           <h2>{editingId ? "Edit Request" : "Submit a New Request"}</h2>
 
@@ -185,6 +185,7 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
               onChange={handleInputChange}
               className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-black"
               required
+              disabled={isTenant && !isLandlord}
             >
               <option value={0}>-- Select Tenant --</option>
               {tenants.map((t) => (
@@ -193,6 +194,11 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
                 </option>
               ))}
             </select>
+            {isTenant && !isLandlord && (
+              <p className="text-gray-400 text-12px mt-5px">
+                Select your tenant profile from the dropdown
+              </p>
+            )}
           </div>
 
           <div className="mb-15px">
@@ -264,15 +270,9 @@ export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequ
       <div className="requests-list">
         <h2>
           {isLandlord && `All Requests (${requests.length})`}
-          {isTenant && `Tenant View (${requests.length})`}
+          {isTenant && `Maintenance Requests (${requests.length})`}
           {isStaff && `All Requests - Staff View (${requests.length})`}
         </h2>
-        
-        {!isLandlord && !isStaff && (
-          <p className="text-gray-600 mb-10px">
-            Tenants: Contact your landlord to submit maintenance requests.
-          </p>
-        )}
 
         {requests.length === 0 ? (
           <p>No maintenance requests found.</p>
