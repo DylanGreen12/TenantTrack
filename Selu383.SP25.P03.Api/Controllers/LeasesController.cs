@@ -96,9 +96,9 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Start date must be before end date." });
             }
 
-            if (leaseDuration.TotalDays < 180)
+            if (leaseDuration.TotalDays < 90)
             {
-                return BadRequest(new { message ="Lease duration must be at least 6 months." });
+                return BadRequest(new { message ="Lease duration must be at least 3 months." });
             }
             
             if (dto.Rent < 0)
