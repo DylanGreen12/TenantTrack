@@ -186,20 +186,26 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
 
   return (
     <div className="p-20px max-w-1200px mx-auto">
-      <h1 className="text-gray-800">Manage Tenants</h1>
-      <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
+      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Manage Tenants</h1>
       
-      <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px">
-        <h2>{editingId ? "Edit Tenant" : "Add New Tenant"}</h2>
+      <form 
+        onSubmit={handleSubmit} 
+        className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
+      >
+        <h2 className="text-lg font-semibold mb-24px">
+          {editingId ? "Edit Tenant" : "Create Tenant"}
+        </h2>
         
-        <div className="mb-15px">
-          <label htmlFor="unitId" className="block mb-5px font-bold">Unit:</label>
+        <div className="mb-20px">
+          <label htmlFor="unitId" className="block mb-6px font-medium text-gray-700">
+            Unit:
+          </label>
           <select
             id="unitId"
             name="unitId"
             value={formData.unitId}
             onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>-- Select Unit --</option>
@@ -214,56 +220,66 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
           )}
         </div>
 
-        <div className="mb-15px">
-          <label htmlFor="firstName" className="block mb-5px font-bold">First Name:</label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
-            required
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          <div className="mb-20px">
+            <label htmlFor="firstName" className="block mb-6px font-medium text-gray-700">
+              First Name:
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              className="w-100 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              required
+            />
+          </div>
+
+          <div className="mb-20px">
+            <label htmlFor="lastName" className="block mb-6px font-medium text-gray-700">
+              Last Name:
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className="w-105 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              required
+            />
+          </div>
         </div>
 
-        <div className="mb-15px">
-          <label htmlFor="lastName" className="block mb-5px font-bold">Last Name:</label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
-            required
-          />
-        </div>
-
-        <div className="mb-15px">
-          <label htmlFor="phoneNumber" className="block mb-5px font-bold">Phone Number:</label>
+        <div className="mb-20px">
+          <label htmlFor="phoneNumber" className="block mb-6px font-medium text-gray-700">
+            Phone Number:
+          </label>
           <input
             type="text"
             id="phoneNumber"
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
+            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             maxLength={15}
             placeholder="123-456-7890"
           />
         </div>
 
-        <div className="mb-15px">
-          <label htmlFor="email" className="block mb-5px font-bold">Email:</label>
+        <div className="mb-20px">
+          <label htmlFor="email" className="block mb-6px font-medium text-gray-700">
+            Email:
+          </label>
           <input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px"
+            className= "w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
@@ -280,11 +296,11 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
           </div>
         )}
 
-        <div className="flex gap-10px mt-20px">
+        <div className="flex flex-wrap gap-12px mt-24px">
           <button 
             type="submit" 
             disabled={loading || availableUnits.length === 0}
-            className="bg-[#007bff] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#0056b3] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Saving..." : editingId ? "Update Tenant" : "Add Tenant"}
           </button>
@@ -293,14 +309,14 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
               type="button" 
               onClick={resetForm} 
               disabled={loading}
-              className="bg-[#6c757d] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#545b62] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-gray-400 text-white py-10px px-20px rounded-8px text-14px hover:bg-gray-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               Cancel
             </button>
           )}
             <Link 
               to="/tenants"
-              className="bg-green-600 text-white py-2 px-4 rounded-md text-sm hover:bg-green-700 transition-colors duration-200"
+              className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700"
             >
               View All Tenants
             </Link>

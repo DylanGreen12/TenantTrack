@@ -72,6 +72,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             return unit.Status == "Available";
         }
 
+        /*
         [HttpGet("me/unit")]
         [Authorize(Roles = UserRoleNames.Tenant)] 
         public async Task<ActionResult<UnitDto>> GetMyUnit()
@@ -84,7 +85,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             var tenant = await _context.Tenants
                 .Include(t => t.Unit)
-                .FirstOrDefaultAsync(t => t.Email.Equals(user.Email, StringComparison.CurrentCultureIgnoreCase));
+                .FirstOrDefaultAsync(t => t.Email.ToLower() == user.Email.ToLower());
 
             if (tenant == null)
             {
@@ -107,6 +108,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Bathrooms = tenant.Unit.Bathrooms
             });
         }
+        */
 
         // GET: api/tenants
         [HttpGet]
