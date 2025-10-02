@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { UserDto } from "../models/UserDto";
 
 interface MaintenanceRequestDto {
   id?: number;
-  tenantId: number;
+  tenantId: string; 
   description: string;
   status: string;
   priority: string;
-  assignedTo?: number | null;
+  assignedTo?: string | null; 
   requestedAt?: string;
   updatedAt?: string;
   completedAt?: string | null;
 }
 
-interface CurrentUser {
-  id: number;
-  userName: string;
-  roles?: string[];
-}
-
 interface TenantDto {
-  id: number;
+  id: string; 
   unitNumber: string;
   firstName: string;
   lastName: string;
 }
 
-export default function MaintenanceRequestsPage() {
+interface MaintenanceRequestsPageProps {
+  currentUser?: UserDto;
+}
+
+export default function MaintenanceRequestsPage({ currentUser }: MaintenanceRequestsPageProps) {
   const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [formData, setFormData] = useState<MaintenanceRequestDto>({
-    tenantId: 0,
+    tenantId: "",
     description: "",
     status: "Open",
     priority: "Medium",
@@ -42,25 +40,11 @@ export default function MaintenanceRequestsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCurrentUser();
     fetchTenants();
-  }, []);
-
-  useEffect(() => {
     if (currentUser) {
       fetchRequests();
     }
   }, [currentUser]);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await axios.get<CurrentUser>("/api/authentication/me");
-      setCurrentUser(response.data);
-    } catch (err) {
-      console.error("Error fetching current user:", err);
-      setError("Please log in to view maintenance requests");
-    }
-  };
 
   const fetchTenants = async () => {
     try {
@@ -92,7 +76,7 @@ export default function MaintenanceRequestsPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "tenantId" ? Number(value) : value,
+      [name]: value,
     }));
   };
 
@@ -114,7 +98,7 @@ export default function MaintenanceRequestsPage() {
       }
 
       setFormData({
-        tenantId: 0,
+        tenantId: "",
         description: "",
         status: "Open",
         priority: "Medium",
@@ -233,7 +217,7 @@ export default function MaintenanceRequestsPage() {
             onClick={() => {
               setEditingId(null);
               setFormData({
-                tenantId: 0,
+                tenantId: "",
                 description: "",
                 status: "Open",
                 priority: "Medium",

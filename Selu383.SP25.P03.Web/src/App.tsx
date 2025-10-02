@@ -7,10 +7,10 @@ import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
 import EditTenants from './pages/EditTenants'
-import EditLeases from './pages/EditLeases';
+import EditLeases from './pages/EditLeases'
+import EditStaff from './pages/EditStaff'
 import PaymentsPage from "./pages/PaymentsPage";
 import MaintenanceRequestsPage from "./pages/MaintenanceRequestsPage";
-import EditStaff from './pages/EditStaff'
 
 // Auth service functions
 const authService = {
@@ -82,22 +82,6 @@ function App() {
     <Router>
       <div className="flex h-screen font-sans">
         {/* Sidebar */}
-        <aside className="sidebar">
-          <div className="sidebar-header">
-            <h2 className="brand-name">TenantTrack</h2>
-          </div>
-          <nav className="sidebar-nav">
-            <ul>
-              <li><Link to="/" className="sidebar-link">🏠 Home</Link></li>
-              <li><Link to="/editproperties" className="sidebar-link">🏢 Manage Properties</Link></li>
-              <li><Link to="/editunits" className="sidebar-link">📦 Manage Units</Link></li>
-              <li><Link to="/edittenants" className="sidebar-link">👤 Manage Tenants</Link></li>
-              <li><Link to="/editleases" className="sidebar-link">📄 Manage Leases</Link></li>
-              <li><Link to="/properties" className="sidebar-link">📋 View Properties</Link></li>
-              <li><Link to="/payments" className="sidebar-link">💵 Payments</Link></li>
-              <li><Link to="/maintenance-requests" className="sidebar-link">🛠️ Maintenance Requests</Link></li>
-            </ul>
-          </nav>
         <aside className="w-64 bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white p-6 flex flex-col justify-between shadow-lg">
           <div>
             {/* Sidebar Header */}
@@ -109,10 +93,9 @@ function App() {
             <nav>
               <ul className="list-none p-0 m-0 space-y-2">
                 <li>
-                  <Link to="/" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    🏠 Home
-                  </Link>
+                  <Link to="/" className="text-white no-underline ...">🏠 Home</Link>
                 </li>
+<<<<<<< Updated upstream
                 
                 {/* Management Links - Only show for Landlords and Admins */}
                 {canManage && (
@@ -146,10 +129,31 @@ function App() {
                 )}
                 
                 {/* Public Links - Show to everyone */}
+=======
                 <li>
-                  <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                    📋 View Properties
-                  </Link>
+                  <Link to="/editproperties" className="text-white no-underline ...">🏢 Manage Properties</Link>
+                </li>
+                <li>
+                  <Link to="/editunits" className="text-white no-underline ...">📦 Manage Units</Link>
+                </li>
+                <li>
+                  <Link to="/editstaff" className="text-white no-underline ...">👥 Manage Staff</Link>
+                </li>
+                <li>
+                  <Link to="/edittenants" className="text-white no-underline ...">👤 Manage Tenants</Link>
+                </li>
+                <li>
+                  <Link to="/editleases" className="text-white no-underline ...">📄 Manage Leases</Link>
+                </li>
+>>>>>>> Stashed changes
+                <li>
+                  <Link to="/properties" className="text-white no-underline ...">📋 View Properties</Link>
+                </li>
+                <li>
+                  <Link to="/payments" className="text-white no-underline ...">💵 Payments</Link>
+                </li>
+                <li>
+                  <Link to="/maintenance-requests" className="text-white no-underline ...">🛠️ Maintenance Requests</Link>
                 </li>
               </ul>
             </nav>
@@ -170,10 +174,10 @@ function App() {
               </div>
             ) : (
               <div className="space-y-2">
-                <Link to="/login" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
+                <Link to="/login" className="text-white no-underline ...">
                   🔑 Login
                 </Link>
-                <Link to="/signup" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10">
+                <Link to="/signup" className="text-white no-underline ...">
                   📝 Sign Up
                 </Link>
               </div>
@@ -184,13 +188,6 @@ function App() {
         {/* Main Content */}
         <main className="flex-1 p-8 text-gray-800 overflow-y-auto bg-gray-50">
           <Routes>
-            <Route path="/editproperties" element={<EditProperties />} />
-            <Route path="/editunits" element={<EditUnits />} />
-            <Route path="/edittenants" element={<EditTenants />} />
-            <Route path="/editleases" element={<EditLeases />} />
-            <Route path="/properties" element={<PropertiesView />} />
-            <Route path="/payments" element={<PaymentsPage />} />
-            <Route path="/maintenance-requests" element={<MaintenanceRequestsPage />} />
             <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
             
             {/* Management Routes - Protected by role */}
@@ -241,6 +238,12 @@ function App() {
             
             {/* Public Routes */}
             <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
+<<<<<<< Updated upstream
+=======
+            <Route path="/editstaff" element={<EditStaff currentUser={currentUser || undefined} />} />
+            <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
+            <Route path="/maintenance-requests" element={<MaintenanceRequestsPage currentUser={currentUser || undefined} />} />
+>>>>>>> Stashed changes
 
             <Route path="/login" element={
               <LoginForm
