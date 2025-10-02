@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-//import "../styles/PaymentsPage.css";
 
 interface PaymentDto {
   id?: number;
@@ -17,11 +16,14 @@ interface CurrentUser {
   roles?: string[]; // landlord, tenant
 }
 
-export default function PaymentsPage() {
+interface PaymentsPageProps {
+  currentUser?: CurrentUser;
+}
+
+export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
   const [payments, setPayments] = useState<PaymentDto[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [formData, setFormData] = useState<PaymentDto>({
-    tenantId: 0,
+    tenantId: currentUser?.id ?? 0,
     amount: 0,
     date: new Date().toISOString().split("T")[0],
     paymentMethod: "Credit Card",
@@ -31,33 +33,14 @@ export default function PaymentsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
-  useEffect(() => {
     if (currentUser) {
       fetchPayments();
     }
   }, [currentUser]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await axios.get<CurrentUser>("/api/authentication/me");
-      setCurrentUser(response.data);
-      setFormData(prev => ({
-        ...prev,
-        tenantId: response.data.id // for tenants making payments
-      }));
-    } catch (err) {
-      console.error("Error fetching current user:", err);
-      setError("Please log in to view payments");
-    }
-  };
-
   const fetchPayments = async () => {
     try {
       const response = await axios.get<PaymentDto[]>("/api/payments");
-      // tenants only see their own
       if (currentUser?.roles?.includes("tenant")) {
         setPayments(response.data.filter(p => p.tenantId === currentUser.id));
       } else {
