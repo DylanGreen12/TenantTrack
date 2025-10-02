@@ -196,7 +196,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 text-black py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
@@ -211,7 +211,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
             value={formData.description}
             onChange={handleInputChange}
             rows={3}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
           />
         </div>
 
@@ -225,7 +225,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
             name="address"
             value={formData.address}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
@@ -241,7 +241,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
               name="city"
               value={formData.city}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -256,7 +256,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
               name="state"
               value={formData.state}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               maxLength={2}
               placeholder="LA"
@@ -273,7 +273,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
               name="zipCode"
               value={formData.zipCode}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -289,7 +289,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 text-black py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="https://example.com/image.jpg"
           />
         </div>
