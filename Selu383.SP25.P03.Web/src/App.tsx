@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import EditProperties from './pages/EditProperties'
-import EditUnits from './pages/EditUnits'
-import PropertiesView from "./pages/PropertiesView";
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
-import EditTenants from './pages/EditTenants'
-import EditLeases from './pages/EditLeases'
-import EditStaff from './pages/EditStaff'
+import EditProperties from './pages/properties-page/EditProperties'
+import EditUnits from './pages/units-page/EditUnits'
+import ListUnits from './pages/units-page/ListUnits'
+import PropertiesView from "./pages/PropertiesView";
+import EditTenants from './pages/tenants-page/EditTenants'
+import ListTenants from './pages/tenants-page/ListTenants';
+import EditLeases from './pages/leases-page/EditLeases'
+import ListLeases from './pages/leases-page/ListLeases';
+import EditStaff from './pages/staff-page/EditStaff'
+import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
+//import TenantUnit from './pages/TenantUnit';
+
+
 
 // Auth service functions
 const authService = {
@@ -103,6 +110,18 @@ function App() {
                     </Link>
                   </li>
                   
+                  {/* Tenant-only link 
+                  {currentUser?.roles?.includes("Tenant") && (
+                    <li>
+                      <Link
+                        to="/my-unit"
+                        className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10"
+                      >
+                        🏠 My Unit
+                      </Link>
+                    </li>
+                  )} */}
+                  
                   {/* Management Links - Only show for Landlords and Admins */}
                   {canManage && (
                     <>
@@ -182,6 +201,7 @@ function App() {
                   <Link to="/login" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10 text-sm text-center">
                     🔑 Login
                   </Link>
+
                   <Link to="/signup" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10 text-sm text-center">
                     📝 Sign Up
                   </Link>
@@ -216,9 +236,46 @@ function App() {
                   </div>
               } />
               
+              <Route path="/editunits/:id" element={
+                canManage ? 
+                  <EditUnits currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+
+              <Route path="/units" element={
+                canManage ? 
+                  <ListUnits currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+              
               <Route path="/editstaff" element={
                 canManage ? 
                   <EditStaff currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+              
+              <Route path="/editstaff/:id" element={
+                canManage ? 
+                  <EditStaff currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+
+
+              <Route path="/staff" element={
+                canManage ? 
+                  <ListStaff currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
                     <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                     <p>You need to be a Landlord or Admin to access this page.</p>
@@ -234,9 +291,45 @@ function App() {
                   </div>
               } />
               
+              <Route path="/edittenants/:id" element={
+                canManage ? 
+                  <EditTenants currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+
+              <Route path="/tenants" element={
+                canManage ? 
+                  <ListTenants currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+              
               <Route path="/editleases" element={
                 canManage ? 
                   <EditLeases currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+              
+              <Route path="/editleases/:id" element={
+                canManage ? 
+                  <EditLeases currentUser={currentUser || undefined} /> : 
+                  <div className="text-center py-8">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                    <p>You need to be a Landlord or Admin to access this page.</p>
+                  </div>
+              } />
+
+              <Route path="/leases" element={
+                canManage ? 
+                  <ListLeases currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
                     <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                     <p>You need to be a Landlord or Admin to access this page.</p>

@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Tenants;
 using Selu383.SP25.P03.Api.Features.Units;
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -14,10 +15,12 @@ namespace Selu383.SP25.P03.Api.Controllers
     public class TenantsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public TenantsController(DataContext context)
+        public TenantsController(DataContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         private bool IsValidEmail(string email)
@@ -68,6 +71,44 @@ namespace Selu383.SP25.P03.Api.Controllers
             // Check if unit exists and is available
             return unit.Status == "Available";
         }
+
+        /*
+        [HttpGet("me/unit")]
+        [Authorize(Roles = UserRoleNames.Tenant)] 
+        public async Task<ActionResult<UnitDto>> GetMyUnit()
+        {
+            var user = await _userManager.GetUserAsync(User); 
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var tenant = await _context.Tenants
+                .Include(t => t.Unit)
+                .FirstOrDefaultAsync(t => t.Email.ToLower() == user.Email.ToLower());
+
+            if (tenant == null)
+            {
+                return NotFound(new { message = "No tenant record found for this user" });
+            }
+
+            if (tenant.Unit == null)
+            {
+                return NotFound(new { message = "No unit assigned" });
+            }
+
+            return Ok(new UnitDto
+            {
+                Id = tenant.Unit.Id,
+                UnitNumber = tenant.Unit.UnitNumber,
+                Rent = tenant.Unit.Rent,
+                ImageUrl = tenant.Unit.ImageUrl,
+                Description = tenant.Unit.Description,
+                Bedrooms = tenant.Unit.Bedrooms,
+                Bathrooms = tenant.Unit.Bathrooms
+            });
+        }
+        */
 
         // GET: api/tenants
         [HttpGet]
