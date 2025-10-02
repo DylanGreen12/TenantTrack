@@ -193,7 +193,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             name="unitNumber"
             value={formData.unitNumber}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
@@ -207,7 +207,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             name="propertyId"
             value={formData.propertyId}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>--Select Property--</option>
@@ -229,7 +229,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             value={formData.description}
             onChange={handleInputChange}
             rows={3}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
           />
         </div>
 
@@ -243,7 +243,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             name="imageUrl"
             value={formData.imageUrl}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="https://example.com/image.jpg"
           />
         </div>
@@ -259,7 +259,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
               name="bedrooms"
               value={formData.bedrooms === 0 ? "" : formData.bedrooms}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               min="0"
               step = "1"
@@ -276,7 +276,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
               name="bathrooms"
               value={formData.bathrooms === 0 ? "" : formData.bathrooms}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               min="0"
               step=".5"
@@ -293,7 +293,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
               name="squareFeet"
               value={formData.squareFeet === 0 ? "" : formData.squareFeet}
               onChange={handleInputChange}
-              className="w-65 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               min="0"
               step="0.01"
@@ -311,7 +311,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             name="rent"
             value={formData.rent === 0 ? "" : formData.rent}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             min="0"
             step="0.01"
@@ -325,7 +325,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             name="status"
             value={formData.status}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value="Available">Available</option>
