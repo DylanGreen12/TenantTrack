@@ -157,11 +157,6 @@ function App() {
                         📄 Manage Leases
                       </Link>
                     </li>
-                    <li>
-                      <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                         📊 Landlord Dashboard
-                      </Link>
-                    </li>
                     </>
                   )}
                   
