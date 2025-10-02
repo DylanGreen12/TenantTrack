@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { UserDto } from "../models/UserDto"; 
 import "../styles/LandlordDashboard.css";
 
 interface PropertySummary {
@@ -62,7 +63,11 @@ interface LandlordDashboardData {
   summary: DashboardSummary;
 }
 
-export default function LandlordDashboard() {
+interface LandlordDashboardProps {
+  currentUser?: UserDto;
+}
+
+export default function LandlordDashboard({ currentUser }: LandlordDashboardProps) {
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -117,6 +122,8 @@ export default function LandlordDashboard() {
     return lease.status.toLowerCase() === 'active' && endDate >= today;
   };
 
+  console.log("Current user in dashboard:", currentUser);
+
   if (loading) {
     return <div className="landlord-dashboard"><p>Loading dashboard...</p></div>;
   }
@@ -137,6 +144,13 @@ export default function LandlordDashboard() {
   return (
     <div className="landlord-dashboard">
       <h1>Landlord Dashboard</h1>
+      
+      {/* Optional: Display current user info */}
+      {currentUser && (
+        <div className="user-welcome">
+          <p>Welcome, {currentUser.userName}!</p>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="summary-cards">
