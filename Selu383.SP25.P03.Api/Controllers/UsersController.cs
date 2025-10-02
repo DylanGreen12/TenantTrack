@@ -28,7 +28,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         }
 
         [HttpPost]
-        //[Authorize]
+        [Authorize]
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
         {
             if (!dto.Roles.Any() || !dto.Roles.All(x => roles.Any(y => x == y.Name)))
@@ -46,10 +46,87 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = user.Id,
                     UserName = dto.Username,
-                    Roles = dto.Roles
+                    Roles = dto.Roles,
+                    Email = dto.Email,
+                    Phone = dto.Phone
                 };
             }
             return BadRequest();
         }
+
+
+        [HttpPut("{id}/contact")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> UpdateContactInfo(int id, [FromBody] UpdateContactInfoDto dto)
+        {
+
+            var user = await userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.Email = dto.Email;
+            user.Phone = dto.Phone;
+
+            var result = await userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return new UserDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Roles = (await userManager.GetRolesAsync(user)).ToArray(),
+                    Email = user.Email,
+                    Phone = user.Phone
+                };
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        public class UpdateContactInfoDto
+        {
+            public string? Email { get; set; }
+            public string? Phone { get; set; }
+        }
+
+
+        [HttpGet]
+        //[Authorize]
+        public async Task<ActionResult<List<BasicUserDto>>> GetUsers()
+        {
+            try
+            {
+                var users = await userManager.Users.ToListAsync();
+                var basicUserDtos = new List<BasicUserDto>();
+
+                foreach (var user in users)
+                {
+                    basicUserDtos.Add(new BasicUserDto
+                    {
+                        Id = user.Id,
+                        UserName = user.UserName,
+                        Email = user.Email,
+                        Phone = user.Phone
+                    });
+                }
+
+                return Ok(basicUserDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving users");
+            }
+        }
+
+        public class BasicUserDto
+        {
+            public int Id { get; set; }
+            public string? UserName { get; set; }
+            public string? Email { get; set; }
+            public string? Phone { get; set; }
+        }
+
     }
 }
