@@ -7,6 +7,8 @@ using Selu383.SP25.P03.Api.Features.Properties;
 using Selu383.SP25.P03.Api.Features.Units;
 using Selu383.SP25.P03.Api.Features.Tenants;
 using Selu383.SP25.P03.Api.Features.Leases;
+using Selu383.SP25.P03.Api.Features.Payments;
+using Selu383.SP25.P03.Api.Features.MaintenanceRequests;
 using Selu383.SP25.P03.Api.Features.Staff;
 
 namespace Selu383.SP25.P03.Api.Data
@@ -23,6 +25,8 @@ namespace Selu383.SP25.P03.Api.Data
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Staff> Staff { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -50,12 +54,13 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasForeignKey(u => u.PropertyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.ApplyConfiguration(new MaintenanceRequestEntityTypeConfiguration());    
+
             builder.Entity<Staff>()
                 .HasOne(s => s.Property)
                 .WithMany()
                 .HasForeignKey(s => s.PropertyId)
                 .OnDelete(DeleteBehavior.NoAction);
-
         }
     }
 }
