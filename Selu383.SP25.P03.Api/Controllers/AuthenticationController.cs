@@ -39,6 +39,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = user.Id,
                     UserName = user.UserName,
+                    Email = user.Email,
+                    Phone = user.Phone,
                     Roles = (await userManager.GetRolesAsync(user)).ToArray()
                 };
             }
@@ -59,6 +61,8 @@ namespace Selu383.SP25.P03.Api.Controllers
             {
                 Id = user.Id,
                 UserName = user.UserName,
+                Email = user.Email,
+                Phone = user.Phone,
                 Roles = (await userManager.GetRolesAsync(user)).ToArray()
             };
         }
