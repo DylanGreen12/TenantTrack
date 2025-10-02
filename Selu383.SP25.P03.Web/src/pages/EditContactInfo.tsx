@@ -98,58 +98,63 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
   }
 
   return (
-    <div className="p-20px max-w-1200px mx-auto">
-      <h1 className="text-gray-800">Update Contact Information</h1>
-      <p className="text-gray-700">Logged in as: {currentUser.userName} (ID: {currentUser.id})</p>
+    <div className="p-20px max-w-1200px mx-auto bg-gray-50">
+      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Update Contact Information</h1>
       
-      <form onSubmit={handleSubmit} className="bg-[#00061f] text-white p-20px rounded-8px mb-30px max-w-600px">
-        <h2 className="mb-20px">Your Contact Details</h2>
+      <form onSubmit={handleSubmit} 
+        className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
+      >
+        <h2 className="text-lg font-semibold mb-24px">Your Contact Details</h2>
         
-        <div className="mb-15px">
-          <label htmlFor="email" className="block mb-5px font-bold">Email Address:</label>
+        <div className="mb-20px">
+          <label htmlFor="email" className="block mb-6px font-medium text-gray-700">
+            Email Address
+          </label>
           <input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-white"
+            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="your.email@example.com"
           />
-          <p className="text-[#ccc] text-12px mt-5px">We'll use this for important notifications</p>
+          <p className="text-black text-12px mt-5px">We'll use this for important notifications</p>
         </div>
 
-        <div className="mb-15px">
-          <label htmlFor="phone" className="block mb-5px font-bold">Phone Number:</label>
+        <div className="mb-20px">
+          <label htmlFor="phone" className="block mb-6px font-medium text-gray-700">
+            Phone Number
+          </label>
           <input
             type="tel"
             id="phone"
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
-            className="w-full p-8px border-1 border-[#ddd] rounded-4px text-14px text-white"
+            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="(555) 123-4567"
           />
-          <p className="text-[#ccc] text-12px mt-5px">For urgent maintenance requests and updates</p>
+          <p className="text-black text-12px mt-5px">For urgent maintenance requests and updates</p>
         </div>
 
         {error && showMessage && (
-          <div className="text-[#721c24] my-10px py-10px px-15px bg-[#f8d7da] border border-[#f5c6cb] rounded-4px">
+          <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
             {error}
           </div>
         )}
 
         {!error && message && (
-          <div className="text-[#155724] my-10px py-10px px-15px bg-[#d4edda] border border-[#c3e6cb] rounded-4px">
+          <div className="my-4 p-4 rounded-lg shadow-inner border border-green-300 bg-green-100 text-green-800 text-sm">
             {message}
           </div>
         )}
 
-        <div className="flex gap-10px mt-20px">
+        <div className="flex flex-wrap gap-12px mt-24px">
           <button 
             type="submit" 
             disabled={loading}
-            className="bg-[#007bff] text-white py-10px px-20px border-none rounded-4px cursor-pointer text-14px hover:bg-[#0056b3] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Updating..." : "Update Contact Info"}
           </button>
@@ -164,31 +169,33 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
         </div>
       </form>
 
-      <div className="current-info bg-[#f8f9fa] p-20px rounded-8px max-w-600px">
-        <h3 className="text-gray-800 mb-15px">Current Information</h3>
-        <div className="grid grid-cols-2 gap-15px">
-          <div>
-            <strong className="text-gray-700">Username:</strong>
-            <p className="text-gray-600">{currentUser.userName}</p>
-          </div>
-          <div>
-            <strong className="text-gray-700">User ID:</strong>
-            <p className="text-gray-600">{currentUser.id}</p>
-          </div>
-          <div>
-            <strong className="text-gray-700">Email:</strong>
-            <p className="text-gray-600">{currentUser.email || "Not set"}</p>
-          </div>
-          <div>
-            <strong className="text-gray-700">Phone:</strong>
-            <p className="text-gray-600">{currentUser.phone || "Not set"}</p>
-          </div>
-          <div className="col-span-2">
-            <strong className="text-gray-700">Roles:</strong>
-            <p className="text-gray-600">{currentUser.roles?.join(", ") || "No roles"}</p>
-          </div>
+      <div className="current-info bg-white p-6 rounded-xl shadow-md max-w-[600px] border border-blue-200">
+            <h3 className="text-gray-800 block">
+              Current Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <strong className="text-gray-800 block">Username:</strong>
+                <p className="text-gray-700">{currentUser.userName}</p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <strong className="text-gray-800 block">User ID:</strong>
+                <p className="text-gray-700">{currentUser.id}</p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <strong className="text-gray-800 block">Email:</strong>
+                <p className="text-gray-700">{currentUser.email || "Not set"}</p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <strong className="text-gray-800 block">Phone:</strong>
+                <p className="text-gray-700">{currentUser.phone || "Not set"}</p>
+              </div>
+              <div className="col-span-2 bg-blue-50 p-3 rounded-lg">
+                <strong className="text-gray-800 block">Roles:</strong>
+                <p className="text-gray-700">{currentUser.roles?.join(", ") || "No roles"}</p>
+              </div>
+            </div>
         </div>
-      </div>
     </div>
   );
 };
