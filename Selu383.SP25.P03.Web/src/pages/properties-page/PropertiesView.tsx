@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { UserDto } from "../models/UserDto";
+import { UserDto } from "../../models/UserDto";
 
 interface PropertyDto {
   id: number;

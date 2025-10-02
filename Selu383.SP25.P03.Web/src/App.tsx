@@ -6,7 +6,7 @@ import { UserDto } from "./models/UserDto";
 import EditProperties from './pages/properties-page/EditProperties'
 import EditUnits from './pages/units-page/EditUnits'
 import ListUnits from './pages/units-page/ListUnits'
-import PropertiesView from "./pages/PropertiesView";
+import PropertiesView from "./pages/properties-page/PropertiesView";
 import EditTenants from './pages/tenants-page/EditTenants'
 import ListTenants from './pages/tenants-page/ListTenants';
 import EditLeases from './pages/leases-page/EditLeases'
