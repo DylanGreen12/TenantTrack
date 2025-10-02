@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import { UserDto } from "./models/UserDto";
+import LandlordDashboard from './pages/LandlordDashboard'
 import EditProperties from './pages/properties-page/EditProperties'
 import EditUnits from './pages/units-page/EditUnits'
 import ListUnits from './pages/units-page/ListUnits'
@@ -15,7 +16,6 @@ import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
 //import TenantUnit from './pages/TenantUnit';
-
 
 
 // Auth service functions
@@ -110,7 +110,7 @@ function App() {
                     </Link>
                   </li>
                   
-                  {/* Tenant-only link 
+                  {/* Tenant-only link
                   {currentUser?.roles?.includes("Tenant") && (
                     <li>
                       <Link
@@ -120,7 +120,7 @@ function App() {
                         🏠 My Unit
                       </Link>
                     </li>
-                  )} */}
+                    )} */}
                   
                   {/* Management Links - Only show for Landlords and Admins */}
                   {canManage && (
@@ -136,20 +136,30 @@ function App() {
                         </Link>
                       </li>
                       <li>
+                        <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                         📊 Landlord Dashboard
+                        </Link>
+                      </li>
+                      <li>
                         <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                           👥 Manage Staff
                         </Link>
                       </li>
                       <li>
-                        <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                          👤 Manage Tenants
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                          📄 Manage Leases
-                        </Link>
-                      </li>
+                      <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        👤 Manage Tenants
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                        📄 Manage Leases
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                         📊 Landlord Dashboard
+                      </Link>
+                    </li>
                     </>
                   )}
                   
@@ -210,7 +220,7 @@ function App() {
             </div>
           </div>
         </aside>
-
+    
         {/* Main Content - Scrollable area */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 text-gray-800">
@@ -253,6 +263,15 @@ function App() {
                     <p>You need to be a Landlord or Admin to access this page.</p>
                   </div>
               } />
+              
+              <Route path="/landlord-dashboard" element={
+              canManage ? 
+                <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                  <p>You need to be a Landlord or Admin to access this page.</p>
+                </div>
+            } />
               
               <Route path="/editstaff" element={
                 canManage ? 
