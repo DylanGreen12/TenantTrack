@@ -250,7 +250,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                 lastName: tenant?.lastName || ""
               }));
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-black focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>-- Select Tenant --</option>
@@ -276,7 +276,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               name="startDate"
               value={formData.startDate}
               onChange={handleInputChange}
-              className="w-100 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-100 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-black focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -294,7 +294,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               name="endDate"
               value={formData.endDate}
               onChange={handleInputChange}
-              className="w-105 px-3 py-2 border border-gray-300 rounded-lg shadow-inner focus:(outline-none ring-2 ring-blue-400)"
+              className="w-105 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-black focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -312,7 +312,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               name="rent"
               value={formData.rent === 0 ? "" : formData.rent}
               onChange={handleInputChange}
-              className="flex-1 px-12px py-10px border border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
+              className="flex-1 px-12px py-10px border bg-white text-black border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -331,7 +331,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               name="deposit"
               value={formData.deposit === 0 ? "" : formData.deposit}
               onChange={handleInputChange}
-              className="flex-1 px-12px py-10px border border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
+              className="flex-1 px-12px py-10px bg-white text-black border border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -347,7 +347,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
             name="status"
             value={formData.status}
             onChange={handleInputChange}
-            className="w-full px-12px py-10px border border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-12px py-10px bg-white text-black border border-gray-300 rounded-8px text-14px focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value="">-- Select Status --</option>

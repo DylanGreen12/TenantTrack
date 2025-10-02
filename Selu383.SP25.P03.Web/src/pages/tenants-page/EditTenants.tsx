@@ -205,7 +205,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
             name="unitId"
             value={formData.unitId}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>-- Select Unit --</option>
@@ -231,7 +231,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className="w-100 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-100 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -246,7 +246,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className="w-105 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              className="w-105 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
             />
           </div>
@@ -262,7 +262,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
             maxLength={15}
             placeholder="123-456-7890"
@@ -279,7 +279,7 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className= "w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className= "w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
