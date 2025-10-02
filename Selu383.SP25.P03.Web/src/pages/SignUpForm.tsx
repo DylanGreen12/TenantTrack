@@ -16,6 +16,8 @@ const AVAILABLE_ROLES = [
 
 export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState("Tenant"); 
   const [formError, setFormError] = useState("");
@@ -37,6 +39,28 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="email" className="input-label">Email:</label>
+            <input
+              type="email"
+              id="email"
+              className="login-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Optional"
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="phone" className="input-label">Phone:</label>
+            <input
+              type="tel"
+              id="phone"
+              className="login-input"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Optional"
             />
           </div>
           <div className="input-group">
@@ -97,9 +121,11 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     setLoading(true);
 
     const payload = {
-      Username: username,    
-      Password: password,    
-      Roles: [selectedRole], 
+      Username: username,
+      Password: password,
+      Roles: [selectedRole],
+      Email: email || null,
+      Phone: phone || null
     };
 
     try {
