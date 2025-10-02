@@ -15,6 +15,8 @@ import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
+import PaymentsPage from "./pages/PaymentsPage";
+import MaintenanceRequestsPage from "./pages/MaintenanceRequestsPage";
 //import TenantUnit from './pages/TenantUnit';
 
 
@@ -172,6 +174,16 @@ function App() {
                   <li>
                     <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                       📋 View Properties
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/payments" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                      💵 Payments
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/maintenance-requests" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                      🛠️ Maintenance
                     </Link>
                   </li>
                 </ul>
@@ -378,6 +390,8 @@ function App() {
                   onSwitchToLogin={() => window.location.href = '/login'}
                 />
               } />
+              <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
+              <Route path="/maintenance-requests" element={<MaintenanceRequestsPage currentUser={currentUser || undefined} />} />
             </Routes>
           </div>
         </main>
