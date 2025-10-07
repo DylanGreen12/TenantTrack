@@ -136,11 +136,6 @@ function App() {
                         </Link>
                       </li>
                       <li>
-                        <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                         📊 Landlord Dashboard
-                        </Link>
-                      </li>
-                      <li>
                         <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                           👥 Manage Staff
                         </Link>
@@ -220,7 +215,11 @@ function App() {
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 text-gray-800">
             <Routes>
-              <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
+              <Route path="/" element={
+  canManage ? 
+    <LandlordDashboard currentUser={currentUser || undefined} /> : 
+    <div>Welcome to TenantTrack! Select an option from the sidebar.</div>
+} />
               
               {/* Management Routes - Protected by role */}
               <Route path="/editproperties" element={
