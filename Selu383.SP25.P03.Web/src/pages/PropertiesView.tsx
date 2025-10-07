@@ -27,20 +27,18 @@ interface UnitDto {
   status: string;
 }
 
-interface StaffDto {
+// Add BasicUserDto interface for the simplified user data
+interface BasicUserDto {
   id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  position: string;
-  propertyId: number;
+  userName?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface PropertyWithUnits extends PropertyDto {
   units: UnitDto[];
   isExpanded: boolean;
-  owner?: StaffDto;
+  owner?: BasicUserDto; // Changed from UserDto to BasicUserDto
 }
 
 interface RentalApplicationData {
@@ -102,16 +100,21 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
       const unitsResponse = await axios.get<UnitDto[]>("/api/units");
       const allUnits = unitsResponse.data;
       
-      // Fetch all staff
-      const staffResponse = await axios.get<StaffDto[]>("/api/staff");
-      const allStaff = staffResponse.data;
+      // Try to fetch users, but if it fails, we'll handle it gracefully
+      let allUsersData: BasicUserDto[] = [];
+      try {
+        const usersResponse = await axios.get<BasicUserDto[]>("/api/users");
+        allUsersData = usersResponse.data;
+      } catch (usersError) {
+        console.warn("Could not fetch users, property owners will not be displayed:", usersError);
+        // Continue without user data - properties will still show but without owner info
+      }
       
       // Combine properties with their units and owner information
       const propertiesWithUnits = propertiesData.map(property => {
-        // Find owner for this property (staff with position "Owner")
-        const owner = allStaff.find(staff => 
-          staff.propertyId === property.id && staff.position.toLowerCase() === "owner"
-        );
+        // Find owner for this property (user who owns the property)
+        // Convert userId to string for comparison since UserDto.id is string
+        const owner = allUsersData.find(user => user.id.toString() === property.userId.toString());
         
         return {
           ...property,
@@ -149,12 +152,11 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
         property.zipCode.toLowerCase().includes(searchLower) ||
         (property.description && property.description.toLowerCase().includes(searchLower));
 
-      // Search owner fields
+      // Search owner fields (removed roles search)
       const ownerMatches = property.owner && (
-        property.owner.firstName.toLowerCase().includes(searchLower) ||
-        property.owner.lastName.toLowerCase().includes(searchLower) ||
-        property.owner.email.toLowerCase().includes(searchLower) ||
-        property.owner.phone.toLowerCase().includes(searchLower)
+        property.owner.userName?.toLowerCase().includes(searchLower) ||
+        property.owner.email?.toLowerCase().includes(searchLower) ||
+        property.owner.phone?.toLowerCase().includes(searchLower)
       );
 
       // Search unit fields within this property
@@ -320,7 +322,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search properties, units, owners, prices, locations..."
+              placeholder="Search properties, units, prices, locations..."
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-full px-6 py-4 pl-12 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
@@ -400,20 +402,25 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                     </p>
                   )}
                   
-                  {/* Owner Information */}
+                  {/* Owner Information - Only show if we have owner data */}
                   {property.owner && (
                     <div className="mt-4 p-3 bg-white bg-opacity-10 rounded-lg">
-                      <h4 className="font-semibold mb-2 text-blue-200">Property Owner</h4>
+                      <h4 className="font-semibold mb-2 text-blue-200">Property Manager</h4>
                       <div className="text-sm space-y-1">
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">👤 {property.owner.firstName} {property.owner.lastName}</span>
+                          <span className="font-medium">👤 {property.owner.userName}</span>
                         </p>
-                        <p className="flex items-center gap-2">
-                          <span>📞 {property.owner.phone}</span>
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span>📧 {property.owner.email}</span>
-                        </p>
+                        {property.owner.email && (
+                          <p className="flex items-center gap-2">
+                            <span>📧 {property.owner.email}</span>
+                          </p>
+                        )}
+                        {property.owner.phone && (
+                          <p className="flex items-center gap-2">
+                            <span>📞 {property.owner.phone}</span>
+                          </p>
+                        )}
+                        {/* Removed roles display since BasicUserDto doesn't include roles */}
                       </div>
                     </div>
                   )}
