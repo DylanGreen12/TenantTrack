@@ -15,10 +15,11 @@ import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
-//import TenantUnit from './pages/TenantUnit';
-
-import PaymentsPage from "./pages/PaymentsPage";
-import MaintenanceRequestsPage from "./pages/MaintenanceRequestsPage";
+import PaymentsPage from "./pages/payments-page/Payments";
+import RecordPayment from "./pages/payments-page/RecordPayment";
+import MakePayment from "./pages/payments-page/MakePayment";
+import MaintenanceRequests from "./pages/maintenance-requests-page/MaintenanceRequests";
+import EditMaintenanceRequests from "./pages/maintenance-requests-page/EditMaintenanceRequests";
 
 // Auth service functions
 const authService = {
@@ -111,19 +112,7 @@ function App() {
                       🏠 Home
                     </Link>
                   </li>
-                  
-                  {/* Tenant-only link
-                  {currentUser?.roles?.includes("Tenant") && (
-                    <li>
-                      <Link
-                        to="/my-unit"
-                        className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10"
-                      >
-                        🏠 My Unit
-                      </Link>
-                    </li>
-                    )} */}
-                  
+                
                   {/* Management Links - Only show for Landlords and Admins */}
                   {canManage && (
                     <>
@@ -177,7 +166,7 @@ function App() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/maintenance-requests" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
+                  <Link to="/maintenancerequests" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
                     🛠️ Maintenance
                   </Link>
                 </li>
@@ -361,8 +350,7 @@ function App() {
                     <p>You need to be a Landlord or Admin to access this page.</p>
                   </div>
               } />
-              
-              {/* Public Routes */}
+            
               <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
               
               <Route path="/editcontact" element={
@@ -371,8 +359,14 @@ function App() {
                   onUserUpdate={handleUserUpdate} 
                 />
               } />
-            <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
-            <Route path="/maintenance-requests" element={<MaintenanceRequestsPage currentUser={currentUser || undefined} />} />
+              
+              <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
+              <Route path="/recordpayment" element={<RecordPayment currentUser={currentUser || undefined} />} />
+              <Route path="/makepayment" element={<MakePayment currentUser={currentUser || undefined} />} />
+              
+              <Route path="/maintenancerequests" element={<MaintenanceRequests currentUser={currentUser || undefined} />} />
+              <Route path="/editmaintenancerequests" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
+              <Route path="/editmaintenancerequests/:id" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
 
               <Route path="/login" element={
                 <LoginForm
