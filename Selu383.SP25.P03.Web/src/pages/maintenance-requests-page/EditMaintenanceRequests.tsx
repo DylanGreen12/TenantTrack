@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { UserDto } from "../../models/UserDto"; // Adjusted path to match the correct location
+import { UserDto } from "../../models/UserDto";
 import { useParams, Link } from "react-router-dom";
 
 interface MaintenanceRequestDto {
@@ -191,7 +191,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
             name="tenantId"
             value={formData.tenantId}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
             required
             disabled={isTenant && !isLandlord}
           >
@@ -218,7 +218,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
             required
             rows={4}
             placeholder="Describe the maintenance issue..."
@@ -234,12 +234,12 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
             name="priority"
             value={formData.priority}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
           >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Emergency</option>
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Emergency">Emergency</option>
           </select>
         </div>
 

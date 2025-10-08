@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { UserDto } from "../../models/UserDto";
-import { useParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface MaintenanceRequestDto {
   id?: number;
@@ -22,22 +22,13 @@ interface TenantDto {
   lastName: string;
 }
 
-interface EditMaintenanceRequestsProps {
+interface MaintenanceRequestsProps {
   currentUser?: UserDto;
 }
 
-export default function EditMaintenanceRequests({ currentUser }: EditMaintenanceRequestsProps) {
+export default function MaintenanceRequests({ currentUser }: MaintenanceRequestsProps) {
+  const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
-  const [formData, setFormData] = useState<MaintenanceRequestDto>({
-    tenantId: 0,
-    description: "",
-    status: "Open",
-    priority: "Medium",
-    assignedTo: null,
-  });
-  const { id } = useParams<{ id: string }>();
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
@@ -47,15 +38,13 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
   const isTenant = currentUser?.roles?.includes("Tenant");
 
   useEffect(() => {
-    fetchTenants();
-  }, []);
-
-  useEffect(() => {
-    if (id) {
-      setEditingId(parseInt(id));
-      fetchRequest(parseInt(id));
+    if (isLandlord) {
+      fetchTenants();
     }
-  }, [id]);
+    if (currentUser) {
+      fetchRequests();
+    }
+  }, [currentUser]);
 
   const fetchTenants = async () => {
     try {
@@ -63,106 +52,73 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
       setTenants(response.data);
     } catch (err) {
       console.error("Error fetching tenants:", err);
-      setError("Failed to fetch tenants");
     }
   };
 
-  const fetchRequest = async (requestId: number) => {
+  const fetchRequests = async () => {
     try {
-      const response = await axios.get<MaintenanceRequestDto>(`/api/maintenancerequests/${requestId}`);
-      setFormData({
-        tenantId: response.data.tenantId,
-        description: response.data.description,
-        status: response.data.status,
-        priority: response.data.priority,
-        assignedTo: response.data.assignedTo || null,
-      });
+      const response = await axios.get<MaintenanceRequestDto[]>("/api/maintenancerequests");
+      setRequests(response.data);
     } catch (err) {
-      console.error("Error fetching request:", err);
-      setError("Failed to fetch request");
-      setShowMessage(true);
+      setError("Failed to fetch maintenance requests");
+      console.error("Error fetching requests:", err);
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "tenantId" ? parseInt(value) : value,
-    }));
+  const getTenantName = (tenantId: number): string => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Tenant ID: ${tenantId}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!currentUser) {
-      setError("Please log in to submit a request");
-      setShowMessage(true);
-      return;
-    }
-
-    if (!formData.tenantId || formData.tenantId === 0) {
-      setError("Please select a tenant");
-      setShowMessage(true);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setShowMessage(false);
-
+  const handleStatusUpdate = async (requestId: number, newStatus: string) => {
     try {
-      if (editingId) {
-        await axios.put(`/api/maintenancerequests/${editingId}`, formData);
-        setMessage("Request updated successfully!");
-      } else {
-        await axios.post("/api/maintenancerequests", formData);
-        setMessage("Request submitted successfully!");
-      }
+      const request = requests.find(r => r.id === requestId);
+      if (!request) return;
+
+      await axios.put(`/api/maintenancerequests/${requestId}`, {
+        ...request,
+        status: newStatus
+      });
+      setMessage("Request status updated successfully!");
       setShowMessage(true);
-      resetForm();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Failed to submit request";
-      setError(errorMsg);
-      setMessage(errorMsg);
+      await fetchRequests();
+    } catch (err) {
+      console.error("Error updating request status:", err);
+      setError("Failed to update request status");
       setShowMessage(true);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      tenantId: 0,
-      description: "",
-      status: "Open",
-      priority: "Medium",
-      assignedTo: null,
-    });
-    setEditingId(null);
-    setError("");
-    setShowMessage(false);
+  const handlePriorityUpdate = async (requestId: number, newPriority: string) => {
+    try {
+      const request = requests.find(r => r.id === requestId);
+      if (!request) return;
+
+      await axios.put(`/api/maintenancerequests/${requestId}`, {
+        ...request,
+        priority: newPriority
+      });
+      setMessage("Request priority updated successfully!");
+      setShowMessage(true);
+      await fetchRequests();
+    } catch (err) {
+      console.error("Error updating request priority:", err);
+      setError("Failed to update request priority");
+      setShowMessage(true);
+    }
+  };
+
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (!currentUser) {
     return (
       <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Maintenance Request</h1>
+        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Maintenance Requests</h1>
         <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
-          Please log in to submit maintenance requests
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLandlord && !isTenant) {
-    return (
-      <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Maintenance Request</h1>
-        <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
-          You don't have permission to submit maintenance requests
+          Please log in to view maintenance requests
         </div>
       </div>
     );
@@ -170,119 +126,149 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">
-        {editingId ? "Edit Maintenance Request" : "Submit Maintenance Request"}
-      </h1>
+      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Maintenance Requests</h1>
 
-      <form 
-        onSubmit={handleSubmit}
-        className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
-      >
-        <h2 className="text-lg font-semibold mb-24px">
-          {editingId ? "Edit Request" : "New Request"}
+      {/* Action buttons */}
+      <div className="mb-20px flex gap-10px">
+        <Link
+          to="/editmaintenancerequests"
+          className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 transition-colors inline-block"
+        >
+          {isLandlord ? "Create New Request" : "Submit Request"}
+        </Link>
+      </div>
+
+      {error && showMessage && (
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
+          {error}
+        </div>
+      )}
+
+      {!error && message && showMessage && (
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-green-300 bg-green-100 text-green-800 text-sm">
+          {message}
+        </div>
+      )}
+
+      <div className="requests-list">
+        <h2 className="text-lg font-semibold mb-10px text-gray-800">
+          {isLandlord && `All Requests (${requests.length})`}
+          {isTenant && `My Requests (${requests.length})`}
         </h2>
-
-        <div className="mb-20px">
-          <label htmlFor="tenantId" className="block mb-6px font-medium text-gray-700">
-            Tenant
-          </label>
-          <select
-            id="tenantId"
-            name="tenantId"
-            value={formData.tenantId}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
-            required
-            disabled={isTenant && !isLandlord}
-          >
-            <option value={0}>-- Select Tenant --</option>
-            {tenants.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.firstName} {t.lastName} (Unit {t.unitNumber})
-              </option>
-            ))}
-          </select>
-          {isTenant && !isLandlord && (
-            <p className="text-gray-500 text-12px mt-5px">
-              Select your tenant profile from the dropdown
-            </p>
-          )}
-        </div>
-
-        <div className="mb-20px">
-          <label htmlFor="description" className="block mb-6px font-medium text-gray-700">
-            Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
-            required
-            rows={4}
-            placeholder="Describe the maintenance issue..."
-          />
-        </div>
-
-        <div className="mb-20px">
-          <label htmlFor="priority" className="block mb-6px font-medium text-gray-700">
-            Priority
-          </label>
-          <select
-            id="priority"
-            name="priority"
-            value={formData.priority}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Emergency</option>
-          </select>
-        </div>
-
-        {error && showMessage && (
-          <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
-            {error}
-          </div>
+        
+        {isTenant && (
+          <p className="text-gray-600 mb-10px text-sm">
+            View your maintenance requests below. Use "Submit Request" to create a new one.
+          </p>
         )}
 
-        {!error && message && showMessage && (
-          <div className="my-4 p-4 rounded-lg shadow-inner border border-green-300 bg-green-100 text-green-800 text-sm">
-            {message}
+        {requests.length === 0 ? (
+          <p className="text-gray-600">No maintenance requests found.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse mt-5 text-sm bg-[#fdfefe] rounded-lg overflow-hidden shadow-sm">
+              <thead>
+                <tr className="bg-[#f3f4f6]">
+                  {isLandlord && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant</th>}
+                  <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Description</th>
+                  <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Priority</th>
+                  <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Status</th>
+                  <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Requested</th>
+                  {isLandlord && <th className="p-12px text-left border-b font-semibold text-[#374151]">Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((request, i) => (
+                  <tr
+                    key={request.id}
+                    className={`${i % 2 === 0 ? "bg-white" : "bg-[#f9fafb]"} hover:bg-[#ebf5ff] transition-colors`}
+                  >
+                    {isLandlord && (
+                      <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                        {getTenantName(request.tenantId)}
+                      </td>
+                    )}
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827] max-w-xs">
+                      <div className="truncate" title={request.description}>
+                        {request.description}
+                      </div>
+                    </td>
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {isLandlord ? (
+                        <select
+                          value={request.priority}
+                          onChange={(e) => handlePriorityUpdate(request.id!, e.target.value)}
+                          className={`px-2 py-1 rounded-md text-12px border-none ${
+                            request.priority === 'Emergency' ? 'bg-red-600 text-white' :
+                            request.priority === 'High' ? 'bg-orange-500 text-white' :
+                            request.priority === 'Medium' ? 'bg-yellow-500 text-white' :
+                            'bg-green-600 text-white'
+                          }`}
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                          <option value="Emergency">Emergency</option>
+                        </select>
+                      ) : (
+                        <span className={`py-4px px-8px rounded-4px text-12px inline-block ${
+                          request.priority === 'Emergency' ? 'bg-red-600 text-white' :
+                          request.priority === 'High' ? 'bg-orange-500 text-white' :
+                          request.priority === 'Medium' ? 'bg-yellow-500 text-white' :
+                          'bg-green-600 text-white'
+                        }`}>
+                          {request.priority}
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {isLandlord ? (
+                        <select
+                          value={request.status}
+                          onChange={(e) => handleStatusUpdate(request.id!, e.target.value)}
+                          className={`px-2 py-1 rounded-md text-12px border-none ${
+                            request.status === 'Completed' ? 'bg-green-600 text-white' :
+                            request.status === 'In Progress' ? 'bg-blue-500 text-white' :
+                            request.status === 'Open' ? 'bg-yellow-500 text-white' :
+                            'bg-gray-500 text-white'
+                          }`}
+                        >
+                          <option value="Open">Open</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      ) : (
+                        <span className={`py-4px px-8px rounded-4px text-12px inline-block ${
+                          request.status === 'Completed' ? 'bg-green-600 text-white' :
+                          request.status === 'In Progress' ? 'bg-blue-500 text-white' :
+                          request.status === 'Open' ? 'bg-yellow-500 text-white' :
+                          'bg-gray-500 text-white'
+                        }`}>
+                          {request.status}
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {formatDate(request.requestedAt)}
+                    </td>
+                    {isLandlord && (
+                      <td className="p-12px border-b text-[#111827]">
+                        <Link
+                          to={`/editmaintenancerequests/${request.id}`}
+                          className="text-blue-600 hover:text-blue-800 text-12px underline"
+                        >
+                          Edit
+                        </Link>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-
-        <div className="flex flex-wrap gap-12px mt-24px">
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? "Submitting..." : editingId ? "Update Request" : "Submit Request"}
-          </button>
-
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              disabled={loading}
-              className="bg-gray-400 text-white py-10px px-20px rounded-8px text-14px hover:bg-gray-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              Cancel
-            </button>
-          )}
-
-          <Link 
-            to="/maintenancerequests"
-            className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 inline-block"
-          >
-            View All Requests
-          </Link>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

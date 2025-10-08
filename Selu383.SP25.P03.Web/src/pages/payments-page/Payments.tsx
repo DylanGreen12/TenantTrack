@@ -179,9 +179,9 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                           'bg-red-600 text-white'
                         }`}
                       >
-                        <option>Pending</option>
-                        <option>Paid</option>
-                        <option>Failed</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Failed">Failed</option>
                       </select>
                     ) : (
                       <span className={`py-4px px-8px rounded-4px text-12px inline-block ${
