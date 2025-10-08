@@ -24,7 +24,10 @@ import {
   UserIcon,
   DocumentIcon,
   PhoneIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/solid';
 
 
@@ -69,6 +72,8 @@ const hasManagementAccess = (user: UserDto | null): boolean => {
 
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isManageDropdownOpen, setIsManageDropdownOpen] = useState(false);
 
   // Load user from localStorage on component mount
   useEffect(() => {
@@ -98,8 +103,6 @@ function App() {
   };
 
   const canManage = hasManagementAccess(currentUser);
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <Router>
@@ -180,60 +183,93 @@ function App() {
                   </Link>
                 </li>
 
+                {/* Manage Dropdown - Only show for managers */}
                 {canManage && (
-                  <>
-                    <li>
-                      <Link
-                        to="/property/create"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <BuildingOfficeIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Properties</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/unit/create"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <HomeModernIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Units</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/staff/create"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <BriefcaseIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Staff</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/tenant/create"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <UserIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Tenants</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/lease/create"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <DocumentIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Leases</span>
-                      </Link>
-                    </li>
-                  </>
+                  <li className="relative">
+                    <button
+                      onClick={() => setIsManageDropdownOpen(!isManageDropdownOpen)}
+                      className={`flex items-center justify-between w-full text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 rounded-lg hover:bg-white/10
+                                  ${isSidebarOpen ? 'px-4 py-3' : 'px-0 py-3 justify-center'} bg-gradient-to-r from-[#667eea] to-[#764ba2]`}
+                    >
+                      <div className="flex items-center">
+                        <Cog6ToothIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Manage</span>
+                      </div>
+                      {isSidebarOpen && (
+                        <span>
+                          {isManageDropdownOpen ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isManageDropdownOpen && isSidebarOpen && (
+                      <ul className="ml-6 mt-2 space-y-1 border-l-2 border-white/20 pl-4">
+                        {/* Properties */}
+                        <li>
+                          <Link
+                            to="/property/create"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <BuildingOfficeIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Edit Properties
+                          </Link>
+                        </li>
+
+                        {/* Units */}
+                        <li>
+                          <Link
+                            to="/unit/create"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <HomeModernIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Edit Units
+                          </Link>
+                        </li>
+
+                        {/* Staff */}
+                        <li>
+                          <Link
+                            to="/staff/create"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <BriefcaseIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Edit Staff
+                          </Link>
+                        </li>
+
+                        {/* Tenants */}
+                        <li>
+                          <Link
+                            to="/tenant/create"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <UserIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Edit Tenants
+                          </Link>
+                        </li>
+
+                        {/* Leases */}
+                        <li>
+                          <Link
+                            to="/lease/create"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <DocumentIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Edit Leases
+                          </Link>
+                        </li>
+                      </ul>
+                    )}
+                  </li>
                 )}
+
+                {/* Public Links */}
                 <li>
                   <Link
                     to="/properties"
@@ -244,186 +280,195 @@ function App() {
                     <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>View Properties</span>
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    to="/editcontact"
-                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                  >
-                    <PhoneIcon className="h-6 w-6 text-white" />
-                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
-                  </Link>
-                </li>
+
+                {/* Contact Info - Only show when user is logged in */}
+                {currentUser && (
+                  <li>
+                    <Link
+                      to="/editcontact"
+                      className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                  ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                    >
+                      <PhoneIcon className="h-6 w-6 text-white" />
+                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
+                    </Link>
+                  </li>
+                )}
               </ul>
             </nav>
           </aside>  
 
+          {/* Main Content - Scrollable area */}
+          <main className="flex-1 overflow-y-auto bg-gray-50">
+            <div className="p-8 text-gray-800">
+              <Routes>
+                <Route path="/" element={
+                  canManage ? 
+                    <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                    <PropertiesView currentUser={currentUser || undefined} /> 
+                } />
+                
+                {/* Management Routes - Protected by role */}
+                <Route path="/property/create" element={
+                  canManage ? 
+                    <EditProperties currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/unit/create" element={
+                  canManage ? 
+                    <EditUnits currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/unit/:id" element={
+                  canManage ? 
+                    <EditUnits currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
 
-        {/* Main Content - Scrollable area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-8 text-gray-800">
-            <Routes>
-              <Route path="/" element={
+                <Route path="/units" element={
+                  canManage ? 
+                    <ListUnits currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/landlord-dashboard" element={
                 canManage ? 
                   <LandlordDashboard currentUser={currentUser || undefined} /> : 
-                  <PropertiesView currentUser={currentUser || undefined} /> 
-                  
-              } />
-              
-              {/* Management Routes - Protected by role */}
-              <Route path="/property/create" element={
-                canManage ? 
-                  <EditProperties currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
                     <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                     <p>You need to be a Landlord or Admin to access this page.</p>
                   </div>
               } />
-              
-              <Route path="/unit/create" element={
-                canManage ? 
-                  <EditUnits currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/unit/:id" element={
-                canManage ? 
-                  <EditUnits currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
+                
+                <Route path="/staff/create" element={
+                  canManage ? 
+                    <EditStaff currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/staff/:id" element={
+                  canManage ? 
+                    <EditStaff currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
 
-              <Route path="/units" element={
-                canManage ? 
-                  <ListUnits currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/landlord-dashboard" element={
-              canManage ? 
-                <LandlordDashboard currentUser={currentUser || undefined} /> : 
-                <div className="text-center py-8">
-                  <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                  <p>You need to be a Landlord or Admin to access this page.</p>
-                </div>
-            } />
-              
-              <Route path="/staff/create" element={
-                canManage ? 
-                  <EditStaff currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/staff/:id" element={
-                canManage ? 
-                  <EditStaff currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
+                <Route path="/staff" element={
+                  canManage ? 
+                    <ListStaff currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/tenant/create" element={
+                  canManage ? 
+                    <EditTenants currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/tenant/:id" element={
+                  canManage ? 
+                    <EditTenants currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
 
+                <Route path="/tenants" element={
+                  canManage ? 
+                    <ListTenants currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/lease/create" element={
+                  canManage ? 
+                    <EditLeases currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                <Route path="/lease/:id" element={
+                  canManage ? 
+                    <EditLeases currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
 
-              <Route path="/staff" element={
-                canManage ? 
-                  <ListStaff currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/tenant/create" element={
-                canManage ? 
-                  <EditTenants currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/tenant/:id" element={
-                canManage ? 
-                  <EditTenants currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
+                <Route path="/leases" element={
+                  canManage ? 
+                    <ListLeases currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+                
+                {/* Public Routes */}
+                <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
+                
+                {/* Contact Info Route - Protected by login */}
+                <Route path="/editcontact" element={
+                  currentUser ? (
+                    <EditContactInfo 
+                      currentUser={currentUser || undefined} 
+                      onUserUpdate={handleUserUpdate} 
+                    />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be logged in to access this page.</p>
+                    </div>
+                  )
+                } />
 
-              <Route path="/tenants" element={
-                canManage ? 
-                  <ListTenants currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/lease/create" element={
-                canManage ? 
-                  <EditLeases currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              <Route path="/lease/:id" element={
-                canManage ? 
-                  <EditLeases currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
+                <Route path="/login" element={
+                  <LoginForm
+                    onLoginSuccess={handleLoginSuccess}
+                    onSwitchToSignUp={() => window.location.href = '/signup'}
+                  />
+                } />
 
-              <Route path="/leases" element={
-                canManage ? 
-                  <ListLeases currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
-              
-              {/* Public Routes */}
-              <Route path="/properties" element={<PropertiesView currentUser={currentUser || undefined} />} />
-              
-              <Route path="/editcontact" element={
-                <EditContactInfo 
-                  currentUser={currentUser || undefined} 
-                  onUserUpdate={handleUserUpdate} 
-                />
-              } />
-
-              <Route path="/login" element={
-                <LoginForm
-                  onLoginSuccess={handleLoginSuccess}
-                  onSwitchToSignUp={() => window.location.href = '/signup'}
-                />
-              } />
-
-              <Route path="/signup" element={
-                <SignUpForm
-                  onSignUpSuccess={handleLoginSuccess}
-                  onSwitchToLogin={() => window.location.href = '/login'}
-                />
-              } />
-            </Routes>
-          </div>
-        </main>
+                <Route path="/signup" element={
+                  <SignUpForm
+                    onSignUpSuccess={handleLoginSuccess}
+                    onSwitchToLogin={() => window.location.href = '/login'}
+                  />
+                } />
+              </Routes>
+            </div>
+          </main>
         </div>
       </div>
     </Router>
