@@ -158,7 +158,7 @@ const ListTenants: React.FC<ListTenantsProps> = ({ currentUser }) => {
               placeholder={`Search by ${searchField}...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-black shadow-sm"
+              className="pl-10 pr-4 py-2 w-full rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-black bg-white shadow-sm"
             />
           </div>
         </div>
@@ -195,7 +195,7 @@ const ListTenants: React.FC<ListTenantsProps> = ({ currentUser }) => {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{new Date(t.updatedAt).toLocaleDateString()}</td>
                   <td className="p-12px border-b flex gap-2">
                     <Link
-                      to={`/edittenants/${t.id}`}
+                      to={`/tenant/${t.id}`}
                       className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
                     >
                       Edit

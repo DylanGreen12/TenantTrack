@@ -138,7 +138,7 @@ const ListUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
                     </td>
                     <td className="p-12px border-b flex gap-2">
                       <Link
-                            to={`/editunits/${unit.id}`}
+                            to={`/unit/${unit.id}`}
                             className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
                         >
                             Edit
