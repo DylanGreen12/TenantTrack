@@ -125,7 +125,7 @@ const ListStaff: React.FC<EditStaffProps> = ({ currentUser }) => {
                     <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{property?.name || staffMember.propertyId}</td>
                     <td className="p-12px border-b flex gap-2">
                     <Link
-                        to={`/editstaff/${staffMember.id}`}
+                        to={`/staff/${staffMember.id}`}
                         className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
                     >
                         Edit

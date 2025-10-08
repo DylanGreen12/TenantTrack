@@ -16,6 +16,18 @@ import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
 //import TenantUnit from './pages/TenantUnit';
+import {
+  HomeIcon,
+  BuildingOffice2Icon,
+  HomeModernIcon,
+  ChartBarIcon,
+  BriefcaseIcon,
+  UserIcon,
+  DocumentIcon,
+  PhoneIcon,
+  BuildingOfficeIcon,
+  ClipboardIcon
+} from '@heroicons/react/24/solid';
 
 
 // Auth service functions
@@ -89,133 +101,178 @@ function App() {
 
   const canManage = hasManagementAccess(currentUser);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
     <Router>
-      <div className="flex h-screen font-sans overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-64 bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex flex-col shadow-lg overflow-y-auto">
-          <div className="p-6 flex-1 flex flex-col">
-            <div>
-              {/* Sidebar Header */}
-              <div className="mb-8 text-center">
-                <h2 className="text-2xl font-bold text-white">TenantTrack</h2>
-              </div>
+      <div className="flex flex-col min-h-screen font-sans">
+        {/* --- Top Navbar --- */}
+        <header className="bg-[#f8f9fb]/90 backdrop-blur-sm shadow-md flex justify-between items-center px-6 py-3 h-14 border-b-4 border-[#4b5ed7]">
+          <div className="flex items-center space-x-4">
+            {/* Hamburger menu for toggling sidebar */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-md hover:bg-gray-200 transition"
+              title="Toggle Sidebar"
+            >
+              <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
 
-              {/* Navigation */}
-              <nav className="flex-1">
-                <ul className="list-none p-0 m-0 space-y-2">
-                  <li>
-                    <Link to="/" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                      🏠 Home
-                    </Link>
-                  </li>
-                  
-                  {/* Tenant-only link
-                  {currentUser?.roles?.includes("Tenant") && (
-                    <li>
-                      <Link
-                        to="/my-unit"
-                        className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10"
-                      >
-                        🏠 My Unit
-                      </Link>
-                    </li>
-                    )} */}
-                  
-                  {/* Management Links - Only show for Landlords and Admins */}
-                  {canManage && (
-                    <>
-                      <li>
-                        <Link to="/editproperties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                          🏢 Manage Properties
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/editunits" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                          📦 Manage Units
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/landlord-dashboard" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                         📊 Landlord Dashboard
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/editstaff" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                          👥 Manage Staff
-                        </Link>
-                      </li>
-                      <li>
-                      <Link to="/edittenants" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                        👤 Manage Tenants
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/editleases" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                        📄 Manage Leases
-                      </Link>
-                    </li>
-                    </>
-                  )}
-                  
-                  {/* Public Links - Show to everyone */}
-                  <li>
-                    <Link to="/editcontact" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                      📧 Edit Contact Info
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/properties" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-3 px-4 rounded-lg hover:bg-white/10">
-                      📋 View Properties
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </div>
+            {/* Logo / Title */}
+            <h1 className="text-2xl font-bold tracking-[0.08em] bg-gradient-to-r from-[#667eea] to-[#764ba2] text-transparent bg-clip-text">
+              TenantTrack
+            </h1>
+          </div>
 
-            {/* User Info */}
-            <div className="mt-auto pt-6 border-t border-white/20">
-              {currentUser ? (
-                <div className="text-center">
+          {/* Right side: user info / login */}
+          <div className="flex items-center space-x-4">
+            {currentUser ? (
+              <>
+                <div className="flex items-center space-x-2 text-blue-600">
                   <p className="font-semibold truncate" title={currentUser.userName}>
                     {currentUser.userName}
                   </p>
-                  <p className="text-white/80 text-sm">
-                    {currentUser.roles?.join(', ') || "No roles"}
-                  </p>
-                  {/* Compact contact info */}
-                  {currentUser.email && (
-                    <p className="text-white/70 text-xs mt-1 truncate" title={currentUser.email}>
-                      📧 {currentUser.email}
-                    </p>
-                  )}
-                  {currentUser.phone && (
-                    <p className="text-white/70 text-xs mt-1 truncate" title={currentUser.phone}>
-                      📞 {currentUser.phone}
-                    </p>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-500 text-white border-none py-2 px-4 rounded-md cursor-pointer w-full mt-3 transition-colors duration-200 ease hover:bg-red-600 text-sm"
-                  >
-                    Logout
-                  </button>
+                  <p className="text-xs">({currentUser.roles?.join(", ") || "No roles"})</p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <Link to="/login" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10 text-sm text-center">
-                    🔑 Login
-                  </Link>
-
-                  <Link to="/signup" className="text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 block py-2 px-4 rounded-lg hover:bg-white/10 text-sm text-center">
-                    📝 Sign Up
-                  </Link>
-                </div>
-              )}
-            </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-2 px-4 rounded-md text-sm font-semibold shadow-sm hover:from-[#5563d6] hover:to-[#653eaa] transition-all"
+                >
+                  🔑 Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-2 px-4 rounded-md text-sm font-semibold shadow-sm hover:from-[#5563d6] hover:to-[#653eaa] transition-all"
+                >
+                  📝 Sign Up
+                </Link>
+              </>
+            )}
           </div>
-        </aside>
-    
+        </header>
+
+        {/* --- Body: Sidebar + Main Content --- */}
+        <div className="flex flex-1 min-h-0">
+
+          {/* Sidebar */}
+          <aside className={`bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex flex-col shadow-lg overflow-y-auto transition-all duration-300
+            ${isSidebarOpen ? 'w-60' : 'w-24'}`}>
+
+            <nav className="flex-1 p-4 space-y-2">
+              <ul className="list-none space-y-2">
+                <li>
+                  <Link
+                    to="/"
+                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                  >
+                    <HomeIcon className="h-6 w-6 text-white" />
+                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Home</span>
+                  </Link>
+                </li>
+
+                {canManage && (
+                  <>
+                    <li>
+                      <Link
+                        to="/property/create"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Properties</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/unit/create"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <HomeModernIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Units</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/landlord-dashboard"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <ChartBarIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Landlord Dashboard</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/staff/create"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <BriefcaseIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Staff</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/tenant/create"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <UserIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Tenants</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/lease/create"
+                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                      >
+                        <DocumentIcon className="h-6 w-6 text-white" />
+                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Leases</span>
+                      </Link>
+                    </li>
+                  </>
+                )}
+
+                <li>
+                  <Link
+                    to="/editcontact"
+                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                  >
+                    <PhoneIcon className="h-6 w-6 text-white" />
+                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    to="/properties"
+                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                  >
+                    <BuildingOffice2Icon className="h-6 w-6 text-white" />
+                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>View Properties</span>
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </aside>  
+
+
         {/* Main Content - Scrollable area */}
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 text-gray-800">
@@ -223,7 +280,7 @@ function App() {
               <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
               
               {/* Management Routes - Protected by role */}
-              <Route path="/editproperties" element={
+              <Route path="/property/create" element={
                 canManage ? 
                   <EditProperties currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -232,7 +289,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/editunits" element={
+              <Route path="/unit/create" element={
                 canManage ? 
                   <EditUnits currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -241,7 +298,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/editunits/:id" element={
+              <Route path="/unit/:id" element={
                 canManage ? 
                   <EditUnits currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -268,7 +325,7 @@ function App() {
                 </div>
             } />
               
-              <Route path="/editstaff" element={
+              <Route path="/staff/create" element={
                 canManage ? 
                   <EditStaff currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -277,7 +334,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/editstaff/:id" element={
+              <Route path="/staff/:id" element={
                 canManage ? 
                   <EditStaff currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -296,7 +353,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/edittenants" element={
+              <Route path="/tenant/create" element={
                 canManage ? 
                   <EditTenants currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -305,7 +362,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/edittenants/:id" element={
+              <Route path="/tenant/:id" element={
                 canManage ? 
                   <EditTenants currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -323,7 +380,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/editleases" element={
+              <Route path="/lease/create" element={
                 canManage ? 
                   <EditLeases currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -332,7 +389,7 @@ function App() {
                   </div>
               } />
               
-              <Route path="/editleases/:id" element={
+              <Route path="/lease/:id" element={
                 canManage ? 
                   <EditLeases currentUser={currentUser || undefined} /> : 
                   <div className="text-center py-8">
@@ -376,6 +433,7 @@ function App() {
             </Routes>
           </div>
         </main>
+        </div>
       </div>
     </Router>
   )
