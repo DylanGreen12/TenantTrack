@@ -116,7 +116,7 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 border text-black border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="your.email@example.com"
           />
           <p className="text-black text-12px mt-5px">We'll use this for important notifications</p>
@@ -132,7 +132,7 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
-            className="w-217 px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-217 px-3 py-2 border text-black border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
             placeholder="(555) 123-4567"
           />
           <p className="text-black text-12px mt-5px">For urgent maintenance requests and updates</p>

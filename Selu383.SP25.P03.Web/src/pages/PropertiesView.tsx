@@ -325,7 +325,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
               placeholder="Search properties, units, prices, locations..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-full px-6 py-4 pl-12 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+              className="w-full px-6 py-4 pl-12 text-lg border-2 bg-white text-black border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
             />
             <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +371,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
           filteredProperties.map(property => (
             <div key={property.id} className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
               <div 
-                className="grid grid-cols-[auto,1fr,auto] items-center gap-6 p-6 bg-gradient-to-br from-purple-600 to-purple-800 text-white cursor-pointer transition-colors duration-300 hover:from-purple-700 hover:to-purple-900"
+                className="grid grid-cols-[auto,1fr,auto] items-center gap-6 p-6 bg-gradient-to-br from-purple-600 to-blue-400 text-white cursor-pointer transition-colors duration-300 hover:from-purple-700 hover:to-purple-900"
                 onClick={() => togglePropertyExpansion(property.id)}
               >
                 <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 shadow-md">
@@ -522,7 +522,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
       {showRentalForm && selectedUnit && selectedProperty && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 rounded-t-2xl">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Apply for Unit {selectedUnit.unitNumber}</h2>
                 <button
@@ -567,7 +567,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       name="firstName"
                       value={rentalFormData.firstName}
                       onChange={handleRentalInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                       required
                       placeholder="Enter your first name"
                     />
@@ -581,7 +581,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       name="lastName"
                       value={rentalFormData.lastName}
                       onChange={handleRentalInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                       required
                       placeholder="Enter your last name"
                     />
@@ -598,7 +598,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       name="email"
                       value={rentalFormData.email}
                       onChange={handleRentalInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                       required
                       placeholder="your.email@example.com"
                     />
@@ -612,7 +612,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       name="phoneNumber"
                       value={rentalFormData.phoneNumber}
                       onChange={handleRentalInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                       required
                       placeholder="(555) 123-4567"
                     />
@@ -628,7 +628,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                     name="moveInDate"
                     value={rentalFormData.moveInDate}
                     onChange={handleRentalInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                     required
                   />
                 </div>
@@ -642,7 +642,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                     value={rentalFormData.message}
                     onChange={handleRentalInputChange}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                    className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                     placeholder="Tell us about yourself or any special requirements..."
                   />
                 </div>
@@ -679,7 +679,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                 <button
                   type="button"
                   onClick={closeRentalForm}
-                  className="px-6 py-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  className="bg-[#ef4444] text-white py-4 px-6 rounded-md text-12px hover:bg-[#dc2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
