@@ -20,7 +20,6 @@ import {
   HomeIcon,
   BuildingOffice2Icon,
   HomeModernIcon,
-  ChartBarIcon,
   BriefcaseIcon,
   UserIcon,
   DocumentIcon,
@@ -120,8 +119,8 @@ function App() {
             </button>
 
             {/* Logo / Title */}
-            <h1 className="text-2xl font-bold tracking-[0.08em] bg-gradient-to-r from-[#667eea] to-[#764ba2] text-transparent bg-clip-text">
-              TenantTrack
+            <h1 className="text-2xl font-bold tracking-[0.05em] bg-gradient-to-r from-[#667eea] to-[#764ba2] text-transparent bg-clip-text">
+              Tenant Track
             </h1>
           </div>
 
@@ -205,16 +204,6 @@ function App() {
                     </li>
                     <li>
                       <Link
-                        to="/landlord-dashboard"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <ChartBarIcon className="h-6 w-6 text-white" />
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Landlord Dashboard</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
                         to="/staff/create"
                         className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
                                 ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
@@ -245,18 +234,6 @@ function App() {
                     </li>
                   </>
                 )}
-
-                <li>
-                  <Link
-                    to="/editcontact"
-                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                  >
-                    <PhoneIcon className="h-6 w-6 text-white" />
-                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
-                  </Link>
-                </li>
-
                 <li>
                   <Link
                     to="/properties"
@@ -265,6 +242,16 @@ function App() {
                   >
                     <BuildingOffice2Icon className="h-6 w-6 text-white" />
                     <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>View Properties</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/editcontact"
+                    className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                  >
+                    <PhoneIcon className="h-6 w-6 text-white" />
+                    <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
                   </Link>
                 </li>
               </ul>
@@ -276,7 +263,12 @@ function App() {
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-8 text-gray-800">
             <Routes>
-              <Route path="/" element={<div>Welcome to TenantTrack! Select an option from the sidebar.</div>} />
+              <Route path="/" element={
+                canManage ? 
+                  <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                  <PropertiesView currentUser={currentUser || undefined} /> 
+                  
+              } />
               
               {/* Management Routes - Protected by role */}
               <Route path="/property/create" element={
