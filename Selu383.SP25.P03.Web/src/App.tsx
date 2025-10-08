@@ -204,16 +204,15 @@ function App() {
 
                     {/* Dropdown Menu */}
                     {isManageDropdownOpen && isSidebarOpen && (
-                      <ul className="ml-6 mt-2 space-y-1 border-l-2 border-white/20 pl-4">
+                      <ul className="ml-6 mt-2 space-y-1 border-l-2 border-white/20 pl-4 list-none">
                         {/* Properties */}
                         <li>
                           <Link
                             to="/property/create"
                             className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            onClick={() => setIsManageDropdownOpen(false)}
                           >
                             <BuildingOfficeIcon className="h-5 w-5 text-white/80 mr-2" />
-                            Edit Properties
+                            Properties
                           </Link>
                         </li>
 
@@ -222,10 +221,9 @@ function App() {
                           <Link
                             to="/unit/create"
                             className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            onClick={() => setIsManageDropdownOpen(false)}
                           >
                             <HomeModernIcon className="h-5 w-5 text-white/80 mr-2" />
-                            Edit Units
+                            Units
                           </Link>
                         </li>
 
@@ -234,10 +232,9 @@ function App() {
                           <Link
                             to="/staff/create"
                             className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            onClick={() => setIsManageDropdownOpen(false)}
                           >
                             <BriefcaseIcon className="h-5 w-5 text-white/80 mr-2" />
-                            Edit Staff
+                            Staff
                           </Link>
                         </li>
 
@@ -246,10 +243,9 @@ function App() {
                           <Link
                             to="/tenant/create"
                             className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            onClick={() => setIsManageDropdownOpen(false)}
                           >
                             <UserIcon className="h-5 w-5 text-white/80 mr-2" />
-                            Edit Tenants
+                            Tenants
                           </Link>
                         </li>
 
@@ -258,10 +254,9 @@ function App() {
                           <Link
                             to="/lease/create"
                             className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            onClick={() => setIsManageDropdownOpen(false)}
                           >
                             <DocumentIcon className="h-5 w-5 text-white/80 mr-2" />
-                            Edit Leases
+                            Leases
                           </Link>
                         </li>
                       </ul>
