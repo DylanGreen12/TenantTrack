@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Selu383.SP25.P03.Api.Data;
 
@@ -11,9 +12,11 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250910175409_AddPayments")]
+    partial class AddPayments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,14 +127,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("Rent")
                         .HasColumnType("decimal(18,2)");
 
@@ -145,60 +140,11 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UnitNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
 
                     b.ToTable("Leases");
-                });
-
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.MaintenanceRequests.MaintenanceRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AssignedTo")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTimeOffset>("RequestedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("MaintenanceRequests", (string)null);
                 });
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Payments.Payment", b =>
@@ -212,25 +158,50 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateOnly>("Date")
+                    b.Property<string>("BillingAddressCity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BillingAddressCountry")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BillingAddressStreet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CardNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExpirationDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateOnly>("PaymentDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("PaymentMethod")
+                    b.Property<string>("SecurityCode")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("TenantId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Payments");
                 });
@@ -249,12 +220,6 @@ namespace Selu383.SP25.P03.Api.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -280,49 +245,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Properties");
-                });
-
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Staff.Staff", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
-
-                    b.Property<string>("Position")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("Staff");
                 });
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Tenants.Tenant", b =>
@@ -353,21 +275,14 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UnitId")
+                    b.Property<int>("Unit")
                         .HasMaxLength(120)
                         .HasColumnType("int");
-
-                    b.Property<string>("UnitNumber")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UnitId");
 
                     b.ToTable("Tenants");
                 });
@@ -400,50 +315,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.HasIndex("ManagerId");
 
                     b.ToTable("Theaters");
-                });
-
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Units.Unit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Bathrooms")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Bedrooms")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Rent")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SquareFeet")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UnitNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Users.Role", b =>
@@ -513,9 +384,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
@@ -609,26 +477,15 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.MaintenanceRequests.MaintenanceRequest", b =>
-                {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Tenants.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Payments.Payment", b =>
                 {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Tenants.Tenant", "Tenant")
+                    b.HasOne("Selu383.SP25.P03.Api.Features.Users.User", "User")
                         .WithMany()
-                        .HasForeignKey("TenantId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Tenant");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Properties.Property", b =>
@@ -642,28 +499,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Staff.Staff", b =>
-                {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Properties.Property", "Property")
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Property");
-                });
-
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Tenants.Tenant", b =>
-                {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Units.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Unit");
-                });
-
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Theaters.Theater", b =>
                 {
                     b.HasOne("Selu383.SP25.P03.Api.Features.Users.User", "Manager")
@@ -671,17 +506,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .HasForeignKey("ManagerId");
 
                     b.Navigation("Manager");
-                });
-
-            modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Units.Unit", b =>
-                {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Properties.Property", "Property")
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Property");
                 });
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.Users.UserRole", b =>
