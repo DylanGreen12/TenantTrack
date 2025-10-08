@@ -15,7 +15,11 @@ import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
 import EditContactInfo from './pages/EditContactInfo';
-//import TenantUnit from './pages/TenantUnit';
+import PaymentsPage from "./pages/payments-page/Payments";
+import RecordPayment from "./pages/payments-page/RecordPayment";
+import MakePayment from "./pages/payments-page/MakePayment";
+import MaintenanceRequests from "./pages/maintenance-requests-page/MaintenanceRequests";
+import EditMaintenanceRequests from "./pages/maintenance-requests-page/EditMaintenanceRequests";
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -27,7 +31,9 @@ import {
   BuildingOfficeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  BanknotesIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/solid';
 
 
@@ -259,6 +265,30 @@ function App() {
                             Leases
                           </Link>
                         </li>
+
+                        {/* Payments */}
+                        <li>
+                          <Link
+                            to="/payments"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <BanknotesIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Payments
+                          </Link>
+                        </li>
+
+                        {/* Maintenance */}
+                        <li>
+                          <Link
+                            to="/maintenancerequests"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <WrenchScrewdriverIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Maintenance
+                          </Link>
+                        </li>
                       </ul>
                     )}
                   </li>
@@ -291,7 +321,7 @@ function App() {
                 )}
               </ul>
             </nav>
-          </aside>  
+          </aside>
 
           {/* Main Content - Scrollable area */}
           <main className="flex-1 overflow-y-auto bg-gray-50">
@@ -447,6 +477,16 @@ function App() {
                     </div>
                   )
                 } />
+
+                {/* Payment Routes */}
+                <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
+                <Route path="/recordpayment" element={<RecordPayment currentUser={currentUser || undefined} />} />
+                <Route path="/makepayment" element={<MakePayment currentUser={currentUser || undefined} />} />
+                
+                {/* Maintenance Request Routes */}
+                <Route path="/maintenancerequests" element={<MaintenanceRequests currentUser={currentUser || undefined} />} />
+                <Route path="/editmaintenancerequests" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
+                <Route path="/editmaintenancerequests/:id" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
 
                 <Route path="/login" element={
                   <LoginForm
