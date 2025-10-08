@@ -31,7 +31,9 @@ import {
   BuildingOfficeIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  BanknotesIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/solid';
 
 
@@ -268,6 +270,30 @@ function App() {
                             Edit Leases
                           </Link>
                         </li>
+
+                        {/* Payments */}
+                        <li>
+                          <Link
+                            to="/payments"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <BanknotesIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Payments
+                          </Link>
+                        </li>
+
+                        {/* Maintenance */}
+                        <li>
+                          <Link
+                            to="/maintenancerequests"
+                            className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            onClick={() => setIsManageDropdownOpen(false)}
+                          >
+                            <WrenchScrewdriverIcon className="h-5 w-5 text-white/80 mr-2" />
+                            Maintenance
+                          </Link>
+                        </li>
                       </ul>
                     )}
                   </li>
@@ -285,32 +311,6 @@ function App() {
                   </Link>
                 </li>
 
-                {/* Payments and Maintenance - Available to all logged-in users */}
-                {currentUser && (
-                  <>
-                    <li>
-                      <Link
-                        to="/payments"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                    ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <span className="text-xl">💵</span>
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Payments</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/maintenancerequests"
-                        className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
-                                    ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
-                      >
-                        <span className="text-xl">🛠️</span>
-                        <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Maintenance</span>
-                      </Link>
-                    </li>
-                  </>
-                )}
-
                 {/* Contact Info - Only show when user is logged in */}
                 {currentUser && (
                   <li>
@@ -326,7 +326,7 @@ function App() {
                 )}
               </ul>
             </nav>
-          </aside>  
+          </aside>
 
           {/* Main Content - Scrollable area */}
           <main className="flex-1 overflow-y-auto bg-gray-50">
