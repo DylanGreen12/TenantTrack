@@ -111,7 +111,7 @@ function App() {
             {/* Hamburger menu for toggling sidebar */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-md hover:bg-gray-200 transition"
+              className="p-2 rounded-md hover:bg-gray-200 transition bg-white"
               title="Toggle Sidebar"
             >
               <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
