@@ -65,25 +65,25 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!currentUser) {
-      setError("Please log in to record payments");
-      setShowMessage(true);
-      return;
+        setError("Please log in to record payments");
+        setShowMessage(true);
+        return;
     }
 
     if (!formData.tenantId || formData.tenantId === 0) {
-      setError("Please select a tenant");
-      setShowMessage(true);
-      return;
+        setError("Please select a tenant");
+        setShowMessage(true);
+        return;
     }
 
     if (formData.amount <= 0) {
-      setError("Amount must be greater than 0");
-      setShowMessage(true);
-      return;
+        setError("Amount must be greater than 0");
+        setShowMessage(true);
+        return;
     }
 
     setLoading(true);
@@ -91,19 +91,20 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
     setShowMessage(false);
 
     try {
-      await axios.post("/api/payments", formData);
-      setMessage("Payment recorded successfully!");
-      setShowMessage(true);
-      resetForm();
+        console.log("Submitting payment data:", formData); // ADD THIS LINE
+        await axios.post("/api/payments", formData);
+        setMessage("Payment recorded successfully!");
+        setShowMessage(true);
+        resetForm();
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Failed to record payment";
-      setError(errorMsg);
-      setMessage(errorMsg);
-      setShowMessage(true);
+        const errorMsg = err.response?.data?.message || "Failed to record payment";
+        setError(errorMsg);
+        setMessage(errorMsg);
+        setShowMessage(true);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
   const resetForm = () => {
     setFormData({
@@ -160,7 +161,7 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             name="tenantId"
             value={formData.tenantId}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
             required
           >
             <option value={0}>-- Select Tenant --</option>
@@ -182,7 +183,7 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             name="amount"
             value={formData.amount === 0 ? "" : formData.amount}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
             step="0.01"
             min="0.01"
             required
@@ -200,7 +201,7 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             name="date"
             value={formData.date}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
             required
           />
         </div>
@@ -214,13 +215,13 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             name="paymentMethod"
             value={formData.paymentMethod}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
           >
-            <option>Cash</option>
-            <option>Check</option>
-            <option>Bank Transfer</option>
-            <option>Money Order</option>
-            <option>Other</option>
+            <option value="Cash">Cash</option>
+            <option value="Check">Check</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Money Order">Money Order</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
@@ -233,10 +234,10 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             name="status"
             value={formData.status}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-gray-800 focus:(outline-none ring-2 ring-blue-400)"
           >
-            <option>Paid</option>
-            <option>Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
           </select>
           <p className="text-gray-500 text-12px mt-5px">
             Select "Paid" for cash/immediate payments, or "Pending" if still processing

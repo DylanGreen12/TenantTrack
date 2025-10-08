@@ -71,7 +71,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Amount = dto.Amount,
                 Date = dto.Date,
                 PaymentMethod = dto.PaymentMethod,
-                Status = "Pending",
+                Status = dto.Status,
                 TenantId = dto.TenantId
             };
 

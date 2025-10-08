@@ -25,7 +25,11 @@ namespace Selu383.SP25.P03.Api.Features.Payments
         [StringLength(20)]
         public string PaymentMethod { get; set; } = "Card";
 
- // Card info only used here for processing, NOT stored in DB
+        [Required]
+        [StringLength(20)]
+        public string Status { get; set; } = "Pending";  // ADD THIS LINE
+
+        // Card info only used here for processing, NOT stored in DB
         [CreditCard]
         public string? CardNumber { get; set; }
 
