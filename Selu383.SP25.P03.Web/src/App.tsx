@@ -25,8 +25,7 @@ import {
   UserIcon,
   DocumentIcon,
   PhoneIcon,
-  BuildingOfficeIcon,
-  ClipboardIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/solid';
 
 
