@@ -192,7 +192,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                     placeholder={`Search by ${searchField}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64 pl-10 pr-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                    className="w-64 pl-10 pr-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                   />
                   {/* Magnifying glass icon */}
                   <svg
@@ -257,7 +257,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   type="date"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -270,7 +270,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   type="date"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -313,7 +313,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.status}</td>
                   <td className="p-12px border-b flex gap-2">
                     <Link
-                      to={`/editleases/${lease.id}`}
+                      to={`/lease/${lease.id}`}
                       className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
                     >
                       Edit
