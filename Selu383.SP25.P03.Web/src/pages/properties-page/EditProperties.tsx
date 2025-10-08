@@ -259,7 +259,7 @@ const EditProperties: React.FC<EditPropertiesProps> = ({ currentUser }) => {
               className="w-65 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               required
               maxLength={2}
-              placeholder="LA"
+              placeholder=""
             />
           </div>
 
