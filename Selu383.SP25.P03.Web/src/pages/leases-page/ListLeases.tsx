@@ -192,7 +192,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                     placeholder={`Search by ${searchField}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64 pl-10 pr-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                    className="w-64 pl-10 pr-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                   />
                   {/* Magnifying glass icon */}
                   <svg
@@ -257,7 +257,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   type="date"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -270,7 +270,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   type="date"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black shadow-sm focus:ring-2 focus:ring-blue-500"
+                  className="w-64 px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
