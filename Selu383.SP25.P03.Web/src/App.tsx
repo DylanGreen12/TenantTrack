@@ -72,17 +72,17 @@ const authService = {
 
 // Role-based access control helpers
 const hasManagementAccess = (user: UserDto | null): boolean => {
-  if (!user || !user.roles) return false;
+  if (!user || !user.roles || !Array.isArray(user.roles)) return false;
   return user.roles.includes('Landlord') || user.roles.includes('Admin');
 };
 
 const isStaff = (user: UserDto | null): boolean => {
-  if (!user || !user.roles) return false;
+  if (!user || !user.roles || !Array.isArray(user.roles)) return false;
   return user.roles.includes('Maintenance');
 };
 
 const isTenant = (user: UserDto | null): boolean => {
-  if (!user || !user.roles) return false;
+  if (!user || !user.roles || !Array.isArray(user.roles)) return false;
   return user.roles.includes('Tenant');
 };
 
@@ -312,8 +312,8 @@ function App() {
                   </li>
                 )}
 
-                {/* Payments - For Tenants only (standalone) */}
-                {isTenant(currentUser) && !canManage && (
+                {/* Payments - For Tenants and Staff (standalone) - only if not showing in Manage dropdown */}
+                {((isTenant(currentUser) || isStaff(currentUser)) && !canManage) && (
                   <li>
                     <Link
                       to="/payments"
@@ -328,8 +328,8 @@ function App() {
                   </li>
                 )}
 
-                {/* Maintenance - For Tenants and Staff (standalone) */}
-                {(isTenant(currentUser) || isStaff(currentUser)) && !canManage && (
+                {/* Maintenance - For Tenants and Staff (standalone) - only if not showing in Manage dropdown */}
+                {((isTenant(currentUser) || isStaff(currentUser)) && !canManage) && (
                   <li>
                     <Link
                       to="/maintenancerequests"
