@@ -70,10 +70,28 @@ const authService = {
   }
 };
 
-// Role-based access control helper
+// Role-based access control helpers
 const hasManagementAccess = (user: UserDto | null): boolean => {
   if (!user || !user.roles) return false;
   return user.roles.includes('Landlord') || user.roles.includes('Admin');
+};
+
+const isStaff = (user: UserDto | null): boolean => {
+  if (!user || !user.roles) return false;
+  return user.roles.includes('Maintenance');
+};
+
+const isTenant = (user: UserDto | null): boolean => {
+  if (!user || !user.roles) return false;
+  return user.roles.includes('Tenant');
+};
+
+const canAccessPayments = (user: UserDto | null): boolean => {
+  return hasManagementAccess(user) || isStaff(user) || isTenant(user);
+};
+
+const canAccessMaintenance = (user: UserDto | null): boolean => {
+  return hasManagementAccess(user) || isStaff(user) || isTenant(user);
 };
 
 function App() {
@@ -189,7 +207,7 @@ function App() {
                   </Link>
                 </li>
 
-                {/* Manage Dropdown - Only show for managers */}
+                {/* Manage Dropdown - Only show for Landlords/Admins */}
                 {canManage && (
                   <li className="relative">
                     <button
@@ -266,7 +284,7 @@ function App() {
                           </Link>
                         </li>
 
-                        {/* Payments */}
+                        {/* Payments - For Landlords */}
                         <li>
                           <Link
                             to="/payments"
@@ -278,7 +296,7 @@ function App() {
                           </Link>
                         </li>
 
-                        {/* Maintenance */}
+                        {/* Maintenance - For Landlords */}
                         <li>
                           <Link
                             to="/maintenancerequests"
@@ -291,6 +309,38 @@ function App() {
                         </li>
                       </ul>
                     )}
+                  </li>
+                )}
+
+                {/* Payments - For Tenants only (standalone) */}
+                {isTenant(currentUser) && !canManage && (
+                  <li>
+                    <Link
+                      to="/payments"
+                      className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                  ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                    >
+                      <BanknotesIcon className="h-6 w-6 text-white" />
+                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>
+                        Payments
+                      </span>
+                    </Link>
+                  </li>
+                )}
+
+                {/* Maintenance - For Tenants and Staff (standalone) */}
+                {(isTenant(currentUser) || isStaff(currentUser)) && !canManage && (
+                  <li>
+                    <Link
+                      to="/maintenancerequests"
+                      className={`flex items-center text-white no-underline text-base transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block rounded-lg hover:bg-white/10
+                                  ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
+                    >
+                      <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
+                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>
+                        Maintenance
+                      </span>
+                    </Link>
                   </li>
                 )}
 
@@ -371,13 +421,13 @@ function App() {
                 } />
                 
                 <Route path="/landlord-dashboard" element={
-                canManage ? 
-                  <LandlordDashboard currentUser={currentUser || undefined} /> : 
-                  <div className="text-center py-8">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
-                    <p>You need to be a Landlord or Admin to access this page.</p>
-                  </div>
-              } />
+                  canManage ? 
+                    <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
                 
                 <Route path="/staff/create" element={
                   canManage ? 
@@ -478,15 +528,73 @@ function App() {
                   )
                 } />
 
-                {/* Payment Routes */}
-                <Route path="/payments" element={<PaymentsPage currentUser={currentUser || undefined} />} />
-                <Route path="/recordpayment" element={<RecordPayment currentUser={currentUser || undefined} />} />
-                <Route path="/makepayment" element={<MakePayment currentUser={currentUser || undefined} />} />
+                {/* Payment Routes - Accessible by Landlords, Staff, and Tenants */}
+                <Route path="/payments" element={
+                  canAccessPayments(currentUser) ? (
+                    <PaymentsPage currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be logged in to access this page.</p>
+                    </div>
+                  )
+                } />
                 
-                {/* Maintenance Request Routes */}
-                <Route path="/maintenancerequests" element={<MaintenanceRequests currentUser={currentUser || undefined} />} />
-                <Route path="/editmaintenancerequests" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
-                <Route path="/editmaintenancerequests/:id" element={<EditMaintenanceRequests currentUser={currentUser || undefined} />} />
+                <Route path="/recordpayment" element={
+                  canManage ? (
+                    <RecordPayment currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                  )
+                } />
+                
+                <Route path="/makepayment" element={
+                  isTenant(currentUser) ? (
+                    <MakePayment currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be a Tenant to access this page.</p>
+                    </div>
+                  )
+                } />
+                
+                {/* Maintenance Request Routes - Accessible by Landlords, Staff, and Tenants */}
+                <Route path="/maintenancerequests" element={
+                  canAccessMaintenance(currentUser) ? (
+                    <MaintenanceRequests currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be logged in to access this page.</p>
+                    </div>
+                  )
+                } />
+                
+                <Route path="/editmaintenancerequests" element={
+                  canAccessMaintenance(currentUser) ? (
+                    <EditMaintenanceRequests currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be logged in to access this page.</p>
+                    </div>
+                  )
+                } />
+                
+                <Route path="/editmaintenancerequests/:id" element={
+                  canAccessMaintenance(currentUser) ? (
+                    <EditMaintenanceRequests currentUser={currentUser || undefined} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be logged in to access this page.</p>
+                    </div>
+                  )
+                } />
 
                 <Route path="/login" element={
                   <LoginForm
