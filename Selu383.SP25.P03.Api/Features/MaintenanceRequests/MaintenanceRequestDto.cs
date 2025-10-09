@@ -6,6 +6,7 @@ namespace Selu383.SP25.P03.Api.Features.MaintenanceRequests
     {
         public int Id { get; set; }
         public int TenantId { get; set; }
+        public string UnitNumber { get; set; } = default!;
         public string Description { get; set; } = default!;
         public string Status { get; set; } = default!;
         public string Priority { get; set; } = default!;
