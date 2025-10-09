@@ -200,7 +200,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
       propertyName: property.name,
       firstName: "",
       lastName: "",
-      email: "",
+      email: currentUser?.email || currentUser?.userName || "", // Try email first, fallback to userName
       phoneNumber: "",
       moveInDate: "",
       message: ""
@@ -598,10 +598,19 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       name="email"
                       value={rentalFormData.email}
                       onChange={handleRentalInputChange}
-                      className="w-full px-4 py-3 text-black bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                        currentUser ? 'bg-gray-100 text-gray-700 cursor-not-allowed' : 'text-black bg-white'
+                      }`}
                       required
                       placeholder="your.email@example.com"
+                      readOnly={!!currentUser}
+                      title={currentUser ? "Email matches your account" : ""}
                     />
+                    {currentUser && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        This email matches your account and cannot be changed.
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -22,10 +22,12 @@ namespace Selu383.SP25.P03.Api.Controllers
         public async Task<ActionResult<IEnumerable<MaintenanceRequestDto>>> GetRequests()
         {
             var requests = await _context.MaintenanceRequests
+                .Include(r => r.Tenant)
                 .Select(r => new MaintenanceRequestDto
                 {
                     Id = r.Id,
                     TenantId = r.TenantId,
+                    UnitNumber = r.Tenant.UnitNumber,
                     Description = r.Description,
                     Status = r.Status,
                     Priority = r.Priority,
@@ -44,11 +46,13 @@ namespace Selu383.SP25.P03.Api.Controllers
         public async Task<ActionResult<MaintenanceRequestDto>> GetRequestById(int id)
         {
             var request = await _context.MaintenanceRequests
+                .Include(r => r.Tenant)
                 .Where(r => r.Id == id)
                 .Select(r => new MaintenanceRequestDto
                 {
                     Id = r.Id,
                     TenantId = r.TenantId,
+                    UnitNumber = r.Tenant.UnitNumber,
                     Description = r.Description,
                     Status = r.Status,
                     Priority = r.Priority,
@@ -92,6 +96,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             dto.Id = request.Id;
             dto.RequestedAt = request.RequestedAt;
+            dto.UnitNumber = tenant.UnitNumber;
 
             return CreatedAtAction(nameof(GetRequestById), new { id = dto.Id }, dto);
         }
@@ -115,7 +120,12 @@ namespace Selu383.SP25.P03.Api.Controllers
             _context.MaintenanceRequests.Update(request);
             await _context.SaveChangesAsync();
 
+            // Load tenant to get unit number
+            await _context.Entry(request).Reference(r => r.Tenant).LoadAsync();
+
             dto.Id = request.Id;
+            dto.TenantId = request.TenantId;
+            dto.UnitNumber = request.Tenant.UnitNumber;
             dto.RequestedAt = request.RequestedAt;
             dto.UpdatedAt = request.UpdatedAt;
             dto.CompletedAt = request.CompletedAt;
