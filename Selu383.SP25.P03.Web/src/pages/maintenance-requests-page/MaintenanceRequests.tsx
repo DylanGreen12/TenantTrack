@@ -133,10 +133,10 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
     return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Tenant ID: ${tenantId}`;
   };
 
-  const getTenantUnit = (tenantId: number): string => {
-    const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? tenant.unitNumber : '';
-  };
+  // const getTenantUnit = (tenantId: number): string => {
+  //   const tenant = tenants.find(t => t.id === tenantId);
+  //   return tenant ? tenant.unitNumber : '';
+  // };
 
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
