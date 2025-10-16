@@ -70,8 +70,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Id = l.Id,
                     UnitNumber = l.UnitNumber,
                     TenantId = l.TenantId,
-                    TenantFirstName = l.FirstName,
-                    TenantLastName = l.LastName,
+                    TenantFirstName = l.Tenant.FirstName,    // Get from Tenant, not Lease
+                    TenantLastName = l.Tenant.LastName,      // Get from Tenant, not Lease
                     TenantEmail = l.Tenant.Email,
                     TenantPhone = l.Tenant.PhoneNumber,
                     StartDate = l.StartDate,
