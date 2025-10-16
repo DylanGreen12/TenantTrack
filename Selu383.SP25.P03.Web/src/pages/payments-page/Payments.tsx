@@ -192,6 +192,39 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
     }
   };
 
+  const handleDelete = async (paymentId: number) => {
+    if (!isLandlord) {
+      setError("You don't have permission to delete payments");
+      setShowMessage(true);
+      return;
+    }
+
+    // Check if we're running locally (feature/payments-maintenance branch)
+    const isLocalDevelopment = window.location.hostname === 'localhost' ||
+                               window.location.hostname === '127.0.0.1';
+
+    if (!isLocalDevelopment) {
+      setError("Delete functionality only works on feature/payments-maintenance branch (localhost)");
+      setShowMessage(true);
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this payment? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/payments/${paymentId}`);
+      setMessage("Payment deleted successfully!");
+      setShowMessage(true);
+      await fetchPayments();
+    } catch (err) {
+      console.error("Error deleting payment:", err);
+      setError("Failed to delete payment");
+      setShowMessage(true);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="p-20px max-w-1200px mx-auto">
@@ -300,7 +333,8 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Amount</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Date</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Method</th>
-                <th className="p-12px text-left border-b font-semibold text-[#374151]">Status</th>
+                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Status</th>
+                {isLandlord && <th className="p-12px text-left border-b font-semibold text-[#374151]">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -313,7 +347,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${payment.amount.toFixed(2)}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.date}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.paymentMethod}</td>
-                  <td className="p-12px border-b text-[#111827]">
+                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
                     {isLandlord ? (
                       <select
                         value={payment.status}
@@ -338,6 +372,16 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                       </span>
                     )}
                   </td>
+                  {isLandlord && (
+                    <td className="p-12px border-b text-[#111827]">
+                      <button
+                        onClick={() => handleDelete(payment.id!)}
+                        className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
