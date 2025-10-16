@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.MaintenanceRequests;
 using Selu383.SP25.P03.Api.Features.Tenants;
+using Microsoft.AspNetCore.Identity;
+using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -11,18 +13,47 @@ namespace Selu383.SP25.P03.Api.Controllers
     public class MaintenanceRequestsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public MaintenanceRequestsController(DataContext context)
+        public MaintenanceRequestsController(DataContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/maintenancerequests
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MaintenanceRequestDto>>> GetRequests()
         {
-            var requests = await _context.MaintenanceRequests
+            var user = await _userManager.GetUserAsync(User);
+
+            // Get all requests initially
+            var requestsQuery = _context.MaintenanceRequests
                 .Include(r => r.Tenant)
+                    .ThenInclude(t => t.Unit)
+                    .ThenInclude(u => u.Property)
+                .AsQueryable();
+
+            // If user is logged in and has the Maintenance (Staff) role, filter by their property
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles.Contains(UserRoleNames.Maintenance))
+                {
+                    // Find the staff record by email (matches Staff.Email to User.Email)
+                    var staffRecord = await _context.Staff
+                        .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                    if (staffRecord != null)
+                    {
+                        // Filter maintenance requests to only show those for units in the staff's property
+                        requestsQuery = requestsQuery.Where(r => r.Tenant.Unit.PropertyId == staffRecord.PropertyId);
+                    }
+                }
+            }
+
+            var requests = await requestsQuery
                 .Select(r => new MaintenanceRequestDto
                 {
                     Id = r.Id,

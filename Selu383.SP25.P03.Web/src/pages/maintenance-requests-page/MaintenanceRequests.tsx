@@ -130,7 +130,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
 
   const getTenantName = (tenantId: number): string => {
     const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Tenant ID: ${tenantId}`;
+    return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Unknown Tenant (ID: ${tenantId})`;
   };
 
   // const getTenantUnit = (tenantId: number): string => {
