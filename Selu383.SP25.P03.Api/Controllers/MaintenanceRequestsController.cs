@@ -124,10 +124,62 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<MaintenanceRequestDto>> CreateRequest(MaintenanceRequestDto dto)
         {
-            var tenant = await _context.Tenants.FindAsync(dto.TenantId);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            // Find the tenant and their property
+            var tenant = await _context.Tenants
+                .Include(t => t.Unit)
+                .ThenInclude(u => u.Property)
+                .FirstOrDefaultAsync(t => t.Id == dto.TenantId);
+
             if (tenant == null)
             {
                 return NotFound(new { message = "Tenant not found" });
+            }
+
+            // Role-based authorization
+            if (roles.Contains(UserRoleNames.Tenant))
+            {
+                // Tenants can only create requests for themselves
+                if (tenant.Email.ToLower() != user.Email.ToLower() &&
+                    tenant.Email.ToLower() != user.UserName.ToLower())
+                {
+                    return Forbid();
+                }
+            }
+            else if (roles.Contains(UserRoleNames.Landlord))
+            {
+                // Landlords can only create requests for tenants in their properties
+                if (tenant.Unit.Property.UserId != user.Id)
+                {
+                    return Forbid();
+                }
+            }
+            else if (roles.Contains(UserRoleNames.Maintenance))
+            {
+                // Staff can only create requests for tenants in their assigned property
+                var staffRecord = await _context.Staff
+                    .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                if (staffRecord == null || staffRecord.PropertyId <= 0)
+                {
+                    return BadRequest(new { message = "You are not assigned to a property" });
+                }
+
+                if (tenant.Unit.PropertyId != staffRecord.PropertyId)
+                {
+                    return Forbid();
+                }
+            }
+            else if (!roles.Contains(UserRoleNames.Admin))
+            {
+                return Forbid();
             }
 
             var request = new MaintenanceRequest
@@ -154,23 +206,96 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<MaintenanceRequestDto>> UpdateRequest(int id, MaintenanceRequestDto dto)
         {
-            var request = await _context.MaintenanceRequests.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var request = await _context.MaintenanceRequests
+                .Include(r => r.Tenant)
+                .ThenInclude(t => t.Unit)
+                .ThenInclude(u => u.Property)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
             if (request == null)
             {
                 return NotFound();
             }
 
-            request.Description = dto.Description;
-            request.Status = dto.Status ?? request.Status;
-            request.Priority = dto.Priority ?? request.Priority;
-            request.AssignedTo = dto.AssignedTo;
+            // Role-based authorization and field restrictions
+            if (roles.Contains(UserRoleNames.Tenant))
+            {
+                // Tenants can only update their own requests
+                if (request.Tenant.Email.ToLower() != user.Email.ToLower() &&
+                    request.Tenant.Email.ToLower() != user.UserName.ToLower())
+                {
+                    return Forbid();
+                }
+                // Tenants can ONLY update priority
+                request.Priority = dto.Priority ?? request.Priority;
+            }
+            else if (roles.Contains(UserRoleNames.Maintenance))
+            {
+                // Staff can only update requests in their assigned property
+                var staffRecord = await _context.Staff
+                    .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                if (staffRecord == null || staffRecord.PropertyId <= 0)
+                {
+                    return BadRequest(new { message = "You are not assigned to a property" });
+                }
+
+                if (request.Tenant.Unit.PropertyId != staffRecord.PropertyId)
+                {
+                    return Forbid();
+                }
+
+                // Staff can update status, description, assignedTo
+                request.Status = dto.Status ?? request.Status;
+                request.Description = dto.Description ?? request.Description;
+                request.AssignedTo = dto.AssignedTo;
+                if (request.Status.ToLower() == "completed")
+                {
+                    request.CompletedAt = DateTimeOffset.UtcNow;
+                }
+            }
+            else if (roles.Contains(UserRoleNames.Landlord))
+            {
+                // Landlords can update requests for tenants in their properties
+                if (request.Tenant.Unit.Property.UserId != user.Id)
+                {
+                    return Forbid();
+                }
+                // Landlords can update all fields
+                request.Description = dto.Description;
+                request.Status = dto.Status ?? request.Status;
+                request.Priority = dto.Priority ?? request.Priority;
+                request.AssignedTo = dto.AssignedTo;
+                if (request.Status.ToLower() == "completed" && request.CompletedAt == null)
+                {
+                    request.CompletedAt = DateTimeOffset.UtcNow;
+                }
+            }
+            else if (!roles.Contains(UserRoleNames.Admin))
+            {
+                return Forbid();
+            }
+            else
+            {
+                // Admin can update everything
+                request.Description = dto.Description;
+                request.Status = dto.Status ?? request.Status;
+                request.Priority = dto.Priority ?? request.Priority;
+                request.AssignedTo = dto.AssignedTo;
+            }
+
             request.UpdatedAt = DateTimeOffset.UtcNow;
 
             _context.MaintenanceRequests.Update(request);
             await _context.SaveChangesAsync();
-
-            // Load tenant to get unit number
-            await _context.Entry(request).Reference(r => r.Tenant).LoadAsync();
 
             dto.Id = request.Id;
             dto.TenantId = request.TenantId;
