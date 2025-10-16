@@ -100,10 +100,10 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === "propertyId" || name === "bedrooms" || name === "bathrooms" 
-        ? parseInt(value) || 0 
+      [name]: name === "propertyId" || name === "bedrooms" || name === "bathrooms"
+        ? parseInt(value) || 0
         : name === "squareFeet" || name === "rent"
-        ? parseFloat(value) || 0
+        ? (value === '' ? 0 : Math.round(parseFloat(value) * 100) / 100)
         : value
     }));
   };
