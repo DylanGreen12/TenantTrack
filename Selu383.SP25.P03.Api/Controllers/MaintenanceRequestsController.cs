@@ -34,11 +34,18 @@ namespace Selu383.SP25.P03.Api.Controllers
                     .ThenInclude(u => u.Property)
                 .AsQueryable();
 
-            // If user is logged in and has the Maintenance (Staff) role, filter by their property
+            // If user is logged in, filter based on role
             if (user != null)
             {
                 var roles = await _userManager.GetRolesAsync(user);
 
+                // Landlords only see maintenance requests for tenants in their properties
+                if (roles.Contains(UserRoleNames.Landlord))
+                {
+                    requestsQuery = requestsQuery.Where(r => r.Tenant.Unit.Property.UserId == user.Id);
+                }
+
+                // Staff (Maintenance) only see requests for their assigned property
                 if (roles.Contains(UserRoleNames.Maintenance))
                 {
                     // Find the staff record by email (matches Staff.Email to User.Email)
@@ -50,6 +57,12 @@ namespace Selu383.SP25.P03.Api.Controllers
                         // Filter maintenance requests to only show those for units in the staff's property
                         requestsQuery = requestsQuery.Where(r => r.Tenant.Unit.PropertyId == staffRecord.PropertyId);
                     }
+                }
+
+                // Tenants only see their own maintenance requests
+                if (roles.Contains(UserRoleNames.Tenant))
+                {
+                    requestsQuery = requestsQuery.Where(r => r.Tenant.Email.ToLower() == user.Email.ToLower());
                 }
             }
 

@@ -513,7 +513,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             if (hasPayments || hasMaintenanceRequests || hasLeases)
             {
-                return BadRequest(new { message = "Cannot delete tenant with existing payments, maintenance requests, or leases. Please edit the tenant's email instead." });
+                return BadRequest(new { message = "Cannot delete tenant with existing payments, maintenance requests, or leases." });
             }
 
             // Update unit status back to "Available"
