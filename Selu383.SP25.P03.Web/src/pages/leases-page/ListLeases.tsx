@@ -16,35 +16,12 @@ interface LeaseDto {
   status: string;
 }
 
-interface TenantDto {
-  id?: number;
-  unitNumber: string;
-  firstName: string;
-  lastName: string;
-  unitId: number;
-}
-
-interface UnitDto {
-  id: number;
-  unitNumber: string;
-  propertyId: number;
-}
-
-interface PropertyDto {
-  id: number;
-  name: string;
-  userId: number;
-}
-
 interface EditLeasesProps {
   currentUser?: UserDto;
 }
 
 const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [leases, setLeases] = useState<LeaseDto[]>([]);
-  const [tenants, setTenants] = useState<TenantDto[]>([]);
-  const [units, setUnits] = useState<UnitDto[]>([]);
-  const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
@@ -58,9 +35,6 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   useEffect(() => {
     if (currentUser) {
       fetchLeases();
-      fetchTenants();
-      fetchUnits();
-      fetchProperties();
     }
   }, [currentUser]);
 
@@ -76,56 +50,8 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     }
   };
 
-  const fetchTenants = async () => {
-    try {
-      const response = await axios.get<TenantDto[]>("/api/tenants");
-      setTenants(response.data);
-    } catch (err) {
-      setError("Failed to fetch tenants");
-      setMessage("Failed to fetch tenants.");
-      setShowMessage(true);
-      console.error("Error fetching tenants:", err);
-    }
-  };
-
-  const fetchUnits = async () => {
-    try {
-      const response = await axios.get<UnitDto[]>("/api/units");
-      setUnits(response.data);
-    } catch (err) {
-      console.error("Error fetching units:", err);
-    }
-  };
-
-  const fetchProperties = async () => {
-    try {
-      const response = await axios.get<PropertyDto[]>("/api/properties");
-      setAllProperties(response.data);
-    } catch (err) {
-      console.error("Error fetching properties:", err);
-    }
-  };
-
-  // Filter properties to only show current user's properties
-  const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === parseInt(currentUser.id)
-  );
-
-  // Filter tenants to only show tenants from user's properties
-  const userTenants = tenants.filter(tenant => 
-    userProperties.some(property => 
-      units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id)
-    )
-  );
-
-  // Filter leases to only show leases from user's properties
-  const userLeases = leases.filter(lease => 
-    userTenants.some(tenant => tenant.id === lease.tenantId)
-  );
-
-  const filteredLeases = userLeases.filter(lease =>
-    userTenants.some(tenant => tenant.id === lease.tenantId)
-  ).filter(lease => {
+  // Backend now handles role-based filtering, so we just apply search/filter criteria
+  const filteredLeases = leases.filter(lease => {
     // Search filter
     const fieldValue = lease[searchField]?.toString().toLowerCase() || "";
     const matchesSearch = fieldValue.includes(searchTerm.toLowerCase());

@@ -42,9 +42,35 @@ const authService = {
   getCurrentUser: (): UserDto | null => {
     try {
       const userData = localStorage.getItem('currentUser');
-      return userData ? JSON.parse(userData) : null;
+      if (!userData) return null;
+
+      const user = JSON.parse(userData);
+
+      // Validate user data structure - clear if invalid
+      if (!user || typeof user !== 'object') {
+        console.warn('Invalid user data in localStorage, clearing...');
+        localStorage.removeItem('currentUser');
+        return null;
+      }
+
+      // Validate roles array - clear if invalid
+      if (!user.roles || !Array.isArray(user.roles)) {
+        console.warn('User data has invalid roles structure, clearing localStorage...');
+        localStorage.removeItem('currentUser');
+        return null;
+      }
+
+      // Validate required fields
+      if (!user.id || !user.userName) {
+        console.warn('User data missing required fields, clearing localStorage...');
+        localStorage.removeItem('currentUser');
+        return null;
+      }
+
+      return user;
     } catch (error) {
       console.error('Error getting current user from storage:', error);
+      localStorage.removeItem('currentUser');
       return null;
     }
   },
