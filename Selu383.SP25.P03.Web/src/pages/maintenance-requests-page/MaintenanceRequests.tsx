@@ -22,6 +22,16 @@ interface TenantDto {
   email: string;
 }
 
+interface StaffDto {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  position: string;
+  propertyId: number;
+}
+
 interface MaintenanceRequestsProps {
   currentUser?: UserDto;
 }
@@ -30,6 +40,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [currentTenantId, setCurrentTenantId] = useState<number | null>(null);
+  const [staffRecord, setStaffRecord] = useState<StaffDto | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
@@ -49,17 +60,22 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   const initializeData = async () => {
     try {
       let tenantId: number | null = null;
-      
+
+      // Staff need to fetch their staff record first to check property assignment
+      if (isStaff) {
+        await fetchStaffRecord();
+      }
+
       // Landlords and Staff need the tenants list for display
       if (isLandlord || isStaff) {
         await fetchTenants();
       }
-      
+
       // Tenants need to find their tenant record first
       if (isTenant) {
         tenantId = await fetchCurrentTenantId();
       }
-      
+
       // Then fetch maintenance requests with the tenant ID
       await fetchMaintenanceRequests(tenantId);
     } catch (err) {
@@ -79,7 +95,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   const fetchCurrentTenantId = async (): Promise<number | null> => {
     try {
       const response = await axios.get<TenantDto[]>("/api/tenants");
-      const myTenant = response.data.find(t => 
+      const myTenant = response.data.find(t =>
         t.email.toLowerCase() === currentUser?.email?.toLowerCase() ||
         t.email.toLowerCase() === currentUser?.userName?.toLowerCase()
       );
@@ -94,6 +110,25 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
       console.error("Error fetching tenant info:", err);
       setError("Failed to fetch tenant information");
       return null;
+    }
+  };
+
+  const fetchStaffRecord = async () => {
+    try {
+      const response = await axios.get<StaffDto[]>("/api/staff");
+      const myStaff = response.data.find(s =>
+        s.email.toLowerCase() === currentUser?.email?.toLowerCase() ||
+        s.email.toLowerCase() === currentUser?.userName?.toLowerCase()
+      );
+
+      if (myStaff) {
+        setStaffRecord(myStaff);
+        if (!myStaff.propertyId || myStaff.propertyId === 0) {
+          setError("You have not been assigned to a property yet. Please contact your administrator.");
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching staff info:", err);
     }
   };
 
@@ -202,9 +237,18 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
         {isTenant && "My Maintenance Requests"}
       </h1>
 
+      {/* Warning for staff without property assignment */}
+      {isStaff && staffRecord && (!staffRecord.propertyId || staffRecord.propertyId === 0) && (
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-yellow-300 bg-yellow-100 text-yellow-800 text-sm">
+          <strong>Property Assignment Required</strong>
+          <p>You have not been assigned to a property yet. Please contact your administrator.</p>
+        </div>
+      )}
+
       {/* Action button */}
       <div className="mb-20px flex gap-10px">
-        {(!isTenant || (isTenant && currentTenantId)) && (
+        {(!isTenant || (isTenant && currentTenantId)) &&
+         (!isStaff || (isStaff && staffRecord && staffRecord.propertyId > 0)) && (
           <Link
             to="/editmaintenancerequests"
             className="bg-[#667eea] text-white py-10px px-20px rounded-md text-14px hover:bg-[#5563d6] transition-colors inline-block shadow-sm"
