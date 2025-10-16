@@ -218,6 +218,39 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
     }
   };
 
+  const handleDelete = async (requestId: number) => {
+    if (!isLandlord) {
+      setError("You don't have permission to delete maintenance requests");
+      setShowMessage(true);
+      return;
+    }
+
+    // Check if we're running locally (feature/payments-maintenance branch)
+    const isLocalDevelopment = window.location.hostname === 'localhost' ||
+                               window.location.hostname === '127.0.0.1';
+
+    if (!isLocalDevelopment) {
+      setError("Delete functionality only works on feature/payments-maintenance branch (localhost)");
+      setShowMessage(true);
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete this maintenance request? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/maintenancerequests/${requestId}`);
+      setMessage("Maintenance request deleted successfully!");
+      setShowMessage(true);
+      await fetchMaintenanceRequests();
+    } catch (err) {
+      console.error("Error deleting maintenance request:", err);
+      setError("Failed to delete maintenance request");
+      setShowMessage(true);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="p-20px max-w-1200px mx-auto">
@@ -367,10 +400,18 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
                     <td className="p-12px border-b text-[#111827]">
                       <Link
                         to={`/editmaintenancerequests/${request.id}`}
-                        className="text-blue-500 hover:text-blue-700 text-12px"
+                        className="text-blue-500 hover:text-blue-700 text-12px mr-3"
                       >
                         Edit
                       </Link>
+                      {isLandlord && (
+                        <button
+                          onClick={() => handleDelete(request.id!)}
+                          className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   )}
                 </tr>
