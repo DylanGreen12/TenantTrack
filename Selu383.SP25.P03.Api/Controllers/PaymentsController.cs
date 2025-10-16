@@ -65,6 +65,13 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Payment>> CreatePayment(PaymentCreateDto dto)
         {
+            // Validate that the tenant exists
+            var tenantExists = await _context.Tenants.AnyAsync(t => t.Id == dto.TenantId);
+            if (!tenantExists)
+            {
+                return BadRequest(new { message = $"Tenant with ID {dto.TenantId} does not exist" });
+            }
+
             // Map only DB fields
             var payment = new Payment
             {

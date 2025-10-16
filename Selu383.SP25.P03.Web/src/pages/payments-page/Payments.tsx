@@ -127,7 +127,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
 
   const getTenantName = (tenantId: number): string => {
     const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Tenant ID: ${tenantId}`;
+    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Unknown Tenant (ID: ${tenantId})`;
   };
 
   const getTenantUnit = (tenantId: number): string => {
