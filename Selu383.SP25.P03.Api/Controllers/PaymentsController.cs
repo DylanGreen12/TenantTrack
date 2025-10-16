@@ -51,10 +51,15 @@ namespace Selu383.SP25.P03.Api.Controllers
                     var staffRecord = await _context.Staff
                         .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
 
-                    if (staffRecord != null)
+                    if (staffRecord != null && staffRecord.PropertyId > 0)
                     {
                         // Filter payments to only show those for tenants in the staff's property
                         paymentsQuery = paymentsQuery.Where(p => p.Tenant.Unit.PropertyId == staffRecord.PropertyId);
+                    }
+                    else
+                    {
+                        // Staff not assigned to a property - return empty results
+                        paymentsQuery = paymentsQuery.Where(p => false);
                     }
                 }
 
