@@ -17,7 +17,17 @@ interface TenantDto {
   unitNumber: string;
   firstName: string;
   lastName: string;
-  email: string; // Used to match with User account
+  email: string;
+}
+
+interface StaffDto {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  position: string;
+  propertyId: number;
 }
 
 interface PaymentsPageProps {
@@ -28,6 +38,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
   const [payments, setPayments] = useState<PaymentDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
   const [currentTenantId, setCurrentTenantId] = useState<number | null>(null);
+  const [staffRecord, setStaffRecord] = useState<StaffDto | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
@@ -46,7 +57,10 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
 
   const initializeData = async () => {
     try {
-      let tenantId: number | null = null;
+      // Staff members need to check if they have a property assignment
+      if (isStaff) {
+        await fetchStaffRecord();
+      }
       
       // Landlords and Staff need the tenants list for display
       if (isLandlord || isStaff) {
@@ -55,13 +69,39 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
       
       // Tenants need to find their tenant record first
       if (isTenant) {
-        tenantId = await fetchCurrentTenantId();
+        const tenantId = await fetchCurrentTenantId();
+        await fetchPayments();
+      } else {
+        // Landlords and Staff fetch payments directly
+        await fetchPayments();
       }
-      
-      // Then fetch payments with the tenant ID
-      await fetchPayments(tenantId);
     } catch (err) {
       console.error("Error initializing data:", err);
+    }
+  };
+
+  const fetchStaffRecord = async () => {
+    try {
+      const response = await axios.get<StaffDto[]>("/api/staff");
+      // Match staff by email - check both user's email and userName fields
+      const myStaff = response.data.find(s => 
+        s.email.toLowerCase() === currentUser?.email?.toLowerCase() ||
+        s.email.toLowerCase() === currentUser?.userName?.toLowerCase()
+      );
+      
+      if (myStaff) {
+        setStaffRecord(myStaff);
+        
+        // Check if staff has been assigned to a property
+        if (!myStaff.propertyId || myStaff.propertyId === 0) {
+          setError("You have not been assigned to a property yet. Please contact your administrator.");
+        }
+      } else {
+        setError("No staff record found for your account. Please contact your administrator.");
+      }
+    } catch (err) {
+      console.error("Error fetching staff record:", err);
+      setError("Failed to fetch staff information");
     }
   };
 
@@ -76,16 +116,14 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
 
   const fetchCurrentTenantId = async (): Promise<number | null> => {
     try {
-      // Fetch all tenants and find the one matching current user's email
       const response = await axios.get<TenantDto[]>("/api/tenants");
-      // Match tenant by email - check both user's email and userName fields
       const myTenant = response.data.find(t => 
         t.email.toLowerCase() === currentUser?.email?.toLowerCase() ||
         t.email.toLowerCase() === currentUser?.userName?.toLowerCase()
       );
       if (myTenant) {
         setCurrentTenantId(myTenant.id);
-        return myTenant.id; // Return it!
+        return myTenant.id;
       } else {
         setError("No tenant account found for your user. Please contact your landlord.");
         return null;
@@ -97,28 +135,11 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
     }
   };
 
-  const fetchPayments = async (tenantIdOverride?: number | null) => {
+  const fetchPayments = async () => {
     try {
+      // The backend will handle filtering based on authentication
       const response = await axios.get<PaymentDto[]>("/api/payments");
-      
-      // Use the passed-in ID or fall back to state
-      const effectiveTenantId = tenantIdOverride !== undefined ? tenantIdOverride : currentTenantId;
-      
-      let filteredPayments = response.data;
-
-      // Filter payments based on role
-      if (isTenant) {
-        if (effectiveTenantId !== null) {
-          // Tenants only see their own payments
-          filteredPayments = response.data.filter(p => p.tenantId === effectiveTenantId);
-        } else {
-          // Tenant user but no tenant record = show empty list
-          filteredPayments = [];
-        }
-      }
-      // Landlords and Staff see all payments
-
-      setPayments(filteredPayments);
+      setPayments(response.data);
     } catch (err) {
       setError("Failed to fetch payments");
       console.error("Error fetching payments:", err);
@@ -147,7 +168,6 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
   });
 
   const handleStatusUpdate = async (paymentId: number, newStatus: string) => {
-    // Only landlords can update payment status (Staff is view-only)
     if (!isLandlord) {
       setError("You don't have permission to update payment status");
       setShowMessage(true);
@@ -178,6 +198,19 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
         <h1 className="text-gray-800">Payments</h1>
         <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
           Please log in to view payments
+        </div>
+      </div>
+    );
+  }
+
+  // Show warning for staff without property assignment
+  if (isStaff && staffRecord && (!staffRecord.propertyId || staffRecord.propertyId === 0)) {
+    return (
+      <div className="p-20px max-w-1200px mx-auto bg-gray-50">
+        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Payments</h1>
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-yellow-300 bg-yellow-100 text-yellow-800 text-sm">
+          <strong>Property Assignment Required</strong>
+          <p className="mt-2">You have not been assigned to a property yet. Please contact your administrator to assign you to a property before you can view payments.</p>
         </div>
       </div>
     );
