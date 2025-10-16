@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Payments;
+using Microsoft.AspNetCore.Identity;
+using Selu383.SP25.P03.Api.Features.Users;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -10,17 +12,47 @@ namespace Selu383.SP25.P03.Api.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public PaymentsController(DataContext context)
+        public PaymentsController(DataContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/payments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentGetDto>>> GetPayments()
         {
-            var payments = await _context.Payments
+            var user = await _userManager.GetUserAsync(User);
+
+            // Get all payments initially
+            var paymentsQuery = _context.Payments
+                .Include(p => p.Tenant)
+                    .ThenInclude(t => t.Unit)
+                    .ThenInclude(u => u.Property)
+                .AsQueryable();
+
+            // If user is logged in and has the Maintenance (Staff) role, filter by their property
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                if (roles.Contains(UserRoleNames.Maintenance))
+                {
+                    // Find the staff record by email (matches Staff.Email to User.Email)
+                    var staffRecord = await _context.Staff
+                        .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                    if (staffRecord != null)
+                    {
+                        // Filter payments to only show those for tenants in the staff's property
+                        paymentsQuery = paymentsQuery.Where(p => p.Tenant.Unit.PropertyId == staffRecord.PropertyId);
+                    }
+                }
+            }
+
+            var payments = await paymentsQuery
                 .Select(p => new PaymentGetDto
                 {
                     Id = p.Id,
