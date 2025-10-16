@@ -199,16 +199,6 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
       return;
     }
 
-    // Check if we're running locally (feature/payments-maintenance branch)
-    const isLocalDevelopment = window.location.hostname === 'localhost' ||
-                               window.location.hostname === '127.0.0.1';
-
-    if (!isLocalDevelopment) {
-      setError("Delete functionality only works on feature/payments-maintenance branch (localhost)");
-      setShowMessage(true);
-      return;
-    }
-
     if (!window.confirm("Are you sure you want to delete this payment? This action cannot be undone.")) {
       return;
     }
