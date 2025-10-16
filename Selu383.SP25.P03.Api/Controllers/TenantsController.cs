@@ -506,6 +506,16 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
+            // Check for related records that would prevent deletion
+            var hasPayments = await _context.Payments.AnyAsync(p => p.TenantId == id);
+            var hasMaintenanceRequests = await _context.MaintenanceRequests.AnyAsync(m => m.TenantId == id);
+            var hasLeases = await _context.Leases.AnyAsync(l => l.TenantId == id);
+
+            if (hasPayments || hasMaintenanceRequests || hasLeases)
+            {
+                return BadRequest(new { message = "Cannot delete tenant with existing payments, maintenance requests, or leases. Please edit the tenant's email instead." });
+            }
+
             // Update unit status back to "Available"
             var unit = await _context.Units.FindAsync(tenant.UnitId);
             if (unit != null)
@@ -515,7 +525,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             _context.Tenants.Remove(tenant);
-        
+
             try
             {
                 await _context.SaveChangesAsync();
