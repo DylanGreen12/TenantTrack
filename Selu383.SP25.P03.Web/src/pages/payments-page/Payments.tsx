@@ -69,7 +69,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
       
       // Tenants need to find their tenant record first
       if (isTenant) {
-        const tenantId = await fetchCurrentTenantId();
+        await fetchCurrentTenantId();
         await fetchPayments();
       } else {
         // Landlords and Staff fetch payments directly
