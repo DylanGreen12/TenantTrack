@@ -180,6 +180,37 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return Ok(landlordTenants);
             }
 
+            // Staff (Maintenance) can only see tenants in their assigned property
+            if (roles.Contains(UserRoleNames.Maintenance))
+            {
+                // Find the staff record by email (matches Staff.Email to User.Email)
+                var staffRecord = await _context.Staff
+                    .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                if (staffRecord != null)
+                {
+                    var staffTenants = await _context.Tenants
+                        .Where(t => t.Unit.PropertyId == staffRecord.PropertyId)
+                        .Select(t => new TenantDto
+                        {
+                            Id = t.Id,
+                            UnitId = t.UnitId,
+                            UnitNumber = t.Unit.UnitNumber,
+                            FirstName = t.FirstName,
+                            LastName = t.LastName,
+                            PhoneNumber = t.PhoneNumber,
+                            Email = t.Email,
+                            CreatedAt = t.CreatedAt,
+                            UpdatedAt = t.UpdatedAt
+                        })
+                        .ToListAsync();
+                    return Ok(staffTenants);
+                }
+
+                // If staff record not found, return empty list
+                return Ok(new List<TenantDto>());
+            }
+
             // Tenants can only see their own record
             if (roles.Contains(UserRoleNames.Tenant))
             {

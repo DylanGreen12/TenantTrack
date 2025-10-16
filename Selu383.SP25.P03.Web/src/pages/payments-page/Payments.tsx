@@ -127,7 +127,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
 
   const getTenantName = (tenantId: number): string => {
     const tenant = tenants.find(t => t.id === tenantId);
-    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Tenant ID: ${tenantId}`;
+    return tenant ? `${tenant.firstName} ${tenant.lastName} (Unit ${tenant.unitNumber})` : `Unknown Tenant (ID: ${tenantId})`;
   };
 
   const getTenantUnit = (tenantId: number): string => {
@@ -147,8 +147,8 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
   });
 
   const handleStatusUpdate = async (paymentId: number, newStatus: string) => {
-    // Only landlords and staff can update payment status
-    if (!isLandlord && !isStaff) {
+    // Only landlords can update payment status (Staff is view-only)
+    if (!isLandlord) {
       setError("You don't have permission to update payment status");
       setShowMessage(true);
       return;
@@ -281,7 +281,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.date}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.paymentMethod}</td>
                   <td className="p-12px border-b text-[#111827]">
-                    {(isLandlord || isStaff) ? (
+                    {isLandlord ? (
                       <select
                         value={payment.status}
                         onChange={(e) => handleStatusUpdate(payment.id!, e.target.value)}
