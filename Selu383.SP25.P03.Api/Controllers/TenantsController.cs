@@ -187,7 +187,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 var staffRecord = await _context.Staff
                     .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
 
-                if (staffRecord != null)
+                if (staffRecord != null && staffRecord.PropertyId > 0)
                 {
                     var staffTenants = await _context.Tenants
                         .Where(t => t.Unit.PropertyId == staffRecord.PropertyId)
@@ -207,7 +207,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     return Ok(staffTenants);
                 }
 
-                // If staff record not found, return empty list
+                // If staff record not found or not assigned to property, return empty list
                 return Ok(new List<TenantDto>());
             }
 
