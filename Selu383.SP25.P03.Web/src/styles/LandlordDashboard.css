@@ -200,6 +200,109 @@
   border: 1px solid #f5c6cb;
 }
 
+/* Maintenance Request Styling */
+.summary-card.warning {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.summary-card.urgent {
+  background: #f8d7da;
+  border-color: #dc3545;
+}
+
+.maintenance-summary {
+  max-width: 300px;
+}
+
+.maintenance-count {
+  font-weight: 600;
+  color: #856404;
+  margin-bottom: 10px;
+}
+
+.maintenance-item {
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #ffc107;
+}
+
+.maintenance-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.priority-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.priority-high {
+  background: #dc3545;
+  color: white;
+}
+
+.priority-medium {
+  background: #ffc107;
+  color: #000;
+}
+
+.priority-low {
+  background: #28a745;
+  color: white;
+}
+
+.status-badge-small {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-open {
+  background: #17a2b8;
+  color: white;
+}
+
+.status-in-progress {
+  background: #ffc107;
+  color: #000;
+}
+
+.status-completed {
+  background: #28a745;
+  color: white;
+}
+
+.maintenance-desc {
+  font-size: 13px;
+  margin: 6px 0;
+  color: #333;
+}
+
+.maintenance-meta {
+  font-size: 11px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.maintenance-tenant {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+}
+
+.text-success {
+  color: #28a745;
+  font-weight: 600;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .summary-cards {
@@ -222,5 +325,9 @@
   
   .expand-btn {
     align-self: flex-end;
+  }
+  
+  .maintenance-summary {
+    max-width: 100%;
   }
 }
