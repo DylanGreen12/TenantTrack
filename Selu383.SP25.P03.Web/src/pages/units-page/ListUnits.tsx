@@ -115,12 +115,6 @@ const ListUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
           <h2 className="text-xl font-semibold">
             {isAdmin ? "All Units" : "Your Units"} ({displayUnits.length})
           </h2>
-          <Link 
-            to="/units/create"
-            className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700"
-          >
-            Add New Unit
-          </Link>
         </div>
 
         {error && showMessage && (
