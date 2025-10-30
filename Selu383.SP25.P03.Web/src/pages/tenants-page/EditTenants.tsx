@@ -51,6 +51,9 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
     if (currentUser) {
       fetchUnits();
@@ -103,14 +106,16 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
     }
   };
 
-  // Filter properties to only show current user's properties
-  const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === parseInt(currentUser.id)
-  );
+  // Show all properties for Admin, only user's properties for others
+  const displayProperties = isAdmin 
+    ? allProperties 
+    : allProperties.filter(property => 
+        currentUser && property.userId === parseInt(currentUser.id)
+      );
 
-  // Filter units to only show units from user's properties that are available
+  // Filter units to only show units from display properties that are available
   const availableUnits = units.filter(unit => 
-    userProperties.some(property => property.id === unit.propertyId) && 
+    displayProperties.some(property => property.id === unit.propertyId) && 
     (unit.status === "Available" || unit.id === formData.unitId)
   );
 
@@ -186,15 +191,37 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
 
   return (
     <div className="p-20px max-w-1200px mx-auto">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Manage Tenants</h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">Manage Tenants</h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Properties
+          </div>
+        )}
+      </div>
       
       <form 
         onSubmit={handleSubmit} 
         className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
       >
-        <h2 className="text-lg font-semibold mb-24px">
-          {editingId ? "Edit Tenant" : "Create Tenant"}
-        </h2>
+        <div className="flex justify-between items-center mb-24px">
+          <h2 className="text-lg font-semibold">
+            {editingId ? "Edit Tenant" : "Create Tenant"}
+          </h2>
+          {isAdmin && (
+            <div className="text-sm text-gray-600">
+              Can assign to any unit
+            </div>
+          )}
+        </div>
+        
+        {editingId && isAdmin && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-800 text-sm">
+              <strong>Admin Note:</strong> You are editing a tenant assigned to another user's property.
+            </p>
+          </div>
+        )}
         
         <div className="mb-20px">
           <label htmlFor="unitId" className="block mb-6px font-medium text-gray-700">
@@ -209,14 +236,24 @@ const EditTenants: React.FC<EditTenantsProps> = ({ currentUser }) => {
             required
           >
             <option value={0}>-- Select Unit --</option>
-            {availableUnits.map((unit) => (
-              <option key={unit.id} value={unit.id}>
-                {unit.unitNumber} (Available)
-              </option>
-            ))}
+            {availableUnits.map((unit) => {
+              const property = allProperties.find(p => p.id === unit.propertyId);
+              return (
+                <option key={unit.id} value={unit.id}>
+                  {unit.unitNumber} (Available){isAdmin && property && ` - ${property.name} (Owner: ${property.userId})`}
+                </option>
+              );
+            })}
           </select>
+          {isAdmin && availableUnits.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              Showing all {availableUnits.length} available units in the system
+            </p>
+          )}
           {availableUnits.length === 0 && (
-            <p className="text-[#dc3545] text-12px mt-5px">No available units found for your properties.</p>
+            <p className="text-[#dc3545] text-12px mt-5px">
+              {isAdmin ? "No available units found in the system." : "No available units found for your properties."}
+            </p>
           )}
         </div>
 
