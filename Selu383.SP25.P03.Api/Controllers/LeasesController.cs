@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Leases;
 using Selu383.SP25.P03.Api.Features.Tenants;
+using Microsoft.AspNetCore.Identity;
+using Selu383.SP25.P03.Api.Features.Users;
 using System.Threading.Tasks;
 
 namespace Selu383.SP25.P03.Api.Controllers
@@ -12,17 +14,63 @@ namespace Selu383.SP25.P03.Api.Controllers
     public class LeasesController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public LeasesController(DataContext context)
+        public LeasesController(DataContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/leases
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LeaseDto>>> GetLeases()
         {
-            var leases = await _context.Leases
+            var user = await _userManager.GetUserAsync(User);
+
+            // Get all leases initially
+            var leasesQuery = _context.Leases
+                .Include(l => l.Tenant)
+                    .ThenInclude(t => t.Unit)
+                    .ThenInclude(u => u.Property)
+                .AsQueryable();
+
+            // If user is logged in, filter based on role
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                // Landlords only see leases for tenants in their properties
+                if (roles.Contains(UserRoleNames.Landlord))
+                {
+                    leasesQuery = leasesQuery.Where(l => l.Tenant.Unit.Property.UserId == user.Id);
+                }
+
+                // Staff (Maintenance) only see leases for their assigned property
+                if (roles.Contains(UserRoleNames.Maintenance))
+                {
+                    var staffRecord = await _context.Staff
+                        .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                    if (staffRecord != null)
+                    {
+                        leasesQuery = leasesQuery.Where(l => l.Tenant.Unit.PropertyId == staffRecord.PropertyId);
+                    }
+                    else
+                    {
+                        // Staff not found, return empty
+                        return Ok(new List<LeaseDto>());
+                    }
+                }
+
+                // Tenants only see their own lease
+                if (roles.Contains(UserRoleNames.Tenant))
+                {
+                    leasesQuery = leasesQuery.Where(l => l.Tenant.Email.ToLower() == user.Email.ToLower());
+                }
+            }
+
+            var leases = await leasesQuery
                 .Select(l => new LeaseDto
                 {
                     Id = l.Id,
@@ -34,7 +82,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     EndDate = l.EndDate,
                     Rent = l.Rent,
                     Deposit = l.Deposit,
-                    Status = l.Status 
+                    Status = l.Status
                 })
                 .ToListAsync();
 

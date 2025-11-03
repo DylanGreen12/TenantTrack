@@ -114,22 +114,126 @@ namespace Selu383.SP25.P03.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TenantDto>>> GetTenants()
         {
-            var tenants = await _context.Tenants
-                .Select(t => new TenantDto
-                {
-                    Id = t.Id,
-                    UnitId = t.UnitId,
-                    UnitNumber = t.Unit.UnitNumber,
-                    FirstName = t.FirstName,
-                    LastName = t.LastName,
-                    PhoneNumber = t.PhoneNumber,
-                    Email = t.Email,
-                    CreatedAt = t.CreatedAt,
-                    UpdatedAt = t.UpdatedAt
-                })
-                .ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
 
-            return Ok(tenants);
+            // If no user is logged in, return all tenants (for backwards compatibility with existing code)
+            // In production, you might want to require authentication
+            if (user == null)
+            {
+                var allTenants = await _context.Tenants
+                    .Select(t => new TenantDto
+                    {
+                        Id = t.Id,
+                        UnitId = t.UnitId,
+                        UnitNumber = t.Unit.UnitNumber,
+                        FirstName = t.FirstName,
+                        LastName = t.LastName,
+                        PhoneNumber = t.PhoneNumber,
+                        Email = t.Email,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt
+                    })
+                    .ToListAsync();
+                return Ok(allTenants);
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            // Admin and Maintenance staff can see all tenants
+            if (roles.Contains(UserRoleNames.Admin) || roles.Contains(UserRoleNames.Maintenance))
+            {
+                var allTenants = await _context.Tenants
+                    .Select(t => new TenantDto
+                    {
+                        Id = t.Id,
+                        UnitId = t.UnitId,
+                        UnitNumber = t.Unit.UnitNumber,
+                        FirstName = t.FirstName,
+                        LastName = t.LastName,
+                        PhoneNumber = t.PhoneNumber,
+                        Email = t.Email,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt
+                    })
+                    .ToListAsync();
+                return Ok(allTenants);
+            }
+
+            // Landlords can only see tenants in their properties
+            if (roles.Contains(UserRoleNames.Landlord))
+            {
+                var landlordTenants = await _context.Tenants
+                    .Where(t => t.Unit.Property.UserId == user.Id)
+                    .Select(t => new TenantDto
+                    {
+                        Id = t.Id,
+                        UnitId = t.UnitId,
+                        UnitNumber = t.Unit.UnitNumber,
+                        FirstName = t.FirstName,
+                        LastName = t.LastName,
+                        PhoneNumber = t.PhoneNumber,
+                        Email = t.Email,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt
+                    })
+                    .ToListAsync();
+                return Ok(landlordTenants);
+            }
+
+            // Staff (Maintenance) can only see tenants in their assigned property
+            if (roles.Contains(UserRoleNames.Maintenance))
+            {
+                // Find the staff record by email (matches Staff.Email to User.Email)
+                var staffRecord = await _context.Staff
+                    .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+                if (staffRecord != null && staffRecord.PropertyId > 0)
+                {
+                    var staffTenants = await _context.Tenants
+                        .Where(t => t.Unit.PropertyId == staffRecord.PropertyId)
+                        .Select(t => new TenantDto
+                        {
+                            Id = t.Id,
+                            UnitId = t.UnitId,
+                            UnitNumber = t.Unit.UnitNumber,
+                            FirstName = t.FirstName,
+                            LastName = t.LastName,
+                            PhoneNumber = t.PhoneNumber,
+                            Email = t.Email,
+                            CreatedAt = t.CreatedAt,
+                            UpdatedAt = t.UpdatedAt
+                        })
+                        .ToListAsync();
+                    return Ok(staffTenants);
+                }
+
+                // If staff record not found or not assigned to property, return empty list
+                return Ok(new List<TenantDto>());
+            }
+
+            // Tenants can only see their own record
+            if (roles.Contains(UserRoleNames.Tenant))
+            {
+                var myTenant = await _context.Tenants
+                    .Where(t => t.Email.ToLower() == user.Email.ToLower())
+                    .Select(t => new TenantDto
+                    {
+                        Id = t.Id,
+                        UnitId = t.UnitId,
+                        UnitNumber = t.Unit.UnitNumber,
+                        FirstName = t.FirstName,
+                        LastName = t.LastName,
+                        PhoneNumber = t.PhoneNumber,
+                        Email = t.Email,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt
+                    })
+                    .ToListAsync();
+                return Ok(myTenant);
+            }
+
+            // Default: return empty list if user has no recognized role
+            return Ok(new List<TenantDto>());
         }
 
         // GET: api/tenants/5
@@ -402,6 +506,16 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
+            // Check for related records that would prevent deletion
+            var hasPayments = await _context.Payments.AnyAsync(p => p.TenantId == id);
+            var hasMaintenanceRequests = await _context.MaintenanceRequests.AnyAsync(m => m.TenantId == id);
+            var hasLeases = await _context.Leases.AnyAsync(l => l.TenantId == id);
+
+            if (hasPayments || hasMaintenanceRequests || hasLeases)
+            {
+                return BadRequest(new { message = "Cannot delete tenant with existing payments, maintenance requests, or leases." });
+            }
+
             // Update unit status back to "Available"
             var unit = await _context.Units.FindAsync(tenant.UnitId);
             if (unit != null)
@@ -411,7 +525,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             _context.Tenants.Remove(tenant);
-        
+
             try
             {
                 await _context.SaveChangesAsync();
