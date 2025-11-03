@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
+import VerifyEmail from "./pages/VerifyEmail";
 import { UserDto } from "./models/UserDto";
 import LandlordDashboard from './pages/LandlordDashboard'
 import EditProperties from './pages/properties-page/EditProperties'
@@ -635,6 +636,8 @@ function App() {
                     onSwitchToLogin={() => window.location.href = '/login'}
                   />
                 } />
+
+                <Route path="/verify-email" element={<VerifyEmail />} />
               </Routes>
             </div>
           </main>
