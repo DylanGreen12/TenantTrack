@@ -36,19 +36,24 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest();
             }
 
-            var result = await userManager.CreateAsync(new User { UserName = dto.Username }, dto.Password);
+            var user = new User 
+            { 
+                UserName = dto.Username,
+                Email = dto.Email,   
+                Phone = dto.Phone    
+            };
+
+            var result = await userManager.CreateAsync(user, dto.Password);
             if (result.Succeeded)
             {
-                await userManager.AddToRolesAsync(await userManager.FindByNameAsync(dto.Username), dto.Roles);
-
-                var user = await userManager.FindByNameAsync(dto.Username);
+                await userManager.AddToRolesAsync(user, dto.Roles); 
                 return new UserDto
                 {
                     Id = user.Id,
-                    UserName = dto.Username,
+                    UserName = user.UserName,
                     Roles = dto.Roles,
-                    Email = dto.Email,
-                    Phone = dto.Phone
+                    Email = user.Email,
+                    Phone = user.Phone
                 };
             }
             return BadRequest();
