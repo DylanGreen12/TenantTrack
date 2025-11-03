@@ -140,13 +140,18 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
         throw new Error(errorText || "Signup failed");
       }
 
-      setToastMessage("Signup successful! Please log in.");
+      // Show different message if email was provided
+      if (email) {
+        setToastMessage("Account created! Check your email to verify your account before logging in.");
+      } else {
+        setToastMessage("Signup successful! You can now log in.");
+      }
       setShowToast(true);
 
       setTimeout(() => {
         setShowToast(false);
         onSwitchToLogin();
-      }, 2000);
+      }, 3000);
 
     } catch (err: any) {
       console.error("Signup error:", err);

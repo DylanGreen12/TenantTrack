@@ -75,7 +75,16 @@ export function LoginForm({ onLoginSuccess, onSwitchToSignUp }: LoginFormProps) 
       });
 
       if (!loginRes.ok) {
-        throw new Error("Login failed");
+        const errorData = await loginRes.json().catch(() => ({}));
+
+        // Check if it's an email verification error
+        if (errorData.requiresVerification) {
+          setFormError(errorData.message || "Please verify your email before logging in. Check your inbox for the verification link.");
+          setLoading(false);
+          return;
+        }
+
+        throw new Error(errorData.message || "Login failed");
       }
 
       // Fetch logged-in user from session
@@ -87,9 +96,9 @@ export function LoginForm({ onLoginSuccess, onSwitchToSignUp }: LoginFormProps) 
       const user: UserDto = await meRes.json();
       onLoginSuccess(user); // Update currentUser in App.tsx
       navigate("/");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setFormError("Wrong username or password");
+      setFormError(err.message || "Wrong username or password");
     } finally {
       setLoading(false);
     }
