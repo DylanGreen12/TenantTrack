@@ -16,6 +16,10 @@ namespace Selu383.SP25.P03.Api.Features.Users
             get => PhoneNumber;
             set => PhoneNumber = value;
         }
+
+        // Email verification fields
+        public string? EmailVerificationToken { get; set; }
+        public DateTime? EmailVerificationTokenExpiry { get; set; }
     }
 
 }
