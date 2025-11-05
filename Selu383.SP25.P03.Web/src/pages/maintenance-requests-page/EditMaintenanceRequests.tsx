@@ -20,6 +20,19 @@ interface TenantDto {
   firstName: string;
   lastName: string;
   email: string;
+  unitId: number;
+}
+
+interface UnitDto {
+  id: number;
+  unitNumber: string;
+  propertyId: number;
+}
+
+interface PropertyDto {
+  id: number;
+  name: string;
+  userId: number;
 }
 
 interface EditMaintenanceRequestsProps {
@@ -30,6 +43,8 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tenants, setTenants] = useState<TenantDto[]>([]);
+  const [units, setUnits] = useState<UnitDto[]>([]);
+  const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
   const [currentTenant, setCurrentTenant] = useState<TenantDto | null>(null);
   const [formData, setFormData] = useState<MaintenanceRequestDto>({
     tenantId: 0,
@@ -44,7 +59,8 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
   const [message, setMessage] = useState("");
 
   // Check user roles
-  const isLandlord = currentUser?.roles?.includes("Landlord") || currentUser?.roles?.includes("Admin");
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+  const isLandlord = currentUser?.roles?.includes("Landlord") || isAdmin;
   const isStaff = currentUser?.roles?.includes("Maintenance");
   const isTenant = currentUser?.roles?.includes("Tenant");
 
@@ -61,9 +77,11 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
         await fetchMaintenanceRequest(parseInt(id));
       }
 
-      // Landlords and Staff need the full tenants list
+      // Landlords/Admins and Staff need the full tenants list
       if (isLandlord || isStaff) {
         await fetchTenants();
+        await fetchUnits();
+        await fetchProperties();
       }
       
       // Tenants need to find their own tenant record
@@ -95,6 +113,24 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     }
   };
 
+  const fetchUnits = async () => {
+    try {
+      const response = await axios.get<UnitDto[]>("/api/units");
+      setUnits(response.data);
+    } catch (err) {
+      console.error("Error fetching units:", err);
+    }
+  };
+
+  const fetchProperties = async () => {
+    try {
+      const response = await axios.get<PropertyDto[]>("/api/properties");
+      setAllProperties(response.data);
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+    }
+  };
+
   const fetchCurrentTenant = async () => {
     try {
       const response = await axios.get<TenantDto[]>("/api/tenants");
@@ -120,6 +156,16 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     }
   };
 
+  // Show all tenants for Admin, only user's tenants for others
+  const displayTenants = isAdmin 
+    ? tenants 
+    : tenants.filter(tenant => {
+        const userProperty = allProperties.find(property => 
+          units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0"))
+        );
+        return userProperty !== undefined;
+      });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -130,13 +176,25 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
 
   const handleTenantChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const tenantId = Number(e.target.value);
-    const tenant = tenants.find(t => t.id === tenantId);
+    const tenant = displayTenants.find(t => t.id === tenantId);
     
     setFormData(prev => ({
       ...prev,
       tenantId,
       unitNumber: tenant?.unitNumber || ""
     }));
+  };
+
+  // Get property info for a tenant
+  const getPropertyInfo = (tenantId: number) => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    if (!tenant) return null;
+    
+    const unit = units.find(u => u.id === tenant.unitId);
+    if (!unit) return null;
+    
+    const property = allProperties.find(p => p.id === unit.propertyId);
+    return property;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -206,9 +264,16 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">
-        {id ? "Edit Maintenance Request" : (isTenant ? "Submit Maintenance Request" : "Create Maintenance Request")}
-      </h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">
+          {id ? "Edit Maintenance Request" : (isTenant ? "Submit Maintenance Request" : "Create Maintenance Request")}
+        </h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Tenants
+          </div>
+        )}
+      </div>
 
       {isTenant && currentTenant && !id && (
         <div className="mb-20px p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -220,13 +285,28 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
         </div>
       )}
 
+      {id && isAdmin && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-yellow-800 text-sm">
+            <strong>Admin Note:</strong> You are editing a maintenance request for another user's tenant.
+          </p>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
         className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300"
       >
-        <h2 className="text-lg font-semibold mb-24px">Request Details</h2>
+        <div className="flex justify-between items-center mb-24px">
+          <h2 className="text-lg font-semibold">Request Details</h2>
+          {isAdmin && !id && (
+            <div className="text-sm text-gray-600">
+              Can create requests for any tenant
+            </div>
+          )}
+        </div>
 
-        {/* Tenant Selection - Only for Landlords/Staff */}
+        {/* Tenant Selection - Only for Landlords/Admins/Staff */}
         {(isLandlord || isStaff) && (
           <div className="mb-20px">
             <label htmlFor="tenantId" className="block mb-6px font-medium text-gray-700">
@@ -242,12 +322,26 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
               disabled={!!id} // Can't change tenant when editing
             >
               <option value={0}>-- Select Tenant --</option>
-              {tenants.map(tenant => (
-                <option key={tenant.id} value={tenant.id}>
-                  {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
-                </option>
-              ))}
+              {displayTenants.map(tenant => {
+                const property = getPropertyInfo(tenant.id);
+                return (
+                  <option key={tenant.id} value={tenant.id}>
+                    {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
+                    {isAdmin && property && ` - ${property.name} (Owner: ${property.userId})`}
+                  </option>
+                );
+              })}
             </select>
+            {isAdmin && displayTenants.length > 0 && (
+              <p className="text-sm text-gray-600 mt-1">
+                Showing all {displayTenants.length} tenants in the system
+              </p>
+            )}
+            {displayTenants.length === 0 && (
+              <p className="text-[#dc3545] text-12px mt-5px">
+                {isAdmin ? "No tenants found in the system." : "No tenants found for your properties."}
+              </p>
+            )}
           </div>
         )}
 
@@ -303,7 +397,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
           </select>
         </div>
 
-        {/* Status - Only for Landlords/Staff editing existing requests */}
+        {/* Status - Only for Landlords/Admins/Staff editing existing requests */}
         {(isLandlord || isStaff) && id && (
           <div className="mb-20px">
             <label htmlFor="status" className="block mb-6px font-medium text-gray-700">
@@ -340,7 +434,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
         <div className="flex flex-wrap gap-12px mt-24px">
           <button
             type="submit"
-            disabled={loading || (isTenant && !currentTenant) || ((isLandlord || isStaff) && !formData.tenantId)}
+            disabled={loading || (isTenant && !currentTenant) || ((isLandlord || isStaff) && displayTenants.length === 0)}
             className="bg-[#667eea] text-white py-10px px-20px rounded-md text-14px hover:bg-[#5563d6] disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             {loading ? "Saving..." : id ? "Update Request" : "Submit Request"}
