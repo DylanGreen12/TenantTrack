@@ -317,20 +317,7 @@ function App() {
                             <DocumentIcon className="h-5 w-5 text-white/80 mr-2" />
                             Leases
                           </Link>
-                        </li>
-
-                        {/* Users - Only for Admins */}
-                        {userIsAdmin && (
-                          <li>
-                            <Link
-                              to="/admin/users"
-                              className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
-                            >
-                              <UsersIcon className="h-5 w-5 text-white/80 mr-2" />
-                              Users
-                            </Link>
-                          </li>
-                        )}
+                        </li> 
 
                         {/* Payments - For Landlords */}
                         <li>
@@ -355,6 +342,20 @@ function App() {
                             Maintenance
                           </Link>
                         </li>
+
+                        {/* Users - Only for Admins */}
+                        {userIsAdmin && (
+                          <li>
+                            <Link
+                              to="/admin/users"
+                              className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            >
+                              <UsersIcon className="h-5 w-5 text-white/80 mr-2" />
+                              Users
+                            </Link>
+                          </li>
+                        )}
+
                       </ul>
                     )}
                   </li>

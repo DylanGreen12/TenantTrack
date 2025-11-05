@@ -67,8 +67,7 @@ export function AddAdminUsers({ currentUser, onAdminAdded }: AddAdminFormProps) 
                 className="login-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Required for admin accounts"
-                required
+                placeholder="Optional"
               />
             </div>
             <div className="input-group">

@@ -47,7 +47,8 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   const [searchTerm, setSearchTerm] = useState("");
 
   // Check user roles
-  const isLandlord = currentUser?.roles?.includes("Landlord") || currentUser?.roles?.includes("Admin");
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+  const isLandlord = currentUser?.roles?.includes("Landlord") || isAdmin;
   const isStaff = currentUser?.roles?.includes("Maintenance");
   const isTenant = currentUser?.roles?.includes("Tenant");
 
@@ -66,7 +67,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
         await fetchStaffRecord();
       }
 
-      // Landlords and Staff need the tenants list for display
+      // Landlords/Admins and Staff need the tenants list for display
       if (isLandlord || isStaff) {
         await fetchTenants();
       }
@@ -168,11 +169,6 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
     return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Unknown Tenant (ID: ${tenantId})`;
   };
 
-  // const getTenantUnit = (tenantId: number): string => {
-  //   const tenant = tenants.find(t => t.id === tenantId);
-  //   return tenant ? tenant.unitNumber : '';
-  // };
-
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -192,7 +188,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   });
 
   const handleStatusUpdate = async (requestId: number, newStatus: string) => {
-    // Only landlords and staff can update status
+    // Only landlords/admins and staff can update status
     if (!isLandlord && !isStaff) {
       setError("You don't have permission to update maintenance request status");
       setShowMessage(true);
@@ -254,11 +250,17 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">
-        {isLandlord && "Maintenance Requests"}
-        {isStaff && "Maintenance Requests"}
-        {isTenant && "My Maintenance Requests"}
-      </h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">
+          {isTenant && "My Maintenance Requests"}
+          {(isLandlord || isStaff) && (isAdmin ? "All Maintenance Requests" : "Maintenance Requests")}
+        </h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Requests
+          </div>
+        )}
+      </div>
 
       {/* Warning for staff without property assignment */}
       {isStaff && staffRecord && (!staffRecord.propertyId || staffRecord.propertyId === 0) && (
@@ -296,11 +298,15 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
       <div className="maintenance-requests-list bg-white shadow-lg p-24px rounded-12px border border-gray-300">
         <div className="flex justify-between items-center mb-10px">
           <h2 className="text-lg font-semibold text-gray-800">
-            {(isLandlord || isStaff) && `All Maintenance Requests (${filteredRequests.length}${searchTerm ? ` of ${requests.length}` : ''})`}
             {isTenant && `Request History (${requests.length})`}
+            {(isLandlord || isStaff) && (
+              <>
+                {isAdmin ? "All Maintenance Requests" : "Maintenance Requests"} ({filteredRequests.length}{searchTerm ? ` of ${requests.length}` : ''})
+              </>
+            )}
           </h2>
 
-          {/* Search box for landlords/staff */}
+          {/* Search box for landlords/admins/staff */}
           {(isLandlord || isStaff) && (
             <input
               type="text"
@@ -311,6 +317,12 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
             />
           )}
         </div>
+        
+        {isAdmin && filteredRequests.length > 0 && (
+          <p className="text-sm text-gray-600 mb-4">
+            Showing all {filteredRequests.length} maintenance requests in the system
+          </p>
+        )}
         
         {isTenant && !currentTenantId && (
           <div className="my-4 p-4 rounded-lg shadow-inner border border-yellow-300 bg-yellow-100 text-yellow-800 text-sm">
@@ -326,7 +338,9 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
         )}
 
         {filteredRequests.length === 0 && requests.length === 0 && (!isTenant || currentTenantId) ? (
-          <p className="text-gray-600">No maintenance requests found.</p>
+          <p className="text-gray-600">
+            {isAdmin ? "No maintenance requests found in the system." : "No maintenance requests found."}
+          </p>
         ) : filteredRequests.length === 0 && searchTerm ? (
           <p className="text-gray-600">No requests match your search.</p>
         ) : filteredRequests.length > 0 ? (
@@ -334,6 +348,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
             <thead>
               <tr className="bg-[#f3f4f6]">
                 {(isLandlord || isStaff) && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant</th>}
+                {isAdmin && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant ID</th>}
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Unit</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Description</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Priority</th>
@@ -348,7 +363,16 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
                   key={request.id}
                   className={`${i % 2 === 0 ? "bg-white" : "bg-[#f9fafb]"} hover:bg-[#ebf5ff] transition-colors`}
                 >
-                  {(isLandlord || isStaff) && <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{getTenantName(request.tenantId)}</td>}
+                  {(isLandlord || isStaff) && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {getTenantName(request.tenantId)}
+                    </td>
+                  )}
+                  {isAdmin && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827] text-sm">
+                      {request.tenantId}
+                    </td>
+                  )}
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{request.unitNumber}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{request.description}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
