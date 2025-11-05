@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Tenants;
 using Selu383.SP25.P03.Api.Features.Units;
+using Selu383.SP25.P03.Api.Features.Leases;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -72,12 +73,11 @@ namespace Selu383.SP25.P03.Api.Controllers
             return unit.Status == "Available";
         }
 
-        /*
-        [HttpGet("me/unit")]
-        [Authorize(Roles = UserRoleNames.Tenant)] 
+
+        [HttpGet("unit")]
         public async Task<ActionResult<UnitDto>> GetMyUnit()
         {
-            var user = await _userManager.GetUserAsync(User); 
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return Unauthorized(new { message = "Not logged in" });
@@ -108,7 +108,105 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Bathrooms = tenant.Unit.Bathrooms
             });
         }
-        */
+
+        [HttpGet("lease")]
+        public async Task<ActionResult<LeaseDto>> GetMyLease()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var tenant = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Email.ToLower() == user.Email.ToLower());
+
+            if (tenant == null)
+            {
+                return NotFound(new { message = "No tenant record found for this user" });
+            }
+
+            var lease = await _context.Leases
+                .Include(l => l.Tenant)
+                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id);
+
+            if (lease == null)
+            {
+                return NotFound(new { message = "No lease found for this tenant" });
+            }
+
+            var leaseDto = new LeaseDto
+            {
+                Id = lease.Id,
+                TenantId = lease.TenantId,
+                FirstName = lease.Tenant.FirstName,
+                LastName = lease.Tenant.LastName,
+                UnitNumber = lease.UnitNumber,
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                Rent = lease.Rent,
+                Deposit = lease.Deposit,
+                Status = lease.Status
+            };
+
+            return Ok(leaseDto);
+        }
+
+        [HttpGet("balance")]
+        public async Task<ActionResult> GetMyPaymentStatus()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Not logged in" });
+            }
+
+            var tenant = await _context.Tenants
+                .Include(t => t.Unit)
+                .FirstOrDefaultAsync(t => t.Email.ToLower() == user.Email.ToLower());
+
+            if (tenant == null)
+            {
+                return NotFound(new { message = "No tenant record found for this user" });
+            }
+
+            if (tenant.Unit == null)
+            {
+                return NotFound(new { message = "No unit assigned" });
+            }
+
+            var now = DateTime.UtcNow;
+            var startOfMonth = new DateOnly(now.Year, now.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            // 🔍 Get all completed payments for this month
+            var totalPaid = await _context.Payments
+                .Where(p => p.TenantId == tenant.Id &&
+                            p.Status.ToLower() == "pending" &&
+                            p.Date >= startOfMonth &&
+                            p.Date <= endOfMonth)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+
+            var rent = tenant.Unit.Rent;
+            var balanceDue = rent - totalPaid;
+
+            string status;
+            if (totalPaid == 0)
+                status = "Unpaid";
+            else if (totalPaid < rent)
+                status = "Partial";
+            else
+                status = "Paid";
+
+            return Ok(new
+            {
+                Rent = rent,
+                TotalPaid = totalPaid,
+                BalanceDue = balanceDue,
+                Status = status,
+                Month = now.ToString("MMMM yyyy")
+            });
+        }
 
         // GET: api/tenants
         [HttpGet]
