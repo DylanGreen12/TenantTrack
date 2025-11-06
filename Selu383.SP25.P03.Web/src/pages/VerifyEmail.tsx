@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -7,6 +7,7 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
   const [message, setMessage] = useState("");
+  const hasVerified = useRef(false);
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -17,24 +18,33 @@ export default function VerifyEmail() {
       return;
     }
 
+    // Prevent double verification in React StrictMode
+    if (hasVerified.current) return;
+    hasVerified.current = true;
+
     verifyEmail(token);
   }, [searchParams]);
 
   const verifyEmail = async (token: string) => {
     try {
+      console.log("Verifying email with token:", token);
       const response = await axios.get(`/api/users/verify-email?token=${token}`);
+      console.log("Verification response:", response);
       setStatus("success");
       setMessage(response.data.message || "Email verified successfully!");
 
-      // Redirect to login after 3 seconds
+      // Only redirect on success after 3 seconds
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } catch (error: any) {
+      console.error("Verification error:", error);
+      console.error("Error response:", error.response);
       setStatus("error");
       setMessage(
         error.response?.data?.message || "Failed to verify email. The token may be invalid or expired."
       );
+      // Don't redirect on error - removed auto-redirect
     }
   };
 
@@ -105,11 +115,14 @@ export default function VerifyEmail() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Verification Failed</h3>
               <p className="text-gray-600 mb-4">{message}</p>
+              <p className="text-sm text-gray-500 mb-4">
+                The verification link may have already been used or expired. Try logging in - your email may already be verified.
+              </p>
               <button
                 onClick={() => navigate("/login")}
                 className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#667eea] hover:bg-[#5563d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#667eea]"
               >
-                Back to Login
+                Go to Login
               </button>
             </div>
           )}
