@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/LandlordDashboard.css";
+import { UserDto } from "../models/UserDto";
 
 interface PropertySummary {
   id: number;
@@ -78,7 +79,11 @@ interface LandlordDashboardData {
   summary: DashboardSummary;
 }
 
-export default function LandlordDashboard() {
+interface LandlordDashboardProps {
+  currentUser?: UserDto;
+}
+
+export default function LandlordDashboard( { }:LandlordDashboardProps ) {
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
