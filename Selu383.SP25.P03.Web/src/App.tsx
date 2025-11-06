@@ -10,6 +10,7 @@ import ListUnits from './pages/units-page/ListUnits'
 import PropertiesView from "./pages/PropertiesView";
 import EditTenants from './pages/tenants-page/EditTenants'
 import ListTenants from './pages/tenants-page/ListTenants';
+import TenantDashboard from './pages/tenants-page/TenantDashboard';
 import EditLeases from './pages/leases-page/EditLeases'
 import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/staff-page/EditStaff'
@@ -427,9 +428,13 @@ function App() {
             <div className="p-8 text-gray-800">
               <Routes>
                 <Route path="/" element={
-                  canManage ? 
-                    <LandlordDashboard currentUser={currentUser || undefined} /> : 
-                    <PropertiesView currentUser={currentUser || undefined} /> 
+                  canManage ? (
+                    <LandlordDashboard currentUser={currentUser || undefined} />
+                  ) : isTenant(currentUser) ? (
+                    <TenantDashboard currentUser={currentUser || undefined} />
+                  ) : (
+                    <PropertiesView currentUser={currentUser || undefined} />
+                  )
                 } />
                 
                 {/* Management Routes - Protected by role */}
