@@ -45,7 +45,8 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Check user roles
-  const isLandlord = currentUser?.roles?.includes("Landlord") || currentUser?.roles?.includes("Admin");
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+  const isLandlord = currentUser?.roles?.includes("Landlord") || isAdmin;
   const isStaff = currentUser?.roles?.includes("Maintenance");
   const isTenant = currentUser?.roles?.includes("Tenant");
 
@@ -62,7 +63,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
         await fetchStaffRecord();
       }
       
-      // Landlords and Staff need the tenants list for display
+      // Landlords/Admins and Staff need the tenants list for display
       if (isLandlord || isStaff) {
         await fetchTenants();
       }
@@ -72,7 +73,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
         await fetchCurrentTenantId();
         await fetchPayments();
       } else {
-        // Landlords and Staff fetch payments directly
+        // Landlords/Admins and Staff fetch payments directly
         await fetchPayments();
       }
     } catch (err) {
@@ -241,11 +242,18 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">
-        {isLandlord && "Payments"}
-        {isStaff && "Payments"}
-        {isTenant && "My Payments"}
-      </h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">
+          {isLandlord && (isAdmin ? "All Payments" : "Payments")}
+          {isStaff && "Payments"}
+          {isTenant && "My Payments"}
+        </h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Payments
+          </div>
+        )}
+      </div>
 
       {/* Action buttons based on role */}
       <div className="mb-20px flex gap-10px">
@@ -282,11 +290,15 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
       <div className="payments-list bg-white shadow-lg p-24px rounded-12px border border-gray-300">
         <div className="flex justify-between items-center mb-10px">
           <h2 className="text-lg font-semibold text-gray-800">
-            {(isLandlord || isStaff) && `All Payments (${filteredPayments.length}${searchTerm ? ` of ${payments.length}` : ''})`}
             {isTenant && `Payment History (${payments.length})`}
+            {(isLandlord || isStaff) && (
+              <>
+                {isAdmin ? "All Payments" : "Payments"} ({filteredPayments.length}{searchTerm ? ` of ${payments.length}` : ''})
+              </>
+            )}
           </h2>
 
-          {/* Search box for landlords/staff */}
+          {/* Search box for landlords/admins/staff */}
           {(isLandlord || isStaff) && (
             <input
               type="text"
@@ -311,8 +323,16 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
           </p>
         )}
 
+        {isAdmin && filteredPayments.length > 0 && (
+          <p className="text-sm text-gray-600 mb-4">
+            Showing all {filteredPayments.length} payments in the system
+          </p>
+        )}
+
         {filteredPayments.length === 0 && payments.length === 0 && (!isTenant || currentTenantId) ? (
-          <p className="text-gray-600">No payments found.</p>
+          <p className="text-gray-600">
+            {isAdmin ? "No payments found in the system." : "No payments found."}
+          </p>
         ) : filteredPayments.length === 0 && searchTerm ? (
           <p className="text-gray-600">No payments match your search.</p>
         ) : filteredPayments.length > 0 ? (
@@ -320,6 +340,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
             <thead>
               <tr className="bg-[#f3f4f6]">
                 {(isLandlord || isStaff) && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant</th>}
+                {isAdmin && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant ID</th>}
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Amount</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Date</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Method</th>
@@ -333,7 +354,16 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                   key={payment.id}
                   className={`${i % 2 === 0 ? "bg-white" : "bg-[#f9fafb]"} hover:bg-[#ebf5ff] transition-colors`}
                 >
-                  {(isLandlord || isStaff) && <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{getTenantName(payment.tenantId)}</td>}
+                  {(isLandlord || isStaff) && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {getTenantName(payment.tenantId)}
+                    </td>
+                  )}
+                  {isAdmin && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827] text-sm">
+                      {payment.tenantId}
+                    </td>
+                  )}
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${payment.amount.toFixed(2)}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.date}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.paymentMethod}</td>

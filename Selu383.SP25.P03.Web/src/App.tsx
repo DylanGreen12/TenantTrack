@@ -21,6 +21,8 @@ import RecordPayment from "./pages/payments-page/RecordPayment";
 import MakePayment from "./pages/payments-page/MakePayment";
 import MaintenanceRequests from "./pages/maintenance-requests-page/MaintenanceRequests";
 import EditMaintenanceRequests from "./pages/maintenance-requests-page/EditMaintenanceRequests";
+import AddAdminUsers from "./pages/admin-page/AddAdminUsers";
+import UsersPage from "./pages/admin-page/EditUsers";
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -34,7 +36,8 @@ import {
   ChevronUpIcon,
   Cog6ToothIcon,
   BanknotesIcon,
-  WrenchScrewdriverIcon
+  WrenchScrewdriverIcon,
+  UsersIcon
 } from '@heroicons/react/24/solid';
 
 
@@ -121,6 +124,11 @@ const canAccessMaintenance = (user: UserDto | null): boolean => {
   return hasManagementAccess(user) || isStaff(user) || isTenant(user);
 };
 
+const isAdmin = (user: UserDto | null): boolean => {
+  if (!user || !user.roles || !Array.isArray(user.roles)) return false;
+  return user.roles.includes('Admin');
+};
+
 function App() {
   const [currentUser, setCurrentUser] = useState<UserDto | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -154,6 +162,7 @@ function App() {
   };
 
   const canManage = hasManagementAccess(currentUser);
+  const userIsAdmin = isAdmin(currentUser);
 
   return (
     <Router>
@@ -309,7 +318,7 @@ function App() {
                             <DocumentIcon className="h-5 w-5 text-white/80 mr-2" />
                             Leases
                           </Link>
-                        </li>
+                        </li> 
 
                         {/* Payments - For Landlords */}
                         <li>
@@ -334,6 +343,20 @@ function App() {
                             Maintenance
                           </Link>
                         </li>
+
+                        {/* Users - Only for Admins */}
+                        {userIsAdmin && (
+                          <li>
+                            <Link
+                              to="/admin/users"
+                              className="flex items-center text-white/80 no-underline text-sm transition-all duration-200 ease hover:text-blue-300 hover:pl-2 block py-2 rounded-lg hover:bg-white/10"
+                            >
+                              <UsersIcon className="h-5 w-5 text-white/80 mr-2" />
+                              Users
+                            </Link>
+                          </li>
+                        )}
+
                       </ul>
                     )}
                   </li>
@@ -392,7 +415,7 @@ function App() {
                                   ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
                     >
                       <PhoneIcon className="h-6 w-6 text-white" />
-                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
+                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>User Info</span>
                     </Link>
                   </li>
                 )}
@@ -538,6 +561,25 @@ function App() {
                     <div className="text-center py-8">
                       <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                       <p>You need to be a Landlord or Admin to access this page.</p>
+                    </div>
+                } />
+
+                {/* Admin Routes */}
+                <Route path="/admin/users" element={
+                  userIsAdmin ? 
+                    <UsersPage currentUser={currentUser || undefined} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be an Administrator to access this page.</p>
+                    </div>
+                } />
+
+                <Route path="/admin/add-admin" element={
+                  userIsAdmin ? 
+                    <AddAdminUsers currentUser={currentUser || undefined} onAdminAdded={() => {}} /> : 
+                    <div className="text-center py-8">
+                      <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
+                      <p>You need to be an Administrator to access this page.</p>
                     </div>
                 } />
                 
