@@ -9,6 +9,19 @@ interface TenantDto {
   firstName: string;
   lastName: string;
   email: string;
+  unitId: number;
+}
+
+interface UnitDto {
+  id: number;
+  unitNumber: string;
+  propertyId: number;
+}
+
+interface PropertyDto {
+  id: number;
+  name: string;
+  userId: number;
 }
 
 interface PaymentFormData {
@@ -26,6 +39,8 @@ interface RecordPaymentProps {
 export default function RecordPayment({ currentUser }: RecordPaymentProps) {
   const navigate = useNavigate();
   const [tenants, setTenants] = useState<TenantDto[]>([]);
+  const [units, setUnits] = useState<UnitDto[]>([]);
+  const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
   const [formData, setFormData] = useState<PaymentFormData>({
     tenantId: 0,
     amount: 0,
@@ -37,9 +52,14 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
     if (currentUser) {
       fetchTenants();
+      fetchUnits();
+      fetchProperties();
     }
   }, [currentUser]);
 
@@ -52,6 +72,34 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
       setError("Failed to fetch tenants");
     }
   };
+
+  const fetchUnits = async () => {
+    try {
+      const response = await axios.get<UnitDto[]>("/api/units");
+      setUnits(response.data);
+    } catch (err) {
+      console.error("Error fetching units:", err);
+    }
+  };
+
+  const fetchProperties = async () => {
+    try {
+      const response = await axios.get<PropertyDto[]>("/api/properties");
+      setAllProperties(response.data);
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+    }
+  };
+
+  // Show all tenants for Admin, only user's tenants for others
+  const displayTenants = isAdmin 
+    ? tenants 
+    : tenants.filter(tenant => {
+        const userProperty = allProperties.find(property => 
+          units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0"))
+        );
+        return userProperty !== undefined;
+      });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -106,6 +154,18 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
     }
   };
 
+  // Get property info for a tenant
+  const getPropertyInfo = (tenantId: number) => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    if (!tenant) return null;
+    
+    const unit = units.find(u => u.id === tenant.unitId);
+    if (!unit) return null;
+    
+    const property = allProperties.find(p => p.id === unit.propertyId);
+    return property;
+  };
+
   if (!currentUser) {
     return (
       <div className="p-20px max-w-1200px mx-auto">
@@ -119,12 +179,20 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Record Payment</h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">Record Payment</h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Tenants
+          </div>
+        )}
+      </div>
       
       <div className="mb-20px p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-blue-700 text-sm">
           <strong>Note:</strong> Use this form to record payments received from tenants (cash, check, etc.). 
           The payment will be marked with the status you select.
+          {isAdmin && " As an admin, you can record payments for any tenant in the system."}
         </p>
       </div>
 
@@ -132,7 +200,14 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
         onSubmit={handleSubmit} 
         className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300"
       >
-        <h2 className="text-lg font-semibold mb-24px">Payment Details</h2>
+        <div className="flex justify-between items-center mb-24px">
+          <h2 className="text-lg font-semibold">Payment Details</h2>
+          {isAdmin && (
+            <div className="text-sm text-gray-600">
+              Can record payments for any tenant
+            </div>
+          )}
+        </div>
 
         {/* Tenant Selection */}
         <div className="mb-20px">
@@ -148,12 +223,26 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
             required
           >
             <option value={0}>-- Select Tenant --</option>
-            {tenants.map(tenant => (
-              <option key={tenant.id} value={tenant.id}>
-                {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
-              </option>
-            ))}
+            {displayTenants.map(tenant => {
+              const property = getPropertyInfo(tenant.id);
+              return (
+                <option key={tenant.id} value={tenant.id}>
+                  {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
+                  {isAdmin && property && ` - ${property.name} (Owner: ${property.userId})`}
+                </option>
+              );
+            })}
           </select>
+          {isAdmin && displayTenants.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              Showing all {displayTenants.length} tenants in the system
+            </p>
+          )}
+          {displayTenants.length === 0 && (
+            <p className="text-[#dc3545] text-12px mt-5px">
+              {isAdmin ? "No tenants found in the system." : "No tenants found for your properties."}
+            </p>
+          )}
         </div>
 
         {/* Amount */}
@@ -256,7 +345,7 @@ export default function RecordPayment({ currentUser }: RecordPaymentProps) {
         <div className="flex flex-wrap gap-12px mt-24px">
           <button 
             type="submit" 
-            disabled={loading || tenants.length === 0}
+            disabled={loading || displayTenants.length === 0}
             className="bg-[#667eea] text-white py-10px px-20px rounded-md text-14px hover:bg-[#5563d6] disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             {loading ? "Recording..." : "Record Payment"}

@@ -63,6 +63,9 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
     if (currentUser) {
       fetchTenants();
@@ -128,17 +131,15 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     }
   };
 
-  // Filter properties to only show current user's properties
-  const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === parseInt(currentUser.id)
-  );
-
-  // Filter tenants to only show tenants from user's properties
-  const userTenants = tenants.filter(tenant => 
-    userProperties.some(property => 
-      units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id)
-    )
-  );
+  // Show all tenants for Admin, only user's tenants for others
+  const displayTenants = isAdmin 
+    ? tenants 
+    : tenants.filter(tenant => {
+        const userProperty = allProperties.find(property => 
+          units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0"))
+        );
+        return userProperty !== undefined;
+      });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -220,15 +221,37 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
 
   return (
     <div className="p-20px max-w-1200px mx-auto">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Manage Leases</h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">Manage Leases</h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Tenants
+          </div>
+        )}
+      </div>
       
       <form 
         onSubmit={handleSubmit} 
         className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
       >
-        <h2 className="text-lg font-semibold mb-24px">
-          {editingId ? "Edit Lease" : "Create Lease"}
-        </h2>
+        <div className="flex justify-between items-center mb-24px">
+          <h2 className="text-lg font-semibold">
+            {editingId ? "Edit Lease" : "Create Lease"}
+          </h2>
+          {isAdmin && (
+            <div className="text-sm text-gray-600">
+              Can create leases for any tenant
+            </div>
+          )}
+        </div>
+
+        {editingId && isAdmin && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-800 text-sm">
+              <strong>Admin Note:</strong> You are editing a lease for another user's tenant.
+            </p>
+          </div>
+        )}
 
         <div className="mb-20px">
           <label htmlFor="tenantId" className="block mb-6px font-medium text-gray-700">
@@ -240,7 +263,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
             value={formData.tenantId}
             onChange={(e) => {
               const tenantId = Number(e.target.value);
-              const tenant = userTenants.find(t => t.id === tenantId);
+              const tenant = displayTenants.find(t => t.id === tenantId);
 
               setFormData(prev => ({
                 ...prev,
@@ -254,12 +277,28 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
             required
           >
             <option value={0}>-- Select Tenant --</option>
-            {userTenants.map(tenant => (
-              <option key={tenant.id} value={tenant.id}>
-                {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
-              </option>
-            ))}
+            {displayTenants.map(tenant => {
+              const property = allProperties.find(p => 
+                units.some(u => u.id === tenant.unitId && u.propertyId === p.id)
+              );
+              return (
+                <option key={tenant.id} value={tenant.id}>
+                  {tenant.firstName} {tenant.lastName} (Unit {tenant.unitNumber})
+                  {isAdmin && property && ` - ${property.name} (Owner: ${property.userId})`}
+                </option>
+              );
+            })}
           </select>
+          {isAdmin && displayTenants.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              Showing all {displayTenants.length} tenants in the system
+            </p>
+          )}
+          {displayTenants.length === 0 && (
+            <p className="text-[#dc3545] text-12px mt-5px">
+              {isAdmin ? "No tenants found in the system." : "No tenants found for your properties."}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 mb-5">
@@ -373,7 +412,7 @@ const EditLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
         <div className="flex flex-wrap gap-12px mt-24px">
           <button 
             type="submit" 
-            disabled={loading || userTenants.length === 0}
+            disabled={loading || displayTenants.length === 0}
             className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Saving..." : editingId ? "Update Lease" : "Add Lease"}
