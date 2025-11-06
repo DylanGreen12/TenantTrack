@@ -414,7 +414,7 @@ function App() {
                                   ${isSidebarOpen ? 'justify-start px-4 py-3' : 'justify-center px-0 py-3'}`}
                     >
                       <PhoneIcon className="h-6 w-6 text-white" />
-                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>Contact Info</span>
+                      <span className={`${isSidebarOpen ? 'ml-2 inline' : 'hidden'}`}>User Info</span>
                     </Link>
                   </li>
                 )}
