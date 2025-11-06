@@ -64,7 +64,6 @@ namespace Selu383.SP25.P03.Api.Controllers
         //[Authorize]
         public async Task<ActionResult<UserDto>> UpdateContactInfo(int id, [FromBody] UpdateContactInfoDto dto)
         {
-
             var user = await userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
@@ -90,12 +89,71 @@ namespace Selu383.SP25.P03.Api.Controllers
             return BadRequest(result.Errors);
         }
 
-        public class UpdateContactInfoDto
+        [HttpPut("{id}/credentials")]
+        //[Authorize]
+        public async Task<ActionResult<UserDto>> UpdateCredentials(int id, [FromBody] UpdateCredentialsDto dto)
         {
-            public string? Email { get; set; }
-            public string? Phone { get; set; }
-        }
+            var user = await userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return NotFound();
+            }
 
+            // Verify current password if changing password
+            if (!string.IsNullOrEmpty(dto.NewPassword))
+            {
+                if (string.IsNullOrEmpty(dto.CurrentPassword))
+                {
+                    return BadRequest("Current password is required to set a new password");
+                }
+
+                var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, dto.CurrentPassword);
+                if (!isCurrentPasswordValid)
+                {
+                    return BadRequest("Current password is incorrect");
+                }
+            }
+
+            var changesMade = false;
+
+            // Update username if provided and different
+            if (!string.IsNullOrEmpty(dto.UserName) && dto.UserName != user.UserName)
+            {
+                var userNameResult = await userManager.SetUserNameAsync(user, dto.UserName);
+                if (!userNameResult.Succeeded)
+                {
+                    return BadRequest(userNameResult.Errors);
+                }
+                changesMade = true;
+            }
+
+            // Update password if provided
+            if (!string.IsNullOrEmpty(dto.NewPassword))
+            {
+                var passwordResult = await userManager.ChangePasswordAsync(user, dto.CurrentPassword!, dto.NewPassword);
+                if (!passwordResult.Succeeded)
+                {
+                    return BadRequest(passwordResult.Errors);
+                }
+                changesMade = true;
+            }
+
+            if (!changesMade)
+            {
+                return BadRequest("No changes were made");
+            }
+
+            // Return updated user info
+            var updatedUser = await userManager.FindByIdAsync(id.ToString());
+            return new UserDto
+            {
+                Id = updatedUser!.Id,
+                UserName = updatedUser.UserName,
+                Roles = (await userManager.GetRolesAsync(updatedUser)).ToArray(),
+                Email = updatedUser.Email,
+                Phone = updatedUser.Phone
+            };
+        }
 
         [HttpGet]
         //[Authorize]
@@ -125,6 +183,19 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
         }
 
+        public class UpdateContactInfoDto
+        {
+            public string? Email { get; set; }
+            public string? Phone { get; set; }
+        }
+
+        public class UpdateCredentialsDto
+        {
+            public string? UserName { get; set; }
+            public string? CurrentPassword { get; set; }
+            public string? NewPassword { get; set; }
+        }
+
         public class BasicUserDto
         {
             public int Id { get; set; }
@@ -132,6 +203,5 @@ namespace Selu383.SP25.P03.Api.Controllers
             public string? Email { get; set; }
             public string? Phone { get; set; }
         }
-
     }
 }
