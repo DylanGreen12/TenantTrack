@@ -70,8 +70,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Id = l.Id,
                     UnitNumber = l.UnitNumber,
                     TenantId = l.TenantId,
-                    TenantFirstName = l.Tenant.FirstName,    // Get from Tenant, not Lease
-                    TenantLastName = l.Tenant.LastName,      // Get from Tenant, not Lease
+                    TenantFirstName = l.FirstName,
+                    TenantLastName = l.LastName,
                     TenantEmail = l.Tenant.Email,
                     TenantPhone = l.Tenant.PhoneNumber,
                     StartDate = l.StartDate,
@@ -80,6 +80,27 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Deposit = l.Deposit,
                     Status = l.Status
                 })
+                .ToListAsync();
+
+            // Get maintenance requests for tenants in these properties
+            var tenantIds = leases.Select(l => l.TenantId).Distinct().ToList();
+            var maintenanceRequests = await _context.MaintenanceRequests
+                .Where(mr => tenantIds.Contains(mr.TenantId))
+                .Include(mr => mr.Tenant)
+                .Select(mr => new MaintenanceRequestSummaryDto
+                {
+                    Id = mr.Id,
+                    TenantId = mr.TenantId,
+                    TenantName = mr.Tenant.FirstName + " " + mr.Tenant.LastName,
+                    UnitNumber = mr.Tenant.UnitNumber,
+                    Description = mr.Description,
+                    Status = mr.Status,
+                    Priority = mr.Priority,
+                    RequestedAt = mr.RequestedAt,
+                    UpdatedAt = mr.UpdatedAt,
+                    CompletedAt = mr.CompletedAt
+                })
+                .OrderByDescending(mr => mr.RequestedAt)
                 .ToListAsync();
 
             // Get staff members (owners) for contact info
@@ -101,12 +122,18 @@ namespace Selu383.SP25.P03.Api.Controllers
             var availableUnits = units.Count(u => u.Status.ToLower() == "available");
             var activeLeases = leases.Count(l => l.Status.ToLower() == "active");
             var totalMonthlyRent = leases.Where(l => l.Status.ToLower() == "active").Sum(l => l.Rent);
+            
+            // Maintenance statistics
+            var openMaintenanceRequests = maintenanceRequests.Count(mr => mr.Status.ToLower() != "completed");
+            var urgentMaintenanceRequests = maintenanceRequests.Count(mr => 
+                mr.Status.ToLower() != "completed" && mr.Priority.ToLower() == "high");
 
             return new LandlordDashboardDto
             {
                 Properties = properties,
                 Units = units,
                 Leases = leases,
+                MaintenanceRequests = maintenanceRequests,
                 Owners = owners,
                 Summary = new DashboardSummaryDto
                 {
@@ -115,7 +142,9 @@ namespace Selu383.SP25.P03.Api.Controllers
                     OccupiedUnits = occupiedUnits,
                     AvailableUnits = availableUnits,
                     ActiveLeases = activeLeases,
-                    TotalMonthlyRent = totalMonthlyRent
+                    TotalMonthlyRent = totalMonthlyRent,
+                    OpenMaintenanceRequests = openMaintenanceRequests,
+                    UrgentMaintenanceRequests = urgentMaintenanceRequests
                 }
             };
         }
@@ -127,6 +156,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         public required List<PropertySummaryDto> Properties { get; set; }
         public required List<UnitSummaryDto> Units { get; set; }
         public required List<LeaseDetailsDto> Leases { get; set; }
+        public required List<MaintenanceRequestSummaryDto> MaintenanceRequests { get; set; }
         public required List<OwnerContactDto> Owners { get; set; }
         public required DashboardSummaryDto Summary { get; set; }
     }
@@ -169,6 +199,20 @@ namespace Selu383.SP25.P03.Api.Controllers
         public required string Status { get; set; }
     }
 
+    public class MaintenanceRequestSummaryDto
+    {
+        public int Id { get; set; }
+        public int TenantId { get; set; }
+        public required string TenantName { get; set; }
+        public required string UnitNumber { get; set; }
+        public required string Description { get; set; }
+        public required string Status { get; set; }
+        public required string Priority { get; set; }
+        public DateTimeOffset RequestedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
+        public DateTimeOffset? CompletedAt { get; set; }
+    }
+
     public class OwnerContactDto
     {
         public int PropertyId { get; set; }
@@ -186,5 +230,7 @@ namespace Selu383.SP25.P03.Api.Controllers
         public int AvailableUnits { get; set; }
         public int ActiveLeases { get; set; }
         public decimal TotalMonthlyRent { get; set; }
+        public int OpenMaintenanceRequests { get; set; }
+        public int UrgentMaintenanceRequests { get; set; }
     }
 }
