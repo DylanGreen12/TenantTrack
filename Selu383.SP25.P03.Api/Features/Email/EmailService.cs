@@ -1,4 +1,5 @@
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -18,7 +19,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
         public async Task SendVerificationEmailAsync(string toEmail, string toName, string verificationToken)
         {
             var subject = "Verify Your TenantTrack Email";
-            var verificationLink = $"http://localhost:5173/verify-email?token={verificationToken}";
+            var verificationLink = $"http://localhost:5249/verify-email?token={verificationToken}";
 
             var body = $@"
                 <html>
@@ -54,7 +55,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Unit:</strong> {unitNumber}</li>
                     </ul>
                     <p>Please log in to your TenantTrack dashboard to review and approve or deny this application.</p>
-                    <p><a href='http://localhost:5173/applications' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Review Application</a></p>
+                    <p><a href='http://localhost:5249/applications' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Review Application</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -78,7 +79,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Unit:</strong> {unitNumber}</li>
                     </ul>
                     <p>Your lease has been created and is ready for review. Please log in to your TenantTrack account to view the details.</p>
-                    <p><a href='http://localhost:5173/leases' style='background-color: #22c55e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease</a></p>
+                    <p><a href='http://localhost:5249/leases' style='background-color: #22c55e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease</a></p>
                     <br/>
                     <p>Welcome to your new home!</p>
                     <p>Best regards,<br/>The TenantTrack Team</p>
@@ -109,7 +110,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                     <p>Unfortunately, we are unable to approve your application at this time.</p>
                     {reasonText}
                     <p>We encourage you to apply for other available properties on TenantTrack.</p>
-                    <p><a href='http://localhost:5173/properties' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Available Properties</a></p>
+                    <p><a href='http://localhost:5249/properties' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Available Properties</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -136,7 +137,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Monthly Rent:</strong> ${rent:N2}</li>
                     </ul>
                     <p>Please log in to your TenantTrack account to view the complete lease agreement and make payments.</p>
-                    <p><a href='http://localhost:5173/leases' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease Details</a></p>
+                    <p><a href='http://localhost:5249/leases' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease Details</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -161,7 +162,13 @@ namespace Selu383.SP25.P03.Api.Features.Email
                 message.Body = bodyBuilder.ToMessageBody();
 
                 using var client = new SmtpClient();
-                await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, _emailSettings.EnableSsl);
+
+                // Use StartTls for port 587 (standard for Gmail/most SMTP)
+                var secureSocketOptions = _emailSettings.SmtpPort == 465
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTls;
+
+                await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, secureSocketOptions);
                 await client.AuthenticateAsync(_emailSettings.Username, _emailSettings.Password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
