@@ -280,7 +280,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             lease.Rent = dto.Rent;
             lease.Deposit = dto.Deposit;
             lease.Status = dto.Status;
-             
+
 
             _context.Leases.Update(lease);
             await _context.SaveChangesAsync();

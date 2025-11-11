@@ -129,6 +129,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     }
   };
 
+
   return (
       <div className="leases-list">
         <h2>
