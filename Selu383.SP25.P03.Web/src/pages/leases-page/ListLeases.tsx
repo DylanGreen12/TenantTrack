@@ -32,8 +32,9 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [filterEndDate, setFilterEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Check if user is Admin
+  // Check if user is Admin or Landlord
   const isAdmin = currentUser?.roles?.includes("Admin") || false;
+  const isLandlord = currentUser?.roles?.includes("Landlord") || false;
 
   useEffect(() => {
     if (currentUser) {
@@ -88,6 +89,43 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
       setMessage(errorMsg);
       setShowMessage(true);
       console.error("Error deleting lease:", err);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    if (!window.confirm("Are you sure you want to approve this lease application?")) {
+      return;
+    }
+
+    try {
+      await axios.post(`/api/leases/${id}/approve`);
+      setMessage("Lease application approved! Email sent to tenant.");
+      setShowMessage(true);
+      await fetchLeases();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to approve lease";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error approving lease:", err);
+    }
+  };
+
+  const handleDeny = async (id: number) => {
+    const reason = prompt("Please provide a reason for denying this application (optional):");
+    if (reason === null) return; // User cancelled
+
+    try {
+      await axios.post(`/api/leases/${id}/deny`, { reason: reason || undefined });
+      setMessage("Lease application denied. Email sent to tenant.");
+      setShowMessage(true);
+      await fetchLeases();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to deny lease";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error denying lease:", err);
     }
   };
 
@@ -177,9 +215,11 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   className="w-full px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">--Choose Status--</option>
+                  <option value="Pending">Pending</option>
                   <option value="Active">Active</option>
                   <option value="Expired">Expired</option>
                   <option value="Terminated">Terminated</option>
+                  <option value="Denied">Denied</option>
                 </select>
               </div>
 
@@ -258,20 +298,50 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   </td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${lease.rent.toFixed(2)}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${lease.deposit.toFixed(2)}</td>
-                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.status}</td>
+                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      lease.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
+                      lease.status === "Active" ? "bg-green-100 text-green-800" :
+                      lease.status === "Denied" ? "bg-red-100 text-red-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {lease.status}
+                    </span>
+                  </td>
                   <td className="p-12px border-b flex gap-2">
-                    <Link
-                      to={`/lease/${lease.id}`}
-                      className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => lease.id && handleDelete(lease.id)}
-                      className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      Delete
-                    </button>
+                    {lease.status === "Pending" && (isAdmin || isLandlord) ? (
+                      <>
+                        <button
+                          onClick={() => lease.id && handleApprove(lease.id)}
+                          className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#16a34a] transition-colors"
+                          title="Approve application"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => lease.id && handleDeny(lease.id)}
+                          className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors"
+                          title="Deny application"
+                        >
+                          Deny
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to={`/lease/${lease.id}`}
+                          className="bg-[#3b82f6] text-white py-6px px-12px rounded-md text-12px hover:bg-[#2563eb] transition-colors"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => lease.id && handleDelete(lease.id)}
+                          className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

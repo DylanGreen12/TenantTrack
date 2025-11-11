@@ -430,7 +430,7 @@ function App() {
               <Routes>
                 <Route path="/" element={
                   canManage ? (
-                    <LandlordDashboard currentUser={currentUser || undefined} />
+                    <LandlordDashboard />
                   ) : isTenant(currentUser) ? (
                     <TenantDashboard currentUser={currentUser || undefined} />
                   ) : (
@@ -476,8 +476,8 @@ function App() {
                 } />
                 
                 <Route path="/landlord-dashboard" element={
-                  canManage ? 
-                    <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                  canManage ?
+                    <LandlordDashboard /> :
                     <div className="text-center py-8">
                       <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                       <p>You need to be a Landlord or Admin to access this page.</p>
