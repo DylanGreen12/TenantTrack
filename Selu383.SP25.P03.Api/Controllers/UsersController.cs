@@ -15,8 +15,8 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly UserManager<User> userManager;
         private readonly RoleManager<Role> roleManager;
         private readonly DataContext dataContext;
-        private DbSet<Role> roles;
         private readonly IEmailService emailService;
+        private DbSet<Role> roles;
 
         public UsersController(
             RoleManager<Role> roleManager,
@@ -63,8 +63,8 @@ namespace Selu383.SP25.P03.Api.Controllers
             return BadRequest();
         }
 
+        
         [HttpPut("{id}/contact")]
-        //[Authorize]
         public async Task<ActionResult<UserDto>> UpdateContactInfo(int id, [FromBody] UpdateContactInfoDto dto)
         {
             var user = await userManager.FindByIdAsync(id.ToString());
@@ -73,33 +73,12 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
-            var oldEmail = user.Email; // Store old email for notification
-
-            user.Email = dto.Email;
-            user.Phone = dto.Phone;
+            
+            user.Phone = dto.Phone; // (no verification needed)
 
             var result = await userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                // Send email change confirmation if email was changed
-                if (!string.IsNullOrEmpty(oldEmail) && oldEmail != dto.Email && !string.IsNullOrEmpty(dto.Email))
-                {
-                    try
-                    {
-                        await emailService.SendEmailChangeConfirmationAsync(
-                            dto.Email, 
-                            user.UserName ?? "User", 
-                            oldEmail ?? "previous email", 
-                            dto.Email
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log email failure but don't fail the request
-                        Console.WriteLine($"Failed to send email confirmation: {ex.Message}");
-                    }
-                }
-
                 return new UserDto
                 {
                     Id = user.Id,
@@ -113,9 +92,9 @@ namespace Selu383.SP25.P03.Api.Controllers
             return BadRequest(result.Errors);
         }
 
-        [HttpPut("{id}/credentials")]
-        //[Authorize]
-        public async Task<ActionResult<UserDto>> UpdateCredentials(int id, [FromBody] UpdateCredentialsDto dto)
+        // Request email change (sends verification email)
+        [HttpPost("{id}/request-email-change")]
+        public async Task<ActionResult> RequestEmailChange(int id, [FromBody] RequestEmailChangeDto dto)
         {
             var user = await userManager.FindByIdAsync(id.ToString());
             if (user == null)
@@ -123,82 +102,163 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
-            // Verify current password if changing password
-            if (!string.IsNullOrEmpty(dto.NewPassword))
+            // Check if email is already in use
+            var existingUser = await userManager.FindByEmailAsync(dto.NewEmail);
+            if (existingUser != null && existingUser.Id != user.Id)
             {
-                if (string.IsNullOrEmpty(dto.CurrentPassword))
-                {
-                    return BadRequest("Current password is required to set a new password");
-                }
-
-                var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, dto.CurrentPassword);
-                if (!isCurrentPasswordValid)
-                {
-                    return BadRequest("Current password is incorrect");
-                }
+                return BadRequest("Email is already in use");
             }
 
-            var changesMade = false;
+            // Generate verification token
+            var token = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+            token = token.Replace("-", "");
 
-            // Update username if provided and different
-            if (!string.IsNullOrEmpty(dto.UserName) && dto.UserName != user.UserName)
+            // Create pending change request
+            var pendingChange = new PendingChangeRequest
             {
-                var userNameResult = await userManager.SetUserNameAsync(user, dto.UserName);
-                if (!userNameResult.Succeeded)
-                {
-                    return BadRequest(userNameResult.Errors);
-                }
-                changesMade = true;
-            }
-
-            // Update password if provided
-            if (!string.IsNullOrEmpty(dto.NewPassword))
-            {
-                var passwordResult = await userManager.ChangePasswordAsync(user, dto.CurrentPassword!, dto.NewPassword);
-                if (!passwordResult.Succeeded)
-                {
-                    return BadRequest(passwordResult.Errors);
-                }
-                changesMade = true;
-
-                // Send password change confirmation email
-                if (!string.IsNullOrEmpty(user.Email))
-                {
-                    try
-                    {
-                        await emailService.SendPasswordChangeConfirmationAsync(
-                            user.Email, 
-                            user.UserName ?? "User"
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log email failure but don't fail the request
-                        Console.WriteLine($"Failed to send password change email: {ex.Message}");
-                        // You could also use ILogger here for proper logging
-                    }
-                }
-            }
-
-            if (!changesMade)
-            {
-                return BadRequest("No changes were made");
-            }
-
-            // Return updated user info
-            var updatedUser = await userManager.FindByIdAsync(id.ToString());
-            return new UserDto
-            {
-                Id = updatedUser!.Id,
-                UserName = updatedUser.UserName,
-                Roles = (await userManager.GetRolesAsync(updatedUser)).ToArray(),
-                Email = updatedUser.Email,
-                Phone = updatedUser.Phone
+                UserId = user.Id,
+                Token = token,
+                ChangeType = "Email",
+                NewEmail = dto.NewEmail,
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
             };
+
+            dataContext.PendingChangeRequests.Add(pendingChange);
+            await dataContext.SaveChangesAsync();
+
+            // Send verification email to the NEW email address
+            await emailService.SendEmailChangeVerificationAsync(
+                dto.NewEmail, 
+                user.UserName ?? "User", 
+                token, 
+                dto.NewEmail
+            );
+
+            return Ok(new { message = "Verification email sent. Please check your new email address to confirm the change." });
+        }
+
+        // Request password change (sends verification email)
+        [HttpPost("{id}/request-password-change")]
+        public async Task<ActionResult> RequestPasswordChange(int id, [FromBody] RequestPasswordChangeDto dto)
+        {
+            var user = await userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Verify current password
+            var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, dto.CurrentPassword);
+            if (!isCurrentPasswordValid)
+            {
+                return BadRequest("Current password is incorrect");
+            }
+
+            // Generate verification token
+            var token = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
+            token = token.Replace("-", "");
+
+            // Create pending change request
+            var pendingChange = new PendingChangeRequest
+            {
+                UserId = user.Id,
+                Token = token,
+                ChangeType = "Password",
+                NewPassword = dto.NewPassword,
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
+            };
+
+            dataContext.PendingChangeRequests.Add(pendingChange);
+            await dataContext.SaveChangesAsync();
+
+            // Send verification email to the CURRENT email address
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                await emailService.SendPasswordChangeVerificationAsync(
+                    user.Email, 
+                    user.UserName ?? "User", 
+                    token
+                );
+            }
+
+            return Ok(new { message = "Verification email sent. Please check your email to confirm the password change." });
+        }
+
+        // Verify and apply email change
+        [HttpPost("verify-email-change")]
+        public async Task<ActionResult> VerifyEmailChange([FromBody] VerifyChangeDto dto)
+        {
+            var pendingChange = await dataContext.PendingChangeRequests
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Token == dto.Token && p.ChangeType == "Email");
+
+            if (pendingChange == null)
+            {
+                return BadRequest("Invalid or expired verification token");
+            }
+
+            if (pendingChange.ExpiresAt < DateTime.UtcNow)
+            {
+                dataContext.PendingChangeRequests.Remove(pendingChange);
+                await dataContext.SaveChangesAsync();
+                return BadRequest("Verification token has expired");
+            }
+
+            var user = pendingChange.User;
+            user.Email = pendingChange.NewEmail;
+
+            var result = await userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                // Remove the pending change request
+                dataContext.PendingChangeRequests.Remove(pendingChange);
+                await dataContext.SaveChangesAsync();
+
+                return Ok(new { message = "Email address updated successfully!" });
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // Verify and apply password change
+        [HttpPost("verify-password-change")]
+        public async Task<ActionResult> VerifyPasswordChange([FromBody] VerifyChangeDto dto)
+        {
+            var pendingChange = await dataContext.PendingChangeRequests
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Token == dto.Token && p.ChangeType == "Password");
+
+            if (pendingChange == null)
+            {
+                return BadRequest("Invalid or expired verification token");
+            }
+
+            if (pendingChange.ExpiresAt < DateTime.UtcNow)
+            {
+                dataContext.PendingChangeRequests.Remove(pendingChange);
+                await dataContext.SaveChangesAsync();
+                return BadRequest("Verification token has expired");
+            }
+
+            var user = pendingChange.User;
+            
+            // Generate a password reset token and use it to change the password
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await userManager.ResetPasswordAsync(user, resetToken, pendingChange.NewPassword!);
+
+            if (result.Succeeded)
+            {
+                // Remove the pending change request
+                dataContext.PendingChangeRequests.Remove(pendingChange);
+                await dataContext.SaveChangesAsync();
+
+                return Ok(new { message = "Password updated successfully!" });
+            }
+
+            return BadRequest(result.Errors);
         }
 
         [HttpGet]
-        //[Authorize]
         public async Task<ActionResult<List<BasicUserDto>>> GetUsers()
         {
             try
@@ -225,9 +285,23 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
         }
 
+        // Clean up expired tokens 
+        [HttpPost("cleanup-expired-tokens")]
+        public async Task<ActionResult> CleanupExpiredTokens()
+        {
+            var expired = await dataContext.PendingChangeRequests
+                .Where(p => p.ExpiresAt < DateTime.UtcNow)
+                .ToListAsync();
+
+            dataContext.PendingChangeRequests.RemoveRange(expired);
+            await dataContext.SaveChangesAsync();
+
+            return Ok(new { cleanedUp = expired.Count });
+        }
+
         public class UpdateContactInfoDto
         {
-            public string? Email { get; set; }
+            public string? Email { get; set; } // Note: Email changes now require verification
             public string? Phone { get; set; }
         }
 

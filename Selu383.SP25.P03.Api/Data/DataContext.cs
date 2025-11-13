@@ -25,10 +25,10 @@ namespace Selu383.SP25.P03.Api.Data
         public DbSet<Lease> Leases { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Staff> Staff { get; set; }
-
         public DbSet<Payment> Payments { get; set; }
         public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; } = default!;
-
+        
+        public DbSet<PendingChangeRequest> PendingChangeRequests { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -64,6 +64,16 @@ namespace Selu383.SP25.P03.Api.Data
                 .HasForeignKey(s => s.PropertyId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            builder.Entity<PendingChangeRequest>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.HasIndex(e => e.ExpiresAt);
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }
