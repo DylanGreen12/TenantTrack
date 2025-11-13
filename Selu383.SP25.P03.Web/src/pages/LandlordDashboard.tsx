@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { UserDto } from "../models/UserDto"; 
+import { UserDto } from "../models/UserDto";
 import "../styles/LandlordDashboard.css";
 
 interface PropertySummary {
@@ -38,6 +38,19 @@ interface LeaseDetails {
   status: string;
 }
 
+interface MaintenanceRequestSummary {
+  id: number;
+  tenantId: number;
+  tenantName: string;
+  unitNumber: string;
+  description: string;
+  status: string;
+  priority: string;
+  requestedAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+}
+
 interface OwnerContact {
   propertyId: number;
   firstName: string;
@@ -53,12 +66,15 @@ interface DashboardSummary {
   availableUnits: number;
   activeLeases: number;
   totalMonthlyRent: number;
+  openMaintenanceRequests: number;
+  urgentMaintenanceRequests: number;
 }
 
 interface LandlordDashboardData {
   properties: PropertySummary[];
   units: UnitSummary[];
   leases: LeaseDetails[];
+  maintenanceRequests: MaintenanceRequestSummary[];
   owners: OwnerContact[];
   summary: DashboardSummary;
 }
@@ -67,15 +83,18 @@ interface LandlordDashboardProps {
   currentUser?: UserDto;
 }
 
-export default function LandlordDashboard({ currentUser }: LandlordDashboardProps) {
+const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) => {
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
   const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (currentUser) {
+      fetchDashboardData();
+    }
+  }, [currentUser]);
 
   const fetchDashboardData = async () => {
     try {
@@ -97,6 +116,10 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
     return dashboardData?.leases.filter(l => l.unitNumber === unitNumber) || [];
   };
 
+  const getMaintenanceForUnit = (unitNumber: string) => {
+    return dashboardData?.maintenanceRequests.filter(mr => mr.unitNumber === unitNumber) || [];
+  };
+
   const getOwnerContact = (propertyId: number) => {
     return dashboardData?.owners.find(o => o.propertyId === propertyId);
   };
@@ -116,13 +139,47 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
     });
   };
 
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const isLeaseActive = (lease: LeaseDetails) => {
     const today = new Date();
     const endDate = new Date(lease.endDate);
     return lease.status.toLowerCase() === 'active' && endDate >= today;
   };
 
-  console.log("Current user in dashboard:", currentUser);
+  const getPriorityClass = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'priority-high';
+      case 'medium':
+        return 'priority-medium';
+      case 'low':
+        return 'priority-low';
+      default:
+        return '';
+    }
+  };
+
+  const getStatusClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return 'status-open';
+      case 'in progress':
+        return 'status-in-progress';
+      case 'completed':
+        return 'status-completed';
+      default:
+        return '';
+    }
+  };
 
   if (loading) {
     return <div className="landlord-dashboard"><p>Loading dashboard...</p></div>;
@@ -144,13 +201,6 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
   return (
     <div className="landlord-dashboard">
       <h1>Landlord Dashboard</h1>
-      
-      {/* Optional: Display current user info */}
-      {currentUser && (
-        <div className="user-welcome">
-          <p>Welcome, {currentUser.userName}!</p>
-        </div>
-      )}
 
       {/* Summary Cards */}
       <div className="summary-cards">
@@ -177,6 +227,14 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
         <div className="summary-card highlight">
           <h3>Monthly Revenue</h3>
           <p className="summary-value">{formatCurrency(dashboardData.summary.totalMonthlyRent)}</p>
+        </div>
+        <div className={`summary-card ${dashboardData.summary.openMaintenanceRequests > 0 ? 'warning' : ''}`}>
+          <h3>Open Maintenance</h3>
+          <p className="summary-value">{dashboardData.summary.openMaintenanceRequests}</p>
+        </div>
+        <div className={`summary-card ${dashboardData.summary.urgentMaintenanceRequests > 0 ? 'urgent' : ''}`}>
+          <h3>Urgent Requests</h3>
+          <p className="summary-value">{dashboardData.summary.urgentMaintenanceRequests}</p>
         </div>
       </div>
 
@@ -231,12 +289,17 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
                             <th>Status</th>
                             <th>Tenant</th>
                             <th>Lease Info</th>
+                            <th>Maintenance</th>
                           </tr>
                         </thead>
                         <tbody>
                           {units.map(unit => {
                             const leases = getLeasesForUnit(unit.unitNumber);
                             const activeLease = leases.find(l => isLeaseActive(l));
+                            const maintenanceRequests = getMaintenanceForUnit(unit.unitNumber);
+                            const openMaintenance = maintenanceRequests.filter(mr => 
+                              mr.status.toLowerCase() !== 'completed'
+                            );
 
                             return (
                               <tr key={unit.id}>
@@ -271,6 +334,38 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
                                     <span className="text-muted">No active lease</span>
                                   )}
                                 </td>
+                                <td>
+                                  {openMaintenance.length > 0 ? (
+                                    <div className="maintenance-summary">
+                                      <p className="maintenance-count">
+                                        <strong>{openMaintenance.length}</strong> open request{openMaintenance.length !== 1 ? 's' : ''}
+                                      </p>
+                                      {openMaintenance.map(mr => (
+                                        <div key={mr.id} className="maintenance-item">
+                                          <div className="maintenance-header">
+                                            <span className={`priority-badge ${getPriorityClass(mr.priority)}`}>
+                                              {mr.priority}
+                                            </span>
+                                            <span className={`status-badge-small ${getStatusClass(mr.status)}`}>
+                                              {mr.status}
+                                            </span>
+                                          </div>
+                                          <p className="maintenance-desc">{mr.description}</p>
+                                          <p className="maintenance-meta">
+                                            Requested: {formatDateTime(mr.requestedAt)}
+                                          </p>
+                                          <p className="maintenance-tenant">
+                                            By: {mr.tenantName}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : maintenanceRequests.length > 0 ? (
+                                    <span className="text-success">All requests completed</span>
+                                  ) : (
+                                    <span className="text-muted">No requests</span>
+                                  )}
+                                </td>
                               </tr>
                             );
                           })}
@@ -287,3 +382,5 @@ export default function LandlordDashboard({ currentUser }: LandlordDashboardProp
     </div>
   );
 }
+
+export default LandlordDashboard;

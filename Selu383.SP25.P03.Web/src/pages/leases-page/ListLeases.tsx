@@ -32,6 +32,9 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [filterEndDate, setFilterEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
     if (currentUser) {
       fetchLeases();
@@ -69,9 +72,6 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
   });
 
-
-
-
   const handleDelete = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this lease?")) {
       return;
@@ -93,15 +93,24 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
 
   return (
       <div className="leases-list">
-        <h2>Leases ({filteredLeases.length})</h2>
+        <h2>
+          {isAdmin ? "All Leases" : "Your Leases"} ({filteredLeases.length})
+        </h2>
         {/* Filters Section */}
         <div className="mb-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
-          >
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
+          <div className="flex justify-between items-center mb-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition-colors"
+            >
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </button>
+            {isAdmin && (
+              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                Admin View - All Leases
+              </div>
+            )}
+          </div>
 
           {showFilters && (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-4 rounded-lg shadow">
@@ -203,12 +212,20 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
           )}
         </div>
         {filteredLeases.length === 0 ? (
-          <p>No leases match your filters.</p>
+          <p>
+            {isAdmin 
+              ? "No leases found in the system." 
+              : "No leases match your filters."
+            }
+          </p>
         ) : (
           <table className="w-full border-collapse mt-5 text-sm bg-[#fdfefe] rounded-lg overflow-hidden shadow-sm">
             <thead>
               <tr className="bg-[#f3f4f6]">
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Unit</th>
+                {isAdmin && (
+                  <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant ID</th>
+                )}
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">First Name</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Last Name</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Start Date</th>
@@ -226,6 +243,11 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   className={`${i % 2 === 0 ? "bg-white" : "bg-[#f9fafb]"} hover:bg-[#ebf5ff] transition-colors`}
                 >
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.unitNumber}</td>
+                  {isAdmin && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827] text-sm">
+                      {lease.tenantId}
+                    </td>
+                  )}
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.firstName}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.lastName}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
@@ -272,4 +294,3 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
 };
 
 export default ListLeases;
-

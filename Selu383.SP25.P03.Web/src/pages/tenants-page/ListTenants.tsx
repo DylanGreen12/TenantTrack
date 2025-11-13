@@ -42,6 +42,9 @@ const ListTenants: React.FC<ListTenantsProps> = ({ currentUser }) => {
   const [searchTerm, setSearchTerm] = useState(""); 
   const [searchField, setSearchField] = useState<"firstName" | "lastName" | "unitNumber">("firstName");
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
       if (currentUser) {
         fetchTenants();
@@ -83,114 +86,147 @@ const ListTenants: React.FC<ListTenantsProps> = ({ currentUser }) => {
     }
   };
 
-  // Filter properties to only show current user's properties
-  const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === parseInt(currentUser.id)
-  );
+  // Show all tenants for Admin, only user's tenants for others
+  const displayTenants = isAdmin 
+    ? tenants 
+    : tenants.filter(tenant => {
+        const userProperty = allProperties.find(property => 
+          units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0"))
+        );
+        return userProperty !== undefined;
+      });
 
-  // Filter tenants to only show tenants from user's properties
-  const userTenants = tenants.filter(tenant => 
-    userProperties.some(property => 
-      units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id)
-    )
-  );
-
-  const filteredTenants = userTenants.filter(t => {
+  const filteredTenants = displayTenants.filter(t => {
     const value = t[searchField] || "";
     return value.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this tenant?")) {
-        return;
-        }
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this tenant?")) {
+      return;
+    }
 
-        try {
-        await axios.delete(`/api/tenants/${id}`);
-        setMessage("Tenant deleted successfully!");
-        setShowMessage(true);
-        await fetchTenants();
-        await fetchUnits(); // Refresh units to update status
-        } catch (err: any) {
-        const errorMsg = err.response?.data?.message || "Failed to delete tenant";
-        setError(errorMsg);
-        setMessage(errorMsg);
-        setShowMessage(true);
-        console.error("Error deleting tenant:", err);
-        }
-    };
+    try {
+      await axios.delete(`/api/tenants/${id}`);
+      setMessage("Tenant deleted successfully!");
+      setShowMessage(true);
+      await fetchTenants();
+      await fetchUnits(); // Refresh units to update status
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to delete tenant";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error deleting tenant:", err);
+    }
+  };
+
+  // Get property info for a tenant
+  const getPropertyInfo = (unitId: number) => {
+    const unit = units.find(u => u.id === unitId);
+    if (!unit) return null;
+    
+    const property = allProperties.find(p => p.id === unit.propertyId);
+    return property;
+  };
 
   return (
-      <div className="tenants-list">
-        <h2>Tenants ({filteredTenants.length})</h2>
-        <div className="flex items-center w-full max-w-xl gap-2">
-          {/* Search Field Dropdown */}
-          <select
-            value={searchField}
-            onChange={(e) =>
-              setSearchField(
-                e.target.value as "firstName" | "lastName" | "unitNumber"
-              )
-            }
-            className="px-3 py-2 rounded-full border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="firstName">First Name</option>
-            <option value="lastName">Last Name</option>
-            <option value="unitNumber">Unit</option>
-          </select>
+    <div className="tenants-list">
+      <h2>
+        {isAdmin ? "All Tenants" : "Your Tenants"} ({filteredTenants.length})
+      </h2>
+      <div className="flex items-center w-full max-w-xl gap-2">
+        {/* Search Field Dropdown */}
+        <select
+          value={searchField}
+          onChange={(e) =>
+            setSearchField(
+              e.target.value as "firstName" | "lastName" | "unitNumber"
+            )
+          }
+          className="px-3 py-2 rounded-full border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="firstName">First Name</option>
+          <option value="lastName">Last Name</option>
+          <option value="unitNumber">Unit</option>
+        </select>
 
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder={`Search by ${searchField}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-black bg-white shadow-sm"
-            />
-          </div>
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+            <svg
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder={`Search by ${searchField}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-black bg-white shadow-sm"
+          />
         </div>
-        {filteredTenants.length === 0 ? (
-          <p>No Tenants Found</p>
-        ) : (
-
-           
-          <table className="w-full border-collapse mt-5 text-sm bg-[#fdfefe] rounded-lg overflow-hidden shadow-sm">
-            <thead>
-              <tr className="bg-[#f3f4f6]">
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Unit</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">First Name</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Last Name</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Phone Number</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Email</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Created</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Updated</th>
-                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTenants.map((t,i) => (
+      </div>
+      {filteredTenants.length === 0 ? (
+        <p>
+          {isAdmin 
+            ? "No tenants found in the system." 
+            : "No Tenants Found"
+          }
+        </p>
+      ) : (
+        <table className="w-full border-collapse mt-5 text-sm bg-[#fdfefe] rounded-lg overflow-hidden shadow-sm">
+          <thead>
+            <tr className="bg-[#f3f4f6]">
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Unit</th>
+              {isAdmin && (
+                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Property</th>
+              )}
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">First Name</th>
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Last Name</th>
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Phone Number</th>
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Email</th>
+              {isAdmin && (
+                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Owner ID</th>
+              )}
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Created</th>
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Updated</th>
+              <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTenants.map((t,i) => {
+              const property = getPropertyInfo(t.unitId);
+              return (
                 <tr
                   key={t.id}
                   className={`${i % 2 === 0 ? "bg-white" : "bg-[#f9fafb]"} hover:bg-[#ebf5ff] transition-colors`}
                 >
-                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{t.unitNumber}</td>
+                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                    {t.unitNumber}
+                    {isAdmin && property && ` (${property.name})`}
+                  </td>
+                  {isAdmin && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                      {property?.name || "N/A"}
+                    </td>
+                  )}
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{t.firstName}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{t.lastName}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{t.phoneNumber}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{t.email}</td>
+                  {isAdmin && (
+                    <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827] text-sm">
+                      {property?.userId || "N/A"}
+                    </td>
+                  )}
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{new Date(t.createdAt).toLocaleDateString()}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{new Date(t.updatedAt).toLocaleDateString()}</td>
                   <td className="p-12px border-b flex gap-2">
@@ -208,23 +244,23 @@ const ListTenants: React.FC<ListTenantsProps> = ({ currentUser }) => {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-            {error && showMessage && (
-              <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
-                {error}
-              </div>
-            )}
+              );
+            })}
+          </tbody>
+          {error && showMessage && (
+            <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
+              {error}
+            </div>
+          )}
 
-            {!error && message && (
-              <div className="my-4 p-4 rounded-lg shadow-inner border border-green-300 bg-green-100 text-green-800 text-sm">
-                {message}
-              </div>
-            )}
-          </table>
-        )}
-      </div>
-
+          {!error && message && (
+            <div className="my-4 p-4 rounded-lg shadow-inner border border-green-300 bg-green-100 text-green-800 text-sm">
+              {message}
+            </div>
+          )}
+        </table>
+      )}
+    </div>
   );
 };
 

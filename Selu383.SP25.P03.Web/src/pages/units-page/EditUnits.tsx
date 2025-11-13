@@ -47,6 +47,9 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
 
+  // Check if user is Admin
+  const isAdmin = currentUser?.roles?.includes("Admin") || false;
+
   useEffect(() => {
     if (currentUser) {
       fetchProperties();
@@ -54,31 +57,31 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
   }, [currentUser]);
 
   useEffect(() => {
-        if (id) {
-          setEditingId(parseInt(id));
-          fetchUnit(parseInt(id));
-        }
-      }, [id]);
+    if (id) {
+      setEditingId(parseInt(id));
+      fetchUnit(parseInt(id));
+    }
+  }, [id]);
 
   const fetchUnit = async (unitId: number) => {
-      try {
-        const response = await axios.get<UnitDto>(`/api/units/${unitId}`);
-        setFormData({
-          id: response.data.id,
-          unitNumber: response.data.unitNumber,
-          propertyId: response.data.propertyId,
-          description: response.data.description,
-          imageUrl: response.data.imageUrl,
-          bedrooms: response.data.bedrooms,
-          bathrooms: response.data.bathrooms,
-          squareFeet: response.data.squareFeet,
-          rent: response.data.rent,
-          status: response.data.status
-        });
-      } catch (err) {
-        console.error("Error fetching unit:", err);
-      }
-    };
+    try {
+      const response = await axios.get<UnitDto>(`/api/units/${unitId}`);
+      setFormData({
+        id: response.data.id,
+        unitNumber: response.data.unitNumber,
+        propertyId: response.data.propertyId,
+        description: response.data.description,
+        imageUrl: response.data.imageUrl,
+        bedrooms: response.data.bedrooms,
+        bathrooms: response.data.bathrooms,
+        squareFeet: response.data.squareFeet,
+        rent: response.data.rent,
+        status: response.data.status
+      });
+    } catch (err) {
+      console.error("Error fetching unit:", err);
+    }
+  };
 
   const fetchProperties = async () => {
     try {
@@ -89,12 +92,12 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
     }
   };
 
-
-
-  // Filter properties to only show current user's properties
-  const userProperties = allProperties.filter(property => 
-    currentUser && property.userId === parseInt(currentUser.id)
-  );
+  // Show all properties for Admin, only user's properties for others
+  const displayProperties = isAdmin 
+    ? allProperties 
+    : allProperties.filter(property => 
+        currentUser && property.userId === parseInt(currentUser.id)
+      );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -174,14 +177,36 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
 
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
-      <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Manage Units</h1>
+      <div className="flex justify-between items-center mb-10px">
+        <h1 className="text-gray-800 text-2xl font-semibold">Manage Units</h1>
+        {isAdmin && (
+          <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Admin View - All Properties
+          </div>
+        )}
+      </div>
       
       <form onSubmit={handleSubmit} 
         className="bg-white text-gray-800 shadow-lg p-24px rounded-12px border border-gray-300 mb-30px"
         >
-        <h2 className="text-lg font-semibold mb-24px">
-          {editingId ? "Edit Unit" : "Create Unit"}
-        </h2>
+        <div className="flex justify-between items-center mb-24px">
+          <h2 className="text-lg font-semibold">
+            {editingId ? "Edit Unit" : "Create Unit"}
+          </h2>
+          {isAdmin && (
+            <div className="text-sm text-gray-600">
+              Can assign to any property
+            </div>
+          )}
+        </div>
+        
+        {editingId && isAdmin && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-800 text-sm">
+              <strong>Admin Note:</strong> You are editing a unit in another user's property.
+            </p>
+          </div>
+        )}
         
         <div className="mb-20px">
           <label htmlFor="unitNumber" className="block mb-6px font-medium text-gray-700">
@@ -211,12 +236,17 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             required
           >
             <option value={0}>--Select Property--</option>
-            {userProperties.map(property => (
+            {displayProperties.map(property => (
               <option key={property.id} value={property.id}>
-                {property.name}
+                {property.name} {isAdmin && `(Owner: ${property.userId})`}
               </option>
             ))}
           </select>
+          {isAdmin && displayProperties.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              Showing all {displayProperties.length} properties in the system
+            </p>
+          )}
         </div>
 
         <div className="mb-20px">
