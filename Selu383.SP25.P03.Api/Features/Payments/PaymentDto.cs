@@ -11,6 +11,8 @@ namespace Selu383.SP25.P03.Api.Features.Payments
         public string PaymentMethod { get; set; } = default!;
         public string Status { get; set; } = default!;
         public int TenantId { get; set; }
+        public int? LeaseId { get; set; }
+        public string? StripePaymentIntentId { get; set; }
     }
     public class PaymentCreateDto
     {
@@ -27,19 +29,11 @@ namespace Selu383.SP25.P03.Api.Features.Payments
 
         [Required]
         [StringLength(20)]
-        public string Status { get; set; } = "Pending";  // ADD THIS LINE
-
-        // Card info only used here for processing, NOT stored in DB
-        [CreditCard]
-        public string? CardNumber { get; set; }
-
-        [RegularExpression(@"^(0[1-9]|1[0-2])\/?([0-9]{2})$", ErrorMessage = "Expiration must be MM/YY")]
-        public string? ExpirationDate { get; set; }
-
-        [StringLength(4, MinimumLength = 3)]
-        public string? SecurityCode { get; set; }
+        public string Status { get; set; } = "Pending";
 
         public int TenantId { get; set; }
+
+        public int? LeaseId { get; set; }
     }
 
     public class PaymentUpdateDto

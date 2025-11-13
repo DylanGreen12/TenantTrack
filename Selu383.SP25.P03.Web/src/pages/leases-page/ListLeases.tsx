@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { UserDto } from "../../models/UserDto";
 import { Link } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import PaymentForm from "../../components/PaymentForm";
 
 interface LeaseDto {
   id?: number;
@@ -20,6 +23,9 @@ interface EditLeasesProps {
   currentUser?: UserDto;
 }
 
+// Initialize Stripe (replace with your publishable key)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+
 const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [leases, setLeases] = useState<LeaseDto[]>([]);
   const [error, setError] = useState("");
@@ -31,10 +37,15 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentLeaseId, setPaymentLeaseId] = useState<number | null>(null);
 
   // Check if user is Admin or Landlord
   const isAdmin = currentUser?.roles?.includes("Admin") || false;
   const isLandlord = currentUser?.roles?.includes("Landlord") || false;
+  const isTenant = currentUser?.roles?.includes("Tenant") || false;
 
   useEffect(() => {
     if (currentUser) {
@@ -129,6 +140,38 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
     }
   };
 
+  const handlePayNow = async (leaseId: number) => {
+    try {
+      // Create payment intent
+      const response = await axios.post(`/api/payments/lease/${leaseId}/create-intent`);
+      const { clientSecret, amount: totalAmount } = response.data;
+
+      setPaymentClientSecret(clientSecret);
+      setPaymentAmount(totalAmount);
+      setPaymentLeaseId(leaseId);
+      setShowPaymentModal(true);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to create payment";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error creating payment intent:", err);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    setPaymentClientSecret(null);
+    setMessage("Payment successful! Your lease is now active.");
+    setShowMessage(true);
+    fetchLeases();
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setPaymentClientSecret(null);
+  };
+
 
   return (
       <div className="leases-list">
@@ -217,6 +260,7 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                 >
                   <option value="">--Choose Status--</option>
                   <option value="Pending">Pending</option>
+                  <option value="Approved-AwaitingPayment">Approved - Awaiting Payment</option>
                   <option value="Active">Active</option>
                   <option value="Expired">Expired</option>
                   <option value="Terminated">Terminated</option>
@@ -302,11 +346,13 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       lease.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
+                      lease.status === "Approved-AwaitingPayment" ? "bg-blue-100 text-blue-800" :
                       lease.status === "Active" ? "bg-green-100 text-green-800" :
                       lease.status === "Denied" ? "bg-red-100 text-red-800" :
+                      lease.status === "Expired" ? "bg-orange-100 text-orange-800" :
                       "bg-gray-100 text-gray-800"
                     }`}>
-                      {lease.status}
+                      {lease.status === "Approved-AwaitingPayment" ? "Awaiting Payment" : lease.status}
                     </span>
                   </td>
                   <td className="p-12px border-b flex gap-2">
@@ -327,6 +373,14 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                           Deny
                         </button>
                       </>
+                    ) : lease.status === "Approved-AwaitingPayment" && isTenant ? (
+                      <button
+                        onClick={() => lease.id && handlePayNow(lease.id)}
+                        className="bg-[#3b82f6] text-white py-6px px-12px rounded-md text-12px hover:bg-[#2563eb] transition-colors font-semibold"
+                        title="Pay now to activate lease"
+                      >
+                        Pay Now (${(lease.rent + lease.deposit).toFixed(2)})
+                      </button>
                     ) : (
                       <>
                         <Link
@@ -359,6 +413,18 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               </div>
             )}
           </table>
+        )}
+
+        {/* Payment Modal */}
+        {showPaymentModal && paymentClientSecret && paymentLeaseId && (
+          <Elements stripe={stripePromise} options={{ clientSecret: paymentClientSecret }}>
+            <PaymentForm
+              leaseId={paymentLeaseId}
+              amount={paymentAmount}
+              onSuccess={handlePaymentSuccess}
+              onCancel={handlePaymentCancel}
+            />
+          </Elements>
         )}
     </div>
   );

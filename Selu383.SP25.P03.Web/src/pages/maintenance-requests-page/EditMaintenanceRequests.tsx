@@ -23,6 +23,11 @@ interface TenantDto {
   unitId: number;
 }
 
+interface LeaseDto {
+  id: number;
+  status: string;
+}
+
 interface UnitDto {
   id: number;
   unitNumber: string;
@@ -55,6 +60,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     requestedAt: new Date().toISOString()
   });
   const [loading, setLoading] = useState(false);
+  const [validatingAccess, setValidatingAccess] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -72,6 +78,14 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
 
   const initializeData = async () => {
     try {
+      // If tenant creating new request, check for active lease first
+      if (isTenant && !id) {
+        const hasActiveLease = await checkActiveLease();
+        if (!hasActiveLease) {
+          return; // checkActiveLease handles the error and redirect
+        }
+      }
+
       // If editing, fetch the maintenance request
       if (id) {
         await fetchMaintenanceRequest(parseInt(id));
@@ -83,13 +97,32 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
         await fetchUnits();
         await fetchProperties();
       }
-      
+
       // Tenants need to find their own tenant record
       if (isTenant && !id) {
         await fetchCurrentTenant();
       }
     } catch (err) {
       console.error("Error initializing data:", err);
+    } finally {
+      setValidatingAccess(false);
+    }
+  };
+
+  const checkActiveLease = async (): Promise<boolean> => {
+    try {
+      const response = await axios.get<LeaseDto>("/api/tenants/lease");
+      if (!response.data || response.data.status.toLowerCase() !== "active") {
+        setError("You must have an active lease to request maintenance.");
+        setTimeout(() => navigate("/"), 2000);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Error fetching lease:", err);
+      setError("You must have an active lease to request maintenance.");
+      setTimeout(() => navigate("/"), 2000);
+      return false;
     }
   };
 
@@ -251,12 +284,12 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     );
   }
 
-  if (isTenant && !currentTenant && !error && !id) {
+  if ((isTenant && validatingAccess) || (isTenant && !currentTenant && !error && !id)) {
     return (
       <div className="p-20px max-w-1200px mx-auto bg-gray-50">
         <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Submit Maintenance Request</h1>
         <div className="my-4 p-4 rounded-lg shadow-inner border border-blue-300 bg-blue-100 text-blue-800 text-sm">
-          Loading your tenant information...
+          Loading your information...
         </div>
       </div>
     );

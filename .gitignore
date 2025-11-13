@@ -267,3 +267,7 @@ __pycache__/
 **/appsettings.Development.json
 **/appsettings.*.json
 !**/appsettings.Example.json
+
+# Environment variables (contains API keys and secrets)
+**/.env
+**/.env.local

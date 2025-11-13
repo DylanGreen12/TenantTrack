@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
 import VerifyEmail from "./pages/VerifyEmail";
+import AwaitingVerification from "./pages/AwaitingVerification";
 import { UserDto } from "./models/UserDto";
 import LandlordDashboard from './pages/LandlordDashboard'
 import EditProperties from './pages/properties-page/EditProperties'
@@ -685,6 +686,7 @@ function App() {
                 } />
 
                 <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/awaiting-verification" element={<AwaitingVerification />} />
               </Routes>
             </div>
           </main>

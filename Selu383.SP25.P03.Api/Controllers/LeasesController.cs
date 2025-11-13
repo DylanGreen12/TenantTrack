@@ -339,11 +339,11 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Only pending leases can be approved" });
             }
 
-            lease.Status = "Active";
+            lease.Status = "Approved-AwaitingPayment";
             _context.Leases.Update(lease);
             await _context.SaveChangesAsync();
 
-            // Send approval email to tenant
+            // Send approval email to tenant (they now need to make payment)
             try
             {
                 var tenant = lease.Tenant;
@@ -359,7 +359,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                         propertyName
                     );
 
-                    _logger.LogInformation($"Approval notification sent to tenant {tenant.Email}");
+                    _logger.LogInformation($"Approval notification sent to tenant {tenant.Email}. Awaiting payment.");
                 }
             }
             catch (Exception ex)

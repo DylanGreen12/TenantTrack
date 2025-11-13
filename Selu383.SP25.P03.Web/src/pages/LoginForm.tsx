@@ -79,7 +79,23 @@ export function LoginForm({ onLoginSuccess, onSwitchToSignUp }: LoginFormProps) 
 
         // Check if it's an email verification error
         if (errorData.requiresVerification) {
-          setFormError(errorData.message || "Please verify your email before logging in. Check your inbox for the verification link.");
+          // Get user email by finding the user
+          const getUserEmail = async () => {
+            try {
+              const usersRes = await fetch("/api/users");
+              if (usersRes.ok) {
+                const users = await usersRes.json();
+                const user = users.find((u: any) => u.userName === username);
+                return user?.email || username;
+              }
+            } catch {
+              return username;
+            }
+            return username;
+          };
+
+          const email = await getUserEmail();
+          navigate("/awaiting-verification", { state: { email } });
           setLoading(false);
           return;
         }

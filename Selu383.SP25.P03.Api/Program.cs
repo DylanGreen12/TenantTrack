@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
 using Selu383.SP25.P03.Api.Features.Email;
+using Selu383.SP25.P03.Api.Features.Payments;
+using Stripe;
 
 namespace Selu383.SP25.P03.Api
 {
@@ -19,6 +21,10 @@ namespace Selu383.SP25.P03.Api
             // Configure email settings
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddScoped<IEmailService, EmailService>();
+
+            // Configure Stripe
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            builder.Services.AddScoped<IStripeService, StripeService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

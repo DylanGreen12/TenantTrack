@@ -20,6 +20,9 @@ namespace Selu383.SP25.P03.Api.Features.Users
         // Email verification fields
         public string? EmailVerificationToken { get; set; }
         public DateTime? EmailVerificationTokenExpiry { get; set; }
+
+        // Stripe integration
+        public string? StripeCustomerId { get; set; }
     }
 
 }

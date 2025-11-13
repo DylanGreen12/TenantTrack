@@ -414,13 +414,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Unit does not exist or is not available for tenant assignment" });
             }
 
-            // Update unit status to "Rented"
-            var unit = await _context.Units.FindAsync(dto.UnitId);
-            if (unit != null)
-            {
-                unit.Status = "Rented";
-                _context.Units.Update(unit);
-            }
+            // Note: Unit status will be changed to "Rented" when the lease becomes Active after payment
+            // Not when the tenant record is created (which is during lease application)
 
             var tenant = new Tenant
             {
@@ -439,18 +434,39 @@ namespace Selu383.SP25.P03.Api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+
+                // Auto-create a pending lease for this tenant application
+                var unit = await _context.Units.FindAsync(dto.UnitId);
+                if (unit != null)
+                {
+                    var lease = new Lease
+                    {
+                        TenantId = tenant.Id,
+                        UnitNumber = unit.UnitNumber,
+                        FirstName = tenant.FirstName,
+                        LastName = tenant.LastName,
+                        StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(7)), // Default: 1 week from now
+                        EndDate = DateOnly.FromDateTime(DateTime.Now.AddYears(1)), // Default: 1 year lease
+                        Rent = unit.Rent,
+                        Deposit = unit.Rent, // Default: 1 month rent as deposit
+                        Status = "Pending"
+                    };
+
+                    _context.Leases.Add(lease);
+                    await _context.SaveChangesAsync();
+                }
             }
             catch (DbUpdateException ex)
             {
                 // Log the exception
                 Console.WriteLine($"Database error creating tenant: {ex.Message}");
-                
+
                 // Check for specific database constraint violations
                 if (ex.InnerException?.Message.Contains("UNIQUE") == true)
                 {
                     return BadRequest(new { message = "Email address is already in use" });
                 }
-                
+
                 return BadRequest(new { message = "Failed to create tenant due to database constraint violation" });
             }
             catch (Exception ex)
@@ -535,21 +551,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                     return BadRequest(new { message = "Unit does not exist or is not available for tenant assignment" });
                 }
 
-                // Update old unit status back to "Available"
-                var oldUnit = await _context.Units.FindAsync(tenant.UnitId);
-                if (oldUnit != null)
-                {
-                    oldUnit.Status = "Available";
-                    _context.Units.Update(oldUnit);
-                }
-
-                // Update new unit status to "Rented"
-                var newUnit = await _context.Units.FindAsync(dto.UnitId);
-                if (newUnit != null)
-                {
-                    newUnit.Status = "Rented";
-                    _context.Units.Update(newUnit);
-                }
+                // Note: Unit status changes are managed by lease lifecycle, not tenant updates
+                // Units are marked "Rented" when lease becomes Active after payment
             }
 
             // Update tenant properties

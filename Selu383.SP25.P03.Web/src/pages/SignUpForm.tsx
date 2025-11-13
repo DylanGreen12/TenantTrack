@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { UserDto } from "../models/UserDto";
 import "../styles/LoginForm.css";
 import { Toast } from "../components/Toast";
+import { useNavigate } from "react-router-dom";
 
 interface SignUpFormProps {
   onSignUpSuccess: (user: UserDto) => void;
@@ -19,11 +20,13 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("Tenant"); 
+  const [selectedRole, setSelectedRole] = useState("Tenant");
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
+  const navigate = useNavigate();
 
   return (
     <div className="login-wrapper">
@@ -140,18 +143,18 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
         throw new Error(errorText || "Signup failed");
       }
 
-      // Show different message if email was provided
+      // Redirect to awaiting verification page if email was provided
       if (email) {
-        setToastMessage("Account created! Check your email to verify your account before logging in.");
+        navigate("/awaiting-verification", { state: { email } });
       } else {
+        // If no email, show success message and switch to login
         setToastMessage("Signup successful! You can now log in.");
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+          onSwitchToLogin();
+        }, 3000);
       }
-      setShowToast(true);
-
-      setTimeout(() => {
-        setShowToast(false);
-        onSwitchToLogin();
-      }, 3000);
 
     } catch (err: any) {
       console.error("Signup error:", err);

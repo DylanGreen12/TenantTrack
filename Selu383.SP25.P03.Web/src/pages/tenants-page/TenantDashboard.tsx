@@ -115,14 +115,16 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
           </p>
 
 
-          <div className="flex gap-2 mb-4">
-            <Link 
-              to="/makepayment"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Make a Payment
-            </Link>
-          </div>
+          {lease && lease.status.toLowerCase() === "active" && (
+            <div className="flex gap-2 mb-4">
+              <Link
+                to="/makepayment"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Make a Payment
+              </Link>
+            </div>
+          )}
 
           {/* Unit image */}
           {unit?.imageUrl && (
@@ -198,12 +200,18 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
           {/* Maintenance Requests */}
           <div className="bg-white rounded-xl shadow p-6 border-t-4 border-orange-400">
             <h2 className="font-semibold mb-3">🛠️ Maintenance Requests</h2>
-            <Link 
-              to="/editmaintenancerequests"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg mb-2 hover:bg-blue-700"
-            >
-              Request Maintenance
-            </Link>
+            {lease && lease.status.toLowerCase() === "active" ? (
+              <Link
+                to="/editmaintenancerequests"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg mb-2 hover:bg-blue-700"
+              >
+                Request Maintenance
+              </Link>
+            ) : (
+              <p className="text-gray-500 text-sm">
+                You must have an active lease to request maintenance.
+              </p>
+            )}
           </div>
         </div>
       </div>
