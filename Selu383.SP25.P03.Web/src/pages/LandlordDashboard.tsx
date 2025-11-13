@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { UserDto } from "../models/UserDto";
 import "../styles/LandlordDashboard.css";
 
 interface PropertySummary {
@@ -78,15 +79,22 @@ interface LandlordDashboardData {
   summary: DashboardSummary;
 }
 
-export default function LandlordDashboard() {
+interface LandlordDashboardProps {
+  currentUser?: UserDto;
+}
+
+const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) => {
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
   const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (currentUser) {
+      fetchDashboardData();
+    }
+  }, [currentUser]);
 
   const fetchDashboardData = async () => {
     try {
@@ -374,3 +382,5 @@ export default function LandlordDashboard() {
     </div>
   );
 }
+
+export default LandlordDashboard;
