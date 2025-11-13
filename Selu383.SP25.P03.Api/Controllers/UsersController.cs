@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
+using Selu383.SP25.P03.Api.Services;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -15,15 +16,18 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly RoleManager<Role> roleManager;
         private readonly DataContext dataContext;
         private DbSet<Role> roles;
+        private readonly IEmailService emailService;
 
         public UsersController(
             RoleManager<Role> roleManager,
             UserManager<User> userManager,
-            DataContext dataContext)
+            DataContext dataContext,
+            IEmailService emailService)
         {
             this.roleManager = roleManager;
             this.userManager = userManager;
             this.dataContext = dataContext;
+            this.emailService = emailService;
             roles = dataContext.Set<Role>();
         }
 
@@ -59,7 +63,6 @@ namespace Selu383.SP25.P03.Api.Controllers
             return BadRequest();
         }
 
-
         [HttpPut("{id}/contact")]
         //[Authorize]
         public async Task<ActionResult<UserDto>> UpdateContactInfo(int id, [FromBody] UpdateContactInfoDto dto)
@@ -70,12 +73,33 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return NotFound();
             }
 
+            var oldEmail = user.Email; // Store old email for notification
+
             user.Email = dto.Email;
             user.Phone = dto.Phone;
 
             var result = await userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
+                // Send email change confirmation if email was changed
+                if (!string.IsNullOrEmpty(oldEmail) && oldEmail != dto.Email && !string.IsNullOrEmpty(dto.Email))
+                {
+                    try
+                    {
+                        await emailService.SendEmailChangeConfirmationAsync(
+                            dto.Email, 
+                            user.UserName ?? "User", 
+                            oldEmail ?? "previous email", 
+                            dto.Email
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log email failure but don't fail the request
+                        Console.WriteLine($"Failed to send email confirmation: {ex.Message}");
+                    }
+                }
+
                 return new UserDto
                 {
                     Id = user.Id,
@@ -136,6 +160,24 @@ namespace Selu383.SP25.P03.Api.Controllers
                     return BadRequest(passwordResult.Errors);
                 }
                 changesMade = true;
+
+                // Send password change confirmation email
+                if (!string.IsNullOrEmpty(user.Email))
+                {
+                    try
+                    {
+                        await emailService.SendPasswordChangeConfirmationAsync(
+                            user.Email, 
+                            user.UserName ?? "User"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log email failure but don't fail the request
+                        Console.WriteLine($"Failed to send password change email: {ex.Message}");
+                        // You could also use ILogger here for proper logging
+                    }
+                }
             }
 
             if (!changesMade)

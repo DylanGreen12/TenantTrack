@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
+using Selu383.SP25.P03.Api.Services;
 
 namespace Selu383.SP25.P03.Api
 {
@@ -19,6 +20,9 @@ namespace Selu383.SP25.P03.Api
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             builder.Services.AddRazorPages();
+
+            // Email Service
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<DataContext>()

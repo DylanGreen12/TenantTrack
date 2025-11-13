@@ -80,6 +80,17 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
       return;
     }
 
+    // Check if email is actually changing
+    const isEmailChanging = formData.email !== currentUser.email;
+    const isPhoneChanging = formData.phone !== currentUser.phone;
+
+    if (!isEmailChanging && !isPhoneChanging) {
+      setError("No changes detected");
+      setMessage("No changes were made to your contact information.");
+      setShowMessage(true);
+      return;
+    }
+
     setLoading(true);
     setError("");
     setShowMessage(false);
@@ -87,7 +98,11 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
     try {
       const response = await axios.put(`/api/users/${currentUser.id}/contact`, formData);
       
-      setMessage("Contact information updated successfully!");
+      if (isEmailChanging) {
+        setMessage("Contact information updated successfully! A confirmation email has been sent to your new email address.");
+      } else {
+        setMessage("Contact information updated successfully!");
+      }
       setShowMessage(true);
 
       // Update parent component with the returned user data
@@ -138,10 +153,13 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
 
     try {
       const payload: any = {};
-      if (credentialsData.userName && credentialsData.userName !== currentUser.userName) {
+      const isUsernameChanging = credentialsData.userName && credentialsData.userName !== currentUser.userName;
+      const isPasswordChanging = !!credentialsData.newPassword;
+
+      if (isUsernameChanging) {
         payload.userName = credentialsData.userName;
       }
-      if (credentialsData.newPassword) {
+      if (isPasswordChanging) {
         payload.currentPassword = credentialsData.currentPassword;
         payload.newPassword = credentialsData.newPassword;
       }
@@ -150,7 +168,13 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
       if (Object.keys(payload).length > 0) {
         const response = await axios.put(`/api/users/${currentUser.id}/credentials`, payload);
         
-        setMessage("Credentials updated successfully! Please log in again with your new credentials.");
+        if (isPasswordChanging) {
+          setMessage("Credentials updated successfully! A password change confirmation has been sent to your email. Please log in again with your new credentials.");
+        } else if (isUsernameChanging) {
+          setMessage("Username updated successfully! Please log in again with your new username.");
+        } else {
+          setMessage("Credentials updated successfully!");
+        }
         setShowMessage(true);
 
         // Reset password fields
@@ -171,7 +195,7 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
       }
       
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Failed to update credentials";
+      const errorMsg = err.response?.data?.message || err.response?.data || "Failed to update credentials";
       setError(errorMsg);
       setMessage(errorMsg);
       setShowMessage(true);
@@ -266,7 +290,11 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
               className="w-full px-3 py-2 border text-black border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
               placeholder="your.email@example.com"
             />
-            <p className="text-black text-12px mt-5px">We'll use this for important notifications</p>
+            <p className="text-black text-12px mt-5px">
+              {formData.email !== currentUser.email 
+                ? "We'll send a confirmation email to your new address" 
+                : "We'll use this for important notifications"}
+            </p>
           </div>
 
           <div className="mb-20px">
@@ -353,7 +381,7 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
                 onChange={handleCredentialsChange}
                 className="w-full px-3 py-2 pr-10 border text-black border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
                 placeholder="Enter your current password"
-                required
+                required={!!credentialsData.newPassword}
               />
               <button
                 type="button"
@@ -372,7 +400,11 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
                 )}
               </button>
             </div>
-            <p className="text-black text-12px mt-5px">Required for security verification</p>
+            <p className="text-black text-12px mt-5px">
+              {credentialsData.newPassword 
+                ? "Required for security verification" 
+                : "Required only if changing password"}
+            </p>
           </div>
 
           <div className="mb-20px">
@@ -407,7 +439,11 @@ const EditContactInfo: React.FC<EditContactInfoProps> = ({ currentUser, onUserUp
                 )}
               </button>
             </div>
-            <p className="text-black text-12px mt-5px">Leave blank to keep current password</p>
+            <p className="text-black text-12px mt-5px">
+              {credentialsData.newPassword 
+                ? "A confirmation email will be sent to your registered email" 
+                : "Leave blank to keep current password"}
+            </p>
           </div>
 
           <div className="mb-20px">
