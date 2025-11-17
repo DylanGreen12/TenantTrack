@@ -11,6 +11,17 @@
   margin-bottom: 30px;
 }
 
+.status-update-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #c3e6cb;
+  text-align: center;
+  font-weight: 600;
+}
+
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -233,6 +244,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 6px;
+  align-items: center;
 }
 
 .priority-badge {
@@ -254,6 +266,41 @@
 }
 
 .priority-low {
+  background: #28a745;
+  color: white;
+}
+
+/* Status Dropdown Styling */
+.status-dropdown {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-dropdown:hover {
+  opacity: 0.8;
+}
+
+.status-dropdown:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.status-dropdown.status-pending {
+  background: #c7d2fe;
+  color: #1e293b;
+}
+
+.status-dropdown.status-in-progress {
+  background: #3b82f6;
+  color: white;
+}
+
+.status-dropdown.status-completed {
   background: #28a745;
   color: white;
 }
