@@ -9,17 +9,22 @@ namespace Selu383.SP25.P03.Api.Features.Email
     {
         private readonly EmailSettings _emailSettings;
         private readonly ILogger<EmailService> _logger;
+        private readonly string _baseUrl;
 
-        public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger)
+        public EmailService(IOptions<EmailSettings> emailSettings, ILogger<EmailService> logger, IConfiguration configuration)
         {
             _emailSettings = emailSettings.Value;
             _logger = logger;
+            
+            // Get base URL from environment variables or configuration
+            _baseUrl = configuration["BASE_URL"] ?? 
+                       Environment.GetEnvironmentVariable("BASE_URL");
         }
 
         public async Task SendVerificationEmailAsync(string toEmail, string toName, string verificationToken)
         {
             var subject = "Verify Your TenantTrack Email";
-            var verificationLink = $"http://localhost:5249/verify-email?token={verificationToken}";
+            var verificationLink = $"{_baseUrl}/verify-email?token={verificationToken}";
 
             var body = $@"
                 <html>
@@ -55,7 +60,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Unit:</strong> {unitNumber}</li>
                     </ul>
                     <p>Please log in to your TenantTrack dashboard to review and approve or deny this application.</p>
-                    <p><a href='http://localhost:5249/applications' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Review Application</a></p>
+                    <p><a href='{_baseUrl}/applications' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Review Application</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -79,7 +84,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Unit:</strong> {unitNumber}</li>
                     </ul>
                     <p>Your lease has been created and is ready for review. Please log in to your TenantTrack account to view the details.</p>
-                    <p><a href='http://localhost:5249/leases' style='background-color: #22c55e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease</a></p>
+                    <p><a href='{_baseUrl}/leases' style='background-color: #22c55e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease</a></p>
                     <br/>
                     <p>Welcome to your new home!</p>
                     <p>Best regards,<br/>The TenantTrack Team</p>
@@ -110,7 +115,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                     <p>Unfortunately, we are unable to approve your application at this time.</p>
                     {reasonText}
                     <p>We encourage you to apply for other available properties on TenantTrack.</p>
-                    <p><a href='http://localhost:5249/properties' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Available Properties</a></p>
+                    <p><a href='{_baseUrl}/properties' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Available Properties</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -137,7 +142,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Monthly Rent:</strong> ${rent:N2}</li>
                     </ul>
                     <p>Please log in to your TenantTrack account to view the complete lease agreement and make payments.</p>
-                    <p><a href='http://localhost:5249/leases' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease Details</a></p>
+                    <p><a href='{_baseUrl}/leases' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease Details</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>
@@ -151,7 +156,12 @@ namespace Selu383.SP25.P03.Api.Features.Email
             try
             {
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
+                
+                // Use environment variables for sender details
+                var senderEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? _emailSettings.SenderEmail;
+                var senderName = Environment.GetEnvironmentVariable("FROM_NAME") ?? _emailSettings.SenderName;
+                
+                message.From.Add(new MailboxAddress(senderName, senderEmail));
                 message.To.Add(new MailboxAddress(toName, toEmail));
                 message.Subject = subject;
 
@@ -163,13 +173,19 @@ namespace Selu383.SP25.P03.Api.Features.Email
 
                 using var client = new SmtpClient();
 
+                // Use environment variables for SMTP settings
+                var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _emailSettings.SmtpHost;
+                var smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? _emailSettings.SmtpPort.ToString());
+                var username = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? _emailSettings.Username;
+                var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? _emailSettings.Password;
+
                 // Use StartTls for port 587 (standard for Gmail/most SMTP)
-                var secureSocketOptions = _emailSettings.SmtpPort == 465
+                var secureSocketOptions = smtpPort == 465
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.StartTls;
 
-                await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, secureSocketOptions);
-                await client.AuthenticateAsync(_emailSettings.Username, _emailSettings.Password);
+                await client.ConnectAsync(smtpHost, smtpPort, secureSocketOptions);
+                await client.AuthenticateAsync(username, password);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
 
