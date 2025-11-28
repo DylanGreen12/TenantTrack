@@ -192,7 +192,7 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
   if (!dashboardData || dashboardData.properties.length === 0) {
     return (
       <div className="landlord-dashboard">
-        <h1>Landlord Dashboard</h1>
+        <h1>Home</h1>
         <p>You don't have any properties yet. Add properties to get started.</p>
       </div>
     );
@@ -200,7 +200,7 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
 
   return (
     <div className="landlord-dashboard">
-      <h1>Landlord Dashboard</h1>
+      <h1>Home</h1>
 
       {/* Summary Cards */}
       <div className="summary-cards">

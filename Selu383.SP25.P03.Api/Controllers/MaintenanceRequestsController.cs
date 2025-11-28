@@ -76,11 +76,11 @@ namespace Selu383.SP25.P03.Api.Controllers
                 {
                     Id = r.Id,
                     TenantId = r.TenantId,
-                    UnitNumber = r.Tenant.UnitNumber,
+                    UnitNumber = r.Tenant.Unit.UnitNumber,
                     Description = r.Description,
                     Status = r.Status,
                     Priority = r.Priority,
-                    AssignedTo = r.AssignedTo,
+                    StaffId = r.StaffId,
                     RequestedAt = r.RequestedAt,
                     UpdatedAt = r.UpdatedAt,
                     CompletedAt = r.CompletedAt
@@ -105,7 +105,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                     Description = r.Description,
                     Status = r.Status,
                     Priority = r.Priority,
-                    AssignedTo = r.AssignedTo,
+                    StaffId = r.StaffId,
                     RequestedAt = r.RequestedAt,
                     UpdatedAt = r.UpdatedAt,
                     CompletedAt = r.CompletedAt
@@ -188,7 +188,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 Description = dto.Description,
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "Open" : dto.Status,
                 Priority = string.IsNullOrWhiteSpace(dto.Priority) ? "Low" : dto.Priority,
-                AssignedTo = dto.AssignedTo,
+                StaffId = dto.StaffId,
                 RequestedAt = DateTimeOffset.UtcNow
             };
 
@@ -256,7 +256,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 // Staff can update status, description, assignedTo
                 request.Status = dto.Status ?? request.Status;
                 request.Description = dto.Description ?? request.Description;
-                request.AssignedTo = dto.AssignedTo;
+                request.StaffId = dto.StaffId;
                 if (request.Status.ToLower() == "completed")
                 {
                     request.CompletedAt = DateTimeOffset.UtcNow;
@@ -273,7 +273,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 request.Description = dto.Description;
                 request.Status = dto.Status ?? request.Status;
                 request.Priority = dto.Priority ?? request.Priority;
-                request.AssignedTo = dto.AssignedTo;
+                request.StaffId = dto.StaffId;
                 if (request.Status.ToLower() == "completed" && request.CompletedAt == null)
                 {
                     request.CompletedAt = DateTimeOffset.UtcNow;
@@ -289,7 +289,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 request.Description = dto.Description;
                 request.Status = dto.Status ?? request.Status;
                 request.Priority = dto.Priority ?? request.Priority;
-                request.AssignedTo = dto.AssignedTo;
+                request.StaffId = dto.StaffId;
             }
 
             request.UpdatedAt = DateTimeOffset.UtcNow;

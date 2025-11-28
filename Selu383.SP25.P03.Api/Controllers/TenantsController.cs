@@ -89,7 +89,7 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             if (tenant == null)
             {
-                return NotFound(new { message = "No tenant record found for this user" });
+                return NotFound(new { message = "You are not assigned to a unit yet. Apply today!" });
             }
 
             if (tenant.Unit == null)
