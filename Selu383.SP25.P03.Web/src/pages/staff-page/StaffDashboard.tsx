@@ -28,7 +28,7 @@ interface StaffDashboardProps {
 
 export default function StaffDashboard({ currentUser }: StaffDashboardProps) {
   const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
-  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequestDto[]>([]);
+  //const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequestDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMessage, setShowMessage] = useState(false);
   const [message, setMessage] = useState("");
@@ -43,7 +43,6 @@ export default function StaffDashboard({ currentUser }: StaffDashboardProps) {
     if (currentUser)
       loadRequests();
       fetchTenants();
-      fetchMaintenanceRequests();
   }, [currentUser]);
 
   const loadRequests = async () => {
@@ -64,28 +63,6 @@ export default function StaffDashboard({ currentUser }: StaffDashboardProps) {
       setTenants(response.data);
     } catch (err) {
       console.error("Error fetching tenants:", err);
-    }
-  };
-
-  const fetchMaintenanceRequests = async () => {
-    try {
-      const response = await axios.get<MaintenanceRequestDto[]>("/api/MaintenanceRequests");
-      setMaintenanceRequests(response.data);
-    } catch (err) {
-      console.error("Error fetching MaintenanceRequests:", err);
-    }
-  };
-
-  const statusClass = (status: string) => {
-    switch (status) {
-      case "Pending":
-        return "bg-yellow-400 text-black px-2 py-1 rounded";
-      case "In Progress":
-        return "bg-blue-500 text-white px-2 py-1 rounded";
-      case "Completed":
-        return "bg-green-600 text-white px-2 py-1 rounded";
-      default:
-        return "bg-gray-400 text-white px-2 py-1 rounded";
     }
   };
 
