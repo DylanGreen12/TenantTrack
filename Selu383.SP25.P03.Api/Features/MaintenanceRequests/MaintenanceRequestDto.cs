@@ -10,7 +10,7 @@ namespace Selu383.SP25.P03.Api.Features.MaintenanceRequests
         public string Description { get; set; } = default!;
         public string Status { get; set; } = default!;
         public string Priority { get; set; } = default!;
-        public int? AssignedTo { get; set; }
+        public int? StaffId { get; set; }
         public DateTimeOffset RequestedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public DateTimeOffset? CompletedAt { get; set; }

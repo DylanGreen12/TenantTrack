@@ -11,6 +11,7 @@ interface MaintenanceRequestDto {
   priority: string;
   status: string;
   requestedAt: string;
+  staffId?: number;
   completedAt?: string;
 }
 
@@ -39,6 +40,7 @@ interface MaintenanceRequestsProps {
 export default function MaintenanceRequests({ currentUser }: MaintenanceRequestsProps) {
   const [requests, setRequests] = useState<MaintenanceRequestDto[]>([]);
   const [tenants, setTenants] = useState<TenantDto[]>([]);
+  const [staff, setStaff] = useState<StaffDto[]>([]);
   const [currentTenantId, setCurrentTenantId] = useState<number | null>(null);
   const [staffRecord, setStaffRecord] = useState<StaffDto | null>(null);
   const [error, setError] = useState("");
@@ -67,6 +69,8 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
         await fetchStaffRecord();
       }
 
+      await fetchStaff();
+
       // Landlords/Admins and Staff need the tenants list for display
       if (isLandlord || isStaff) {
         await fetchTenants();
@@ -90,6 +94,15 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
       setTenants(response.data);
     } catch (err) {
       console.error("Error fetching tenants:", err);
+    }
+  };
+
+  const fetchStaff = async () => {
+    try {
+      const response = await axios.get<StaffDto[]>("/api/staff");
+      setStaff(response.data);
+    } catch (err) {
+      console.error("Error fetching staff:", err);
     }
   };
 
@@ -167,6 +180,13 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
   const getTenantName = (tenantId: number): string => {
     const tenant = tenants.find(t => t.id === tenantId);
     return tenant ? `${tenant.firstName} ${tenant.lastName}` : `Unknown Tenant (ID: ${tenantId})`;
+  };
+
+  const getStaffName = (staffId?: number): string => {
+    const staffMember = staff.find(s => s.id === staffId);
+    return staffMember
+      ? `${staffMember.firstName} ${staffMember.lastName}, ${staffMember.position}`
+      : `Staff Member Not Assigned`;
   };
 
   const formatDate = (dateString: string): string => {
@@ -348,12 +368,13 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
             <thead>
               <tr className="bg-[#f3f4f6]">
                 {(isLandlord || isStaff) && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant</th>}
-                {isAdmin && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant ID</th>}
+                {isAdmin && <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Tenant Id</th>}
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Unit</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Description</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Priority</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Status</th>
                 <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Date Requested</th>
+                <th className="p-12px text-left border-b border-r border-[#e5e7eb] font-semibold text-[#374151]">Staff Member Assigned</th>
                 {(isLandlord || isStaff) && <th className="p-12px text-left border-b font-semibold text-[#374151]">Actions</th>}
               </tr>
             </thead>
@@ -410,6 +431,7 @@ export default function MaintenanceRequests({ currentUser }: MaintenanceRequests
                     )}
                   </td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{formatDate(request.requestedAt)}</td>
+                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{getStaffName(request.staffId)}</td>
                   {(isLandlord || isStaff) && (
                     <td className="p-12px border-b text-[#111827]">
                       <Link
