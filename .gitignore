@@ -263,9 +263,9 @@ __pycache__/
 *.pyc
 
 # Application Settings (contains connection strings and secrets)
-**/appsettings.json
+
 **/appsettings.Development.json
-**/appsettings.*.json
+
 !**/appsettings.Example.json
 
 # Environment variables (contains API keys and secrets)

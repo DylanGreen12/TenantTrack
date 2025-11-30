@@ -157,7 +157,6 @@ namespace Selu383.SP25.P03.Api.Features.Email
             {
                 var message = new MimeMessage();
                 
-                // Use environment variables for sender details
                 var senderEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? _emailSettings.SenderEmail;
                 var senderName = Environment.GetEnvironmentVariable("FROM_NAME") ?? _emailSettings.SenderName;
                 
@@ -165,21 +164,26 @@ namespace Selu383.SP25.P03.Api.Features.Email
                 message.To.Add(new MailboxAddress(toName, toEmail));
                 message.Subject = subject;
 
-                var bodyBuilder = new BodyBuilder
-                {
-                    HtmlBody = htmlBody
-                };
+                var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
                 message.Body = bodyBuilder.ToMessageBody();
 
                 using var client = new SmtpClient();
+                
+                // Check if we're in development and should skip certificate validation
+                var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+                var skipCertValidation = Environment.GetEnvironmentVariable("SMTP_SKIP_CERT_VALIDATION") == "true";
+                
+                if (isDevelopment || skipCertValidation)
+                {
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                    _logger.LogWarning("SSL certificate validation is disabled - for development use only");
+                }
 
-                // Use environment variables for SMTP settings
                 var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? _emailSettings.SmtpHost;
                 var smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? _emailSettings.SmtpPort.ToString());
                 var username = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? _emailSettings.Username;
                 var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? _emailSettings.Password;
 
-                // Use StartTls for port 587 (standard for Gmail/most SMTP)
                 var secureSocketOptions = smtpPort == 465
                     ? SecureSocketOptions.SslOnConnect
                     : SecureSocketOptions.StartTls;
