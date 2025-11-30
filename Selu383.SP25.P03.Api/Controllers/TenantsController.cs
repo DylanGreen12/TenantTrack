@@ -182,7 +182,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             // 🔍 Get all completed payments for this month
             var totalPaid = await _context.Payments
                 .Where(p => p.TenantId == tenant.Id &&
-                            p.Status.ToLower() == "pending" &&
+                            p.Status.ToLower() == "paid" &&
                             p.Date >= startOfMonth &&
                             p.Date <= endOfMonth)
                 .SumAsync(p => (decimal?)p.Amount) ?? 0m;

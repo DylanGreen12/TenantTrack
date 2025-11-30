@@ -279,11 +279,12 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             // Get the tenant's active lease
             var lease = await _context.Leases
-                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id && l.Status == "Active");
+                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id && 
+                (l.Status == "Active" || l.Status == "Approved-AwaitingPayment"));
 
             if (lease == null)
             {
-                return BadRequest(new { message = "No active lease found" });
+                return BadRequest(new { message = "active lease found" });
             }
 
             try
@@ -332,7 +333,8 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             // Get the tenant's active lease
             var lease = await _context.Leases
-                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id && l.Status == "Active");
+                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id && 
+                (l.Status == "Active" || l.Status == "Approved-AwaitingPayment"));
 
             if (lease == null)
             {
@@ -362,6 +364,19 @@ namespace Selu383.SP25.P03.Api.Controllers
                 };
 
                 _context.Payments.Add(payment);
+                if (lease.Status == "Approved-AwaitingPayment")
+                    {
+                        lease.Status = "Active";
+                        _context.Leases.Update(lease);
+
+                        // Mark unit as Rented
+                        var unit = await _context.Units.FirstOrDefaultAsync(u => u.Id == tenant.UnitId);
+                        if (unit != null)
+                        {
+                            unit.Status = "Rented";
+                            _context.Units.Update(unit);
+                        }
+                    }
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Rent payment confirmed for tenant {tenant.Id}, payment intent: {request.PaymentIntentId}");

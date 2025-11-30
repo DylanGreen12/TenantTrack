@@ -273,8 +273,13 @@ export default function MakePayment({ currentUser }: MakePaymentProps) {
       setLease(response.data);
 
       // Redirect if no active lease
-      if (!response.data || response.data.status.toLowerCase() !== "active") {
-        setError("You must have an active lease to make payments.");
+      if (
+        !response.data ||
+        !["active", "approved-awaitingpayment"].includes(
+          response.data.status.toLowerCase()
+        )
+      ) {
+        setError("You must have an active or pending approval lease to make payments.");
         setTimeout(() => navigate("/"), 2000);
         return;
       }

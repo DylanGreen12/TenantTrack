@@ -304,9 +304,17 @@ namespace Selu383.SP25.P03.Api.Controllers
             return NoContent();
         }
 
+        public class ApproveLeaseRequest
+        {
+            public DateOnly StartDate { get; set; }
+            public DateOnly EndDate { get; set; }
+            public decimal Deposit { get; set; }
+            public bool Activate { get; set; }
+        }
+
         // POST: api/leases/5/approve
         [HttpPost("{id}/approve")]
-        public async Task<ActionResult<LeaseDto>> ApproveLease(int id)
+        public async Task<ActionResult<LeaseDto>> ApproveLease(int id, [FromBody] ApproveLeaseRequest request)
         {
             var lease = await _context.Leases
                 .Include(l => l.Tenant)
@@ -339,7 +347,11 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Only pending leases can be approved" });
             }
 
-            lease.Status = "Approved-AwaitingPayment";
+            lease.StartDate = request.StartDate;
+            lease.EndDate = request.EndDate;
+            lease.Deposit = request.Deposit;
+            lease.Status = request.Activate ? "Approved-AwaitingPayment" : lease.Status;
+
             _context.Leases.Update(lease);
             await _context.SaveChangesAsync();
 

@@ -41,6 +41,11 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentLeaseId, setPaymentLeaseId] = useState<number | null>(null);
+  const [approveStartDate, setApproveStartDate] = useState("");
+  const [approveEndDate, setApproveEndDate] = useState("");
+  const [approveDeposit, setApproveDeposit] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [selectedLeaseId, setSelectedLeaseId] = useState<number | null>(null);
 
   // Check if user is Admin or Landlord
   const isAdmin = currentUser?.roles?.includes("Admin") || false;
@@ -104,21 +109,23 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   };
 
   const handleApprove = async (id: number) => {
-    if (!window.confirm("Are you sure you want to approve this lease application?")) {
-      return;
-    }
+    setSelectedLeaseId(id);
+    setShowApproveModal(true);
+  };
 
+  const submitLeaseApproval = async () => {
     try {
-      await axios.post(`/api/leases/${id}/approve`);
-      setMessage("Lease application approved! Email sent to tenant.");
-      setShowMessage(true);
-      await fetchLeases();
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Failed to approve lease";
-      setError(errorMsg);
-      setMessage(errorMsg);
-      setShowMessage(true);
-      console.error("Error approving lease:", err);
+      await axios.post(`/api/leases/${selectedLeaseId}/approve`, {
+        startDate: approveStartDate,
+        endDate: approveEndDate,
+        deposit: Number(approveDeposit),
+        activate: true
+      });
+
+      setShowApproveModal(false);
+      fetchLeases();
+    } catch (err) {
+      console.error("Approval error:", err);
     }
   };
 
@@ -413,6 +420,67 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               </div>
             )}
           </table>
+        )}
+
+        {/* APPROVE LEASE MODAL */}
+        {showApproveModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h3 className="text-lg font-semibold mb-4">
+                Approve Lease – Set Details
+              </h3>
+
+              {/* Start Date */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={approveStartDate}
+                onChange={(e) => setApproveStartDate(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              {/* End Date */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={approveEndDate}
+                onChange={(e) => setApproveEndDate(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              {/* Deposit */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Security Deposit
+              </label>
+              <input
+                type="number"
+                placeholder="Enter deposit amount"
+                value={approveDeposit}
+                onChange={(e) => setApproveDeposit(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowApproveModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={submitLeaseApproval}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Approve Lease
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Payment Modal */}

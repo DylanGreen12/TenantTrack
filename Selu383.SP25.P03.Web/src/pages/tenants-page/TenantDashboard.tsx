@@ -42,7 +42,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<BalanceDto | null>(null);
-  
+  const [isFirstMonth, setIsFirstMonth] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
@@ -57,10 +57,52 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
         axios.get<LeaseDto>("/api/tenants/lease", { withCredentials: true }),
         axios.get<BalanceDto>("/api/tenants/balance", { withCredentials: true }),
       ]);
+
       setUnit(unitRes.data);
       setLease(leaseRes.data);
-      setPaymentStatus(balanceRes.data);
-      
+
+      // Determine if it is the first month of the lease
+      const isFirstMonth = (() => {
+        const start = leaseRes.data?.startDate
+          ? new Date(leaseRes.data.startDate)
+          : null;
+
+        if (!start) return false;
+
+        const now = new Date();
+
+        return (
+          start.getFullYear() === now.getFullYear() &&
+          start.getMonth() === now.getMonth()
+        );
+      })();
+
+      setIsFirstMonth(isFirstMonth);
+
+      // Compute adjusted payment status if first month
+      let finalPayment = balanceRes.data;
+
+      if (isFirstMonth) {
+        finalPayment = {
+          ...balanceRes.data,
+          balanceDue:
+            balanceRes.data.rent +
+            leaseRes.data.deposit -
+            balanceRes.data.totalPaid,
+
+          status:
+            balanceRes.data.totalPaid >=
+            balanceRes.data.rent + leaseRes.data.deposit
+              ? "Paid"
+              : balanceRes.data.totalPaid > 0
+              ? "Partial"
+              : "Unpaid",
+        };
+      }
+
+      // Set the final computed balance once
+      setPaymentStatus(finalPayment);
+
       setError("");
     } catch (err: any) {
       console.error("Error fetching tenant data:", err);
@@ -70,6 +112,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
       setLoading(false);
     }
   };
+
 
   if (loading)
     return <p className="text-gray-500 text-center mt-10">Loading your unit...</p>;
@@ -108,6 +151,12 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
           >
             Status: {paymentStatus?.status ?? "Unknown"}
           </p>
+
+          {isFirstMonth && (
+            <p className="text-sm text-blue-600 mb-2 font-medium">
+              * Your security deposit is included in this month's balance.
+            </p>
+          )}
 
           <p className="text-sm text-gray-500 mb-4">
             Total Paid: ${paymentStatus?.totalPaid ?? 0} / Rent: $
