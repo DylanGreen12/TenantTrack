@@ -25,6 +25,9 @@ import MaintenanceRequests from "./pages/maintenance-requests-page/MaintenanceRe
 import EditMaintenanceRequests from "./pages/maintenance-requests-page/EditMaintenanceRequests";
 import AddAdminUsers from "./pages/admin-page/AddAdminUsers";
 import UsersPage from "./pages/admin-page/EditUsers";
+import VerifyEmailChange from './pages/VerifyEmailChange';
+import VerifyPasswordChange from './pages/VerifyPasswordChange';
+
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -671,6 +674,7 @@ function App() {
                   )
                 } />
 
+                {/* Auth Routes */}
                 <Route path="/login" element={
                   <LoginForm
                     onLoginSuccess={handleLoginSuccess}
@@ -685,8 +689,13 @@ function App() {
                   />
                 } />
 
+                {/* Email Verification Routes */}
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/awaiting-verification" element={<AwaitingVerification />} />
+
+                {/* Email/Password Change Verification Routes - Public (no authentication required) */}
+                <Route path="/verify-email-change" element={<VerifyEmailChange />} />
+                <Route path="/verify-password-change" element={<VerifyPasswordChange />} />
               </Routes>
             </div>
           </main>
