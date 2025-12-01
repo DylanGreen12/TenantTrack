@@ -6,7 +6,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 // Initialize Stripe with error handling
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "")
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51SZKO0GWDcL5mW2DOEyjnPBLXJbdwSg7BMnKqh1dXjj9QYxoTWNwhrTeEC92fQQ5yBXIlMRuHh6mgS0g9RjM4gFm002cc336bI")
   .catch((error) => {
     console.error("Failed to load Stripe:", error);
     return null;
