@@ -5,7 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Initialize Stripe with error handling
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "")
+  .catch((error) => {
+    console.error("Failed to load Stripe:", error);
+    return null;
+  });
 
 interface TenantDto {
   id: number;
@@ -35,6 +40,14 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [clientSecret, setClientSecret] = useState("");
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+
+  // Check if Stripe is loaded
+  useEffect(() => {
+    if (stripe && elements) {
+      setStripeLoaded(true);
+    }
+  }, [stripe, elements]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
@@ -47,7 +60,7 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
 
       if (isNaN(amountNum) || amountNum <= 0) {
         setError("Please enter a valid amount");
-        return;
+        return null;
       }
 
       const response = await axios.post("/api/payments/rent/create-intent", {
@@ -55,7 +68,6 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
       });
 
       setClientSecret(response.data.clientSecret);
-
       return response.data.clientSecret;
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Failed to initialize payment";
@@ -69,7 +81,7 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
     e.preventDefault();
 
     if (!stripe || !elements) {
-      setError("Stripe has not loaded yet. Please try again.");
+      setError("Payment system is not ready. Please refresh the page and try again.");
       return;
     }
 
@@ -138,6 +150,17 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
     }
   };
 
+  if (!stripeLoaded) {
+    return (
+      <div className="p-20px max-w-1200px mx-auto bg-gray-50">
+        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Make Payment</h1>
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-blue-300 bg-blue-100 text-blue-800 text-sm">
+          Loading payment system...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-20px max-w-1200px mx-auto bg-gray-50">
       <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Make Payment</h1>
@@ -184,31 +207,34 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
           </p>
         </div>
 
-        {/* Card Information */}
-        <div className="mb-20px">
-          <label className="block mb-6px font-medium text-gray-700">
-            Card Information *
-          </label>
-          <div className="px-3 py-3 border border-gray-300 rounded-lg shadow-inner bg-white">
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#000',
-                    '::placeholder': {
-                      color: '#6b7280',
+        {/* Card Information - Only show when Stripe is loaded */}
+        {stripeLoaded && (
+          <div className="mb-20px">
+            <label className="block mb-6px font-medium text-gray-700">
+              Card Information *
+            </label>
+            <div className="px-3 py-3 border border-gray-300 rounded-lg shadow-inner bg-white">
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: '16px',
+                      color: '#000',
+                      '::placeholder': {
+                        color: '#6b7280',
+                      },
+                      fontFamily: 'system-ui, -apple-system, sans-serif',
+                    },
+                    invalid: {
+                      color: '#ef4444',
                     },
                   },
-                  invalid: {
-                    color: '#ef4444',
-                  },
-                },
-                hidePostalCode: false
-              }}
-            />
+                  hidePostalCode: true
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Info Box */}
         <div className="mb-20px p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -259,6 +285,23 @@ export default function MakePayment({ currentUser }: MakePaymentProps) {
   const [currentTenant, setCurrentTenant] = useState<TenantDto | null>(null);
   const [lease, setLease] = useState<LeaseDto | null>(null);
   const [error, setError] = useState("");
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  // Check if Stripe is properly configured
+  useEffect(() => {
+    const initStripe = async () => {
+      try {
+        const stripe = await stripePromise;
+        if (!stripe) {
+          setStripeError("Payment system is not available. Please check your internet connection and try again.");
+        }
+      } catch (error) {
+        console.error("Stripe initialization error:", error);
+        setStripeError("Failed to load payment system. Please refresh the page.");
+      }
+    };
+    initStripe();
+  }, []);
 
   useEffect(() => {
     if (currentUser) {
@@ -319,6 +362,32 @@ export default function MakePayment({ currentUser }: MakePaymentProps) {
         <h1 className="text-gray-800">Make Payment</h1>
         <div className="text-[#dc3545] my-10px py-10px bg-[#f8d7da] border-1 border-[#f5c6cb] rounded-4px">
           Please log in to make a payment
+        </div>
+      </div>
+    );
+  }
+
+  if (stripeError) {
+    return (
+      <div className="p-20px max-w-1200px mx-auto bg-gray-50">
+        <h1 className="text-gray-800 text-2xl font-semibold mb-10px">Make Payment</h1>
+        <div className="my-4 p-4 rounded-lg shadow-inner border border-red-300 bg-red-100 text-red-800 text-sm">
+          {stripeError}
+        </div>
+        <div className="mt-4 text-sm text-gray-600">
+          <p>Possible issues:</p>
+          <ul className="list-disc ml-5 mt-2">
+            <li>Stripe is being blocked by your browser's tracker blocker</li>
+            <li>Check your browser's content blocking settings</li>
+            <li>Try refreshing the page</li>
+            <li>Try using a different browser</li>
+          </ul>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+          >
+            Refresh Page
+          </button>
         </div>
       </div>
     );
