@@ -75,7 +75,32 @@ export function LoginForm({ onLoginSuccess, onSwitchToSignUp }: LoginFormProps) 
       });
 
       if (!loginRes.ok) {
-        throw new Error("Login failed");
+        const errorData = await loginRes.json().catch(() => ({}));
+
+        // Check if it's an email verification error
+        if (errorData.requiresVerification) {
+          // Get user email by finding the user
+          const getUserEmail = async () => {
+            try {
+              const usersRes = await fetch("/api/users");
+              if (usersRes.ok) {
+                const users = await usersRes.json();
+                const user = users.find((u: any) => u.userName === username);
+                return user?.email || username;
+              }
+            } catch {
+              return username;
+            }
+            return username;
+          };
+
+          const email = await getUserEmail();
+          navigate("/awaiting-verification", { state: { email } });
+          setLoading(false);
+          return;
+        }
+
+        throw new Error(errorData.message || "Login failed");
       }
 
       // Fetch logged-in user from session
@@ -87,9 +112,9 @@ export function LoginForm({ onLoginSuccess, onSwitchToSignUp }: LoginFormProps) 
       const user: UserDto = await meRes.json();
       onLoginSuccess(user); // Update currentUser in App.tsx
       navigate("/");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setFormError("Wrong username or password");
+      setFormError(err.message || "Wrong username or password");
     } finally {
       setLoading(false);
     }

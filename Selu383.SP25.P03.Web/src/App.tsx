@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { LoginForm } from "./pages/LoginForm";
 import { SignUpForm } from "./pages/SignUpForm";
+import VerifyEmail from "./pages/VerifyEmail";
+import AwaitingVerification from "./pages/AwaitingVerification";
 import { UserDto } from "./models/UserDto";
 import LandlordDashboard from './pages/LandlordDashboard'
 import EditProperties from './pages/properties-page/EditProperties'
@@ -24,6 +26,9 @@ import MaintenanceRequests from "./pages/maintenance-requests-page/MaintenanceRe
 import EditMaintenanceRequests from "./pages/maintenance-requests-page/EditMaintenanceRequests";
 import AddAdminUsers from "./pages/admin-page/AddAdminUsers";
 import UsersPage from "./pages/admin-page/EditUsers";
+import VerifyEmailChange from './pages/VerifyEmailChange';
+import VerifyPasswordChange from './pages/VerifyPasswordChange';
+
 import {
   HomeIcon,
   BuildingOffice2Icon,
@@ -430,7 +435,7 @@ function App() {
               <Routes>
                 <Route path="/" element={
                   canManage ? (
-                    <LandlordDashboard currentUser={currentUser || undefined} />
+                    <LandlordDashboard />
                   ) : isTenant(currentUser) ? (
                     <TenantDashboard currentUser={currentUser || undefined} />
                   ) : isStaff(currentUser) ? (
@@ -478,8 +483,8 @@ function App() {
                 } />
                 
                 <Route path="/landlord-dashboard" element={
-                  canManage ? 
-                    <LandlordDashboard currentUser={currentUser || undefined} /> : 
+                  canManage ?
+                    <LandlordDashboard /> :
                     <div className="text-center py-8">
                       <h2 className="text-xl font-bold text-red-600 mb-4">Access Denied</h2>
                       <p>You need to be a Landlord or Admin to access this page.</p>
@@ -672,6 +677,7 @@ function App() {
                   )
                 } />
 
+                {/* Auth Routes */}
                 <Route path="/login" element={
                   <LoginForm
                     onLoginSuccess={handleLoginSuccess}
@@ -685,6 +691,14 @@ function App() {
                     onSwitchToLogin={() => window.location.href = '/login'}
                   />
                 } />
+
+                {/* Email Verification Routes */}
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/awaiting-verification" element={<AwaitingVerification />} />
+
+                {/* Email/Password Change Verification Routes - Public (no authentication required) */}
+                <Route path="/verify-email-change" element={<VerifyEmailChange />} />
+                <Route path="/verify-password-change" element={<VerifyPasswordChange />} />
               </Routes>
             </div>
           </main>

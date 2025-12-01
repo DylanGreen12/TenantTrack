@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { UserDto } from "../../models/UserDto";
 import { Link } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import PaymentForm from "../../components/PaymentForm";
 
 interface LeaseDto {
   id?: number;
@@ -20,6 +23,9 @@ interface EditLeasesProps {
   currentUser?: UserDto;
 }
 
+// Initialize Stripe (replace with your publishable key)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [leases, setLeases] = useState<LeaseDto[]>([]);
   const [error, setError] = useState("");
@@ -31,9 +37,20 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentLeaseId, setPaymentLeaseId] = useState<number | null>(null);
+  const [approveStartDate, setApproveStartDate] = useState("");
+  const [approveEndDate, setApproveEndDate] = useState("");
+  const [approveDeposit, setApproveDeposit] = useState("");
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [selectedLeaseId, setSelectedLeaseId] = useState<number | null>(null);
 
-  // Check if user is Admin
+  // Check if user is Admin or Landlord
   const isAdmin = currentUser?.roles?.includes("Admin") || false;
+  const isLandlord = currentUser?.roles?.includes("Landlord") || false;
+  const isTenant = currentUser?.roles?.includes("Tenant") || false;
 
   useEffect(() => {
     if (currentUser) {
@@ -90,6 +107,78 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
       console.error("Error deleting lease:", err);
     }
   };
+
+  const handleApprove = async (id: number) => {
+    setSelectedLeaseId(id);
+    setShowApproveModal(true);
+  };
+
+  const submitLeaseApproval = async () => {
+    try {
+      await axios.post(`/api/leases/${selectedLeaseId}/approve`, {
+        startDate: approveStartDate,
+        endDate: approveEndDate,
+        deposit: Number(approveDeposit),
+        activate: true
+      });
+
+      setShowApproveModal(false);
+      fetchLeases();
+    } catch (err) {
+      console.error("Approval error:", err);
+    }
+  };
+
+  const handleDeny = async (id: number) => {
+    const reason = prompt("Please provide a reason for denying this application (optional):");
+    if (reason === null) return; // User cancelled
+
+    try {
+      await axios.post(`/api/leases/${id}/deny`, { reason: reason || undefined });
+      setMessage("Lease application denied. Email sent to tenant.");
+      setShowMessage(true);
+      await fetchLeases();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to deny lease";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error denying lease:", err);
+    }
+  };
+
+  const handlePayNow = async (leaseId: number) => {
+    try {
+      // Create payment intent
+      const response = await axios.post(`/api/payments/lease/${leaseId}/create-intent`);
+      const { clientSecret, amount: totalAmount } = response.data;
+
+      setPaymentClientSecret(clientSecret);
+      setPaymentAmount(totalAmount);
+      setPaymentLeaseId(leaseId);
+      setShowPaymentModal(true);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Failed to create payment";
+      setError(errorMsg);
+      setMessage(errorMsg);
+      setShowMessage(true);
+      console.error("Error creating payment intent:", err);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    setPaymentClientSecret(null);
+    setMessage("Payment successful! Your lease is now active.");
+    setShowMessage(true);
+    fetchLeases();
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setPaymentClientSecret(null);
+  };
+
 
   return (
       <div className="leases-list">
@@ -177,9 +266,12 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   className="w-full px-3 py-2 rounded-md border border-gray-300 text-black bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">--Choose Status--</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved-AwaitingPayment">Approved - Awaiting Payment</option>
                   <option value="Active">Active</option>
                   <option value="Expired">Expired</option>
                   <option value="Terminated">Terminated</option>
+                  <option value="Denied">Denied</option>
                 </select>
               </div>
 
@@ -258,20 +350,60 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
                   </td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${lease.rent.toFixed(2)}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">${lease.deposit.toFixed(2)}</td>
-                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{lease.status}</td>
+                  <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      lease.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
+                      lease.status === "Approved-AwaitingPayment" ? "bg-blue-100 text-blue-800" :
+                      lease.status === "Active" ? "bg-green-100 text-green-800" :
+                      lease.status === "Denied" ? "bg-red-100 text-red-800" :
+                      lease.status === "Expired" ? "bg-orange-100 text-orange-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {lease.status === "Approved-AwaitingPayment" ? "Awaiting Payment" : lease.status}
+                    </span>
+                  </td>
                   <td className="p-12px border-b flex gap-2">
-                    <Link
-                      to={`/lease/${lease.id}`}
-                      className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#1e7e34] transition-colors"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => lease.id && handleDelete(lease.id)}
-                      className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      Delete
-                    </button>
+                    {lease.status === "Pending" && (isAdmin || isLandlord) ? (
+                      <>
+                        <button
+                          onClick={() => lease.id && handleApprove(lease.id)}
+                          className="bg-[#22c55e] text-white py-6px px-12px rounded-md text-12px hover:bg-[#16a34a] transition-colors"
+                          title="Approve application"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => lease.id && handleDeny(lease.id)}
+                          className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors"
+                          title="Deny application"
+                        >
+                          Deny
+                        </button>
+                      </>
+                    ) : lease.status === "Approved-AwaitingPayment" && isTenant ? (
+                      <button
+                        onClick={() => lease.id && handlePayNow(lease.id)}
+                        className="bg-[#3b82f6] text-white py-6px px-12px rounded-md text-12px hover:bg-[#2563eb] transition-colors font-semibold"
+                        title="Pay now to activate lease"
+                      >
+                        Pay Now (${(lease.rent + lease.deposit).toFixed(2)})
+                      </button>
+                    ) : (
+                      <>
+                        <Link
+                          to={`/lease/${lease.id}`}
+                          className="bg-[#3b82f6] text-white py-6px px-12px rounded-md text-12px hover:bg-[#2563eb] transition-colors"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => lease.id && handleDelete(lease.id)}
+                          className="bg-[#ef4444] text-white py-6px px-12px rounded-md text-12px hover:bg-[#dc2626] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -288,6 +420,79 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
               </div>
             )}
           </table>
+        )}
+
+        {/* APPROVE LEASE MODAL */}
+        {showApproveModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h3 className="text-lg font-semibold mb-4">
+                Approve Lease – Set Details
+              </h3>
+
+              {/* Start Date */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={approveStartDate}
+                onChange={(e) => setApproveStartDate(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              {/* End Date */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={approveEndDate}
+                onChange={(e) => setApproveEndDate(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              {/* Deposit */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Security Deposit
+              </label>
+              <input
+                type="number"
+                placeholder="Enter deposit amount"
+                value={approveDeposit}
+                onChange={(e) => setApproveDeposit(e.target.value)}
+                className="w-full border p-2 rounded mb-4"
+              />
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowApproveModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={submitLeaseApproval}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Approve Lease
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Modal */}
+        {showPaymentModal && paymentClientSecret && paymentLeaseId && (
+          <Elements stripe={stripePromise} options={{ clientSecret: paymentClientSecret }}>
+            <PaymentForm
+              leaseId={paymentLeaseId}
+              amount={paymentAmount}
+              onSuccess={handlePaymentSuccess}
+              onCancel={handlePaymentCancel}
+            />
+          </Elements>
         )}
     </div>
   );

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Selu383.SP25.P03.Api.Data;
 
@@ -11,9 +12,11 @@ using Selu383.SP25.P03.Api.Data;
 namespace Selu383.SP25.P03.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251201214014_fixtenantmail1")]
+    partial class fixtenantmail1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,6 +167,9 @@ namespace Selu383.SP25.P03.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AssignedTo")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -180,9 +186,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                     b.Property<DateTimeOffset>("RequestedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int?>("StaffId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -195,8 +198,6 @@ namespace Selu383.SP25.P03.Api.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("StaffId");
 
                     b.HasIndex("TenantId");
 
@@ -674,17 +675,11 @@ namespace Selu383.SP25.P03.Api.Migrations
 
             modelBuilder.Entity("Selu383.SP25.P03.Api.Features.MaintenanceRequests.MaintenanceRequest", b =>
                 {
-                    b.HasOne("Selu383.SP25.P03.Api.Features.Staff.Staff", "Staff")
-                        .WithMany()
-                        .HasForeignKey("StaffId");
-
                     b.HasOne("Selu383.SP25.P03.Api.Features.Tenants.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Staff");
 
                     b.Navigation("Tenant");
                 });

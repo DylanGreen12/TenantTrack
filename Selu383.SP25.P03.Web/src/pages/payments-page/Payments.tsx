@@ -368,7 +368,7 @@ export default function PaymentsPage({ currentUser }: PaymentsPageProps) {
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.date}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">{payment.paymentMethod}</td>
                   <td className="p-12px border-b border-r border-[#e5e7eb] text-[#111827]">
-                    {isLandlord ? (
+                    {isLandlord && payment.paymentMethod === 'Cash' ? (
                       <select
                         value={payment.status}
                         onChange={(e) => handleStatusUpdate(payment.id!, e.target.value)}

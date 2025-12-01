@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
+using Selu383.SP25.P03.Api.Features.Email;
+using Selu383.SP25.P03.Api.Features.Payments;
+using Stripe;
 
 namespace Selu383.SP25.P03.Api
 {
@@ -14,6 +17,14 @@ namespace Selu383.SP25.P03.Api
             // Add services to the container.
             builder.Services.AddDbContext<DataContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext") ?? throw new InvalidOperationException("Connection string 'DataContext' not found.")));
+
+            // Configure email settings
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
+            // Configure Stripe, let stripe handle api
+            //StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            builder.Services.AddScoped<IStripeService, StripeService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
