@@ -296,6 +296,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(new { message = "Verification email sent. Please check your email to confirm the password change." });
         }
 
+
         // Verify and apply email change
         [HttpPost("verify-email-change")]
         public async Task<ActionResult> VerifyEmailChange([FromBody] VerifyChangeDto dto)
@@ -317,6 +318,18 @@ namespace Selu383.SP25.P03.Api.Controllers
             }
 
             var user = pendingChange.User;
+            
+            // Find tenant with matching email and update it
+            var tenant = await dataContext.Tenants
+                .FirstOrDefaultAsync(t => t.Email == user.Email);
+                
+            if (tenant != null)
+            {
+                tenant.Email = pendingChange.NewEmail;
+                dataContext.Tenants.Update(tenant);
+            }
+
+            // Update user email
             user.Email = pendingChange.NewEmail;
             user.EmailConfirmed = true; // Since they verified the new email
 
