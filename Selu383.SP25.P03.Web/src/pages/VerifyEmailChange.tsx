@@ -7,6 +7,30 @@ const VerifyEmailChange: React.FC = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
+  const [redirectTimer, setRedirectTimer] = useState(5); // Countdown timer
+
+  useEffect(() => {
+    let timer: number;
+    
+    if (status === "success") {
+      // Start countdown for redirect
+      timer = window.setInterval(() => {
+        setRedirectTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            // Force a hard refresh to ensure sidebar shows updated email
+            window.location.href = "/";
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [status, navigate]);
 
   useEffect(() => {
     const verifyEmailChange = async () => {
@@ -20,21 +44,50 @@ const VerifyEmailChange: React.FC = () => {
       }
 
       try {
+        // Using the SMTP backend endpoint
         await axios.post("/api/users/verify-email-change", {
           token: token
         });
         
         setStatus("success");
-        setMessage(`Your email has been successfully updated to ${decodeURIComponent(newEmail)}! You can now close this page or continue using the application.`);
+        setMessage(`Your email has been successfully updated to ${decodeURIComponent(newEmail)}! You will be redirected in ${redirectTimer} seconds...`);
+        
+        // Clear localStorage to force re-fetch of user data
+        localStorage.removeItem('currentUser');
         
       } catch (error: any) {
+        console.error("Email change verification error:", error);
         setStatus("error");
-        setMessage(error.response?.data?.message || "Failed to verify email change. The link may have expired.");
+        if (error.response?.status === 400) {
+          setMessage(error.response.data || "Invalid or expired verification token. Please request a new email change.");
+        } else if (error.response?.status === 404) {
+          setMessage("Invalid verification token. Please request a new email change.");
+        } else {
+          setMessage("Failed to verify email change. Please try again later.");
+        }
       }
     };
 
     verifyEmailChange();
   }, [searchParams, navigate]);
+
+  // Function to force refresh the app
+  const forceRefreshApp = () => {
+    // Clear all user data from localStorage
+    localStorage.removeItem('currentUser');
+    // Force a full page reload to refresh all components
+    window.location.href = "/";
+  };
+
+  const handleGoToSettings = () => {
+    // Clear localStorage and navigate to settings
+    localStorage.removeItem('currentUser');
+    navigate("/editcontact");
+    // Force a refresh after navigation
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -56,18 +109,27 @@ const VerifyEmailChange: React.FC = () => {
               </svg>
             </div>
             <p className="text-green-600 mb-4">{message}</p>
+            <p className="text-sm text-gray-500 mb-4">
+              Redirecting in {redirectTimer} seconds...
+            </p>
             <div className="flex flex-col gap-2 mt-4">
               <button
-                onClick={() => navigate("/")}
+                onClick={forceRefreshApp}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
               >
-                Go to Home
+                Go to Home Now
               </button>
               <button
-                onClick={() => navigate("/editcontact")}
+                onClick={handleGoToSettings}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
               >
                 User Settings
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors text-sm"
+              >
+                ↻ Refresh Page
               </button>
             </div>
           </div>
@@ -81,12 +143,20 @@ const VerifyEmailChange: React.FC = () => {
               </svg>
             </div>
             <p className="text-red-600 mb-4">{message}</p>
-            <button
-              onClick={() => navigate("/editcontact")}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-            >
-              Back to User Settings
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleGoToSettings}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+              >
+                Back to User Settings
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors text-sm"
+              >
+                ↻ Try Again
+              </button>
+            </div>
           </div>
         )}
       </div>
