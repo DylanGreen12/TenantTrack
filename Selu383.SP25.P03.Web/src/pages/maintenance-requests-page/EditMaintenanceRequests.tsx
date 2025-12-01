@@ -12,6 +12,7 @@ interface MaintenanceRequestDto {
   status: string;
   requestedAt: string;
   completedAt?: string;
+  staffId?: number;
 }
 
 interface TenantDto {
@@ -23,9 +24,18 @@ interface TenantDto {
   unitId: number;
 }
 
+
 interface LeaseDto {
   id: number;
   status: string;
+}
+        
+interface StaffDto {
+  id?: number;
+  firstName: string;
+  lastName: string;
+  position: string;
+  propertyId: number;
 }
 
 interface UnitDto {
@@ -48,6 +58,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tenants, setTenants] = useState<TenantDto[]>([]);
+  const [staff, setStaff] = useState<StaffDto[]>([]);
   const [units, setUnits] = useState<UnitDto[]>([]);
   const [allProperties, setAllProperties] = useState<PropertyDto[]>([]);
   const [currentTenant, setCurrentTenant] = useState<TenantDto | null>(null);
@@ -57,7 +68,8 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     description: "",
     priority: "",
     status: "Pending",
-    requestedAt: new Date().toISOString()
+    requestedAt: new Date().toISOString(),
+    staffId: undefined
   });
   const [loading, setLoading] = useState(false);
   const [validatingAccess, setValidatingAccess] = useState(true);
@@ -96,6 +108,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
         await fetchTenants();
         await fetchUnits();
         await fetchProperties();
+        await fetchStaff();
       }
 
       // Tenants need to find their own tenant record
@@ -146,6 +159,15 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     }
   };
 
+  const fetchStaff = async () => {
+    try {
+      const response = await axios.get<StaffDto[]>("/api/staff");
+      setStaff(response.data);
+    } catch (err) {
+      console.error("Error fetching staff:", err);
+    }
+  };
+
   const fetchUnits = async () => {
     try {
       const response = await axios.get<UnitDto[]>("/api/units");
@@ -163,6 +185,8 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
       console.error("Error fetching properties:", err);
     }
   };
+
+  
 
   const fetchCurrentTenant = async () => {
     try {
@@ -195,6 +219,16 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     : tenants.filter(tenant => {
         const userProperty = allProperties.find(property => 
           units.some(unit => unit.id === tenant.unitId && unit.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0"))
+        );
+        return userProperty !== undefined;
+      });
+
+    // Show all tenants for Admin, only user's tenants for others
+  const displayStaff = isAdmin 
+    ? staff 
+    : staff.filter(staff => {
+        const userProperty = allProperties.find(property => 
+          staff.propertyId === property.id && property.userId === parseInt(currentUser?.id || "0")
         );
         return userProperty !== undefined;
       });
@@ -248,6 +282,7 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
     setMessage("");
 
     try {
+      
       if (id) {
         // Editing existing request
         await axios.put(`/api/maintenancerequests/${id}`, formData);
@@ -449,6 +484,56 @@ export default function EditMaintenanceRequests({ currentUser }: EditMaintenance
               <option value="Completed">Completed</option>
             </select>
           </div>
+
+          
+        )}
+
+        {(isLandlord || isStaff) && id && (
+        <div className="mb-20px">
+          <label htmlFor="staffId" className="block mb-6px font-medium text-gray-700">
+            Staff Member
+          </label>
+          <select
+            id="staffId"
+            name="staffId"
+            value={formData.staffId}
+            onChange={(e) => {
+              const staffId = Number(e.target.value);
+              const staff = displayStaff.find(s => s.id === staffId);
+
+              setFormData(prev => ({
+                ...prev,
+                staffId,
+                firstName: staff?.firstName || "",
+                lastName: staff?.lastName || "",
+                position: staff?.position || ""
+              }));
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-inner bg-white text-black focus:(outline-none ring-2 ring-blue-400)"
+            required
+          >
+            <option value={0}>-- Select Staff Member --</option>
+            {displayStaff.map(staff => {
+              const property = allProperties.find(p => staff.propertyId === p.id);
+              return (
+                <option key={staff.id} value={staff.id}>
+                  {staff.firstName} {staff.lastName}, {staff.position}
+                  {isAdmin && property && ` - ${property.name} (Owner: ${property.userId})`}
+                </option>
+              );
+            })}
+          </select>
+          {isAdmin && displayStaff.length > 0 && (
+            <p className="text-sm text-gray-600 mt-1">
+              Showing all {displayTenants.length} tenants in the system
+            </p>
+          )}
+          {displayStaff.length === 0 && (
+            <p className="text-[#dc3545] text-12px mt-5px">
+              {isAdmin ? "No staff found in the system." : "No staff found for your properties."}
+            </p>
+          )}
+        </div>
         )}
 
         {error && (

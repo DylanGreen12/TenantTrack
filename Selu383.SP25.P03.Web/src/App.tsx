@@ -17,6 +17,7 @@ import EditLeases from './pages/leases-page/EditLeases'
 import ListLeases from './pages/leases-page/ListLeases';
 import EditStaff from './pages/staff-page/EditStaff'
 import ListStaff from './pages/staff-page/ListStaff'
+import StaffDashboard from './pages/staff-page/StaffDashboard';
 import EditContactInfo from './pages/EditContactInfo';
 import PaymentsPage from "./pages/payments-page/Payments";
 import RecordPayment from "./pages/payments-page/RecordPayment";
@@ -437,6 +438,8 @@ function App() {
                     <LandlordDashboard />
                   ) : isTenant(currentUser) ? (
                     <TenantDashboard currentUser={currentUser || undefined} />
+                  ) : isStaff(currentUser) ? (
+                  <StaffDashboard currentUser={currentUser || undefined} />
                   ) : (
                     <PropertiesView currentUser={currentUser || undefined} />
                   )

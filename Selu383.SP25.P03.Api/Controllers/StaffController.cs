@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Staff;
 using System.Text.RegularExpressions;
+using Selu383.SP25.P03.Api.Features.MaintenanceRequests;
+using Selu383.SP25.P03.Api.Features.Users;
+using Microsoft.AspNetCore.Identity;
+
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -11,10 +15,12 @@ namespace Selu383.SP25.P03.Api.Controllers
     public class StaffController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public StaffController(DataContext context)
+        public StaffController(DataContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         private bool IsValidEmail(string email)
@@ -87,6 +93,41 @@ namespace Selu383.SP25.P03.Api.Controllers
                 .ToListAsync();
 
             return Ok(staff);
+        }
+
+        [HttpGet("my-requests")]
+        public async Task<ActionResult<IEnumerable<MaintenanceRequestDto>>> GetMyMaintenanceRequests()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized(new { message = "Not logged in" });
+
+            // Match staff by email (your requirement)
+            var staff = await _context.Staff
+                .FirstOrDefaultAsync(s => s.Email.ToLower() == user.Email.ToLower());
+
+            if (staff == null)
+                return NotFound(new { message = "No staff record found for this user" });
+
+            // Load all requests assigned to this staff member
+            var requests = await _context.MaintenanceRequests
+                .Where(r => r.StaffId == staff.Id)
+                .Select(r => new MaintenanceRequestDto
+                {
+                    Id = r.Id,
+                    TenantId = r.TenantId,
+                    UnitNumber = r.Tenant.UnitNumber,
+                    Description = r.Description,
+                    Status = r.Status,
+                    Priority = r.Priority,
+                    StaffId = r.StaffId,
+                    RequestedAt = r.RequestedAt,
+                    UpdatedAt = r.UpdatedAt,
+                    CompletedAt = r.CompletedAt
+                })
+                .ToListAsync();
+
+            return Ok(requests);
         }
 
         // GET: api/staff/5
@@ -318,6 +359,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             return Ok(updatedStaff);
         }
 
+        
         // DELETE: api/staff/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStaff(int id)

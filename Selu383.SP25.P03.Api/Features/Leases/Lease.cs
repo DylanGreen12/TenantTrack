@@ -27,9 +27,9 @@ namespace Selu383.SP25.P03.Api.Features.Leases
         public required DateOnly StartDate { get; set; }
 
         public required DateOnly EndDate { get; set; }
-        
+        [Column(TypeName = "decimal(18,2)")]
         public required decimal Rent { get; set; }
-
+        [Column(TypeName = "decimal(18,2)")]
         public required decimal Deposit { get; set; }
 
         
