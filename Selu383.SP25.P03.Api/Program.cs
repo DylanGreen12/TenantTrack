@@ -22,8 +22,8 @@ namespace Selu383.SP25.P03.Api
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddScoped<IEmailService, EmailService>();
 
-            // Configure Stripe
-            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+            // Configure Stripe, let stripe handle api
+            //StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             builder.Services.AddScoped<IStripeService, StripeService>();
 
             builder.Services.AddControllers();

@@ -24,7 +24,7 @@ interface EditLeasesProps {
 }
 
 // Initialize Stripe (replace with your publishable key)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   const [leases, setLeases] = useState<LeaseDto[]>([]);

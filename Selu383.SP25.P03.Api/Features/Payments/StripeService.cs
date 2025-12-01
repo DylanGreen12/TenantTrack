@@ -2,6 +2,7 @@ using Stripe;
 using Selu383.SP25.P03.Api.Data;
 using Selu383.SP25.P03.Api.Features.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Selu383.SP25.P03.Api.Features.Payments
 {
@@ -9,11 +10,24 @@ namespace Selu383.SP25.P03.Api.Features.Payments
     {
         private readonly DataContext _context;
         private readonly ILogger<StripeService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public StripeService(DataContext context, ILogger<StripeService> logger)
+        public StripeService(DataContext context, ILogger<StripeService> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _configuration = configuration;
+            
+            // Try environment variable first, then fall back to configuration (user secrets)
+            var stripeSecretKey = Environment.GetEnvironmentVariable("SecretKey") 
+                                ?? _configuration["Stripe:SecretKey"];
+            
+            if (string.IsNullOrEmpty(stripeSecretKey))
+            {
+                throw new InvalidOperationException("Stripe SecretKey not configured. Set it as environment variable 'SecretKey' or in user secrets as 'Stripe:SecretKey'");
+            }
+            
+            StripeConfiguration.ApiKey = stripeSecretKey;
         }
 
         public async Task<string> GetOrCreateCustomerAsync(int userId, string email, string? name)
