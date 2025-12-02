@@ -4,6 +4,16 @@ env:
   AZURE_WEBAPP_NAME: TenantTrack
   AZURE_WEBAPP_PACKAGE_PATH: './publish-output'
   DOTNET_VERSION: '9.0.x'
+  # Add your environment variables here
+  VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+  # Add other environment variables you need
+  BASE_URL: ${{ secrets.BASE_URL }}
+  FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+  FROM_NAME: ${{ secrets.FROM_NAME }}
+  SMTP_HOST: ${{ secrets.SMTP_HOST }}
+  SMTP_PORT: ${{ secrets.SMTP_PORT }}
+  SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
 
 on:
   push:
@@ -55,6 +65,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
 
+      - name: Build React app with environment variables
+        run: |
+          cd Selu383.SP25.P03.Web
+          # Create .env.production file with the environment variables
+          echo "VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}" > .env.production
+          echo "VITE_BASE_URL=${{ secrets.BASE_URL }}" >> .env.production
+          # Build the React app
+          npm run build
+        env:
+          # Pass all environment variables
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_BASE_URL: ${{ secrets.BASE_URL }}
+
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
@@ -94,4 +117,6 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: ./deployment-package
-    
+          # Add these app settings to Azure Web App
+          app-settings: |
+            -VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
