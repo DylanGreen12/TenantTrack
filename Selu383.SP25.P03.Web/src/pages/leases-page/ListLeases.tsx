@@ -109,6 +109,14 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
   };
 
   const handleApprove = async (id: number) => {
+    const lease = leases.find(l => l.id === id);
+    if (!lease) return;
+
+    // Pre-fill with tenant's requested dates and suggested deposit
+    setApproveStartDate(lease.startDate);
+    setApproveEndDate(lease.endDate);
+    setApproveDeposit(lease.rent.toString()); // Suggest 1 month rent as deposit
+
     setSelectedLeaseId(id);
     setShowApproveModal(true);
   };
@@ -426,42 +434,47 @@ const ListLeases: React.FC<EditLeasesProps> = ({ currentUser }) => {
         {showApproveModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h3 className="text-lg font-semibold mb-4">
-                Approve Lease – Set Details
+              <h3 className="text-lg font-semibold mb-2">
+                Approve Lease Application
               </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Review and adjust the tenant's requested terms
+              </p>
 
               {/* Start Date */}
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                Start Date
+                Lease Start Date <span className="text-gray-500 font-normal">(tenant requested)</span>
               </label>
               <input
                 type="date"
                 value={approveStartDate}
                 onChange={(e) => setApproveStartDate(e.target.value)}
-                className="w-full border p-2 rounded mb-4"
+                className="w-full border border-gray-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               {/* End Date */}
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                End Date
+                Lease End Date <span className="text-gray-500 font-normal">(default: 1 year)</span>
               </label>
               <input
                 type="date"
                 value={approveEndDate}
                 onChange={(e) => setApproveEndDate(e.target.value)}
-                className="w-full border p-2 rounded mb-4"
+                className="w-full border border-gray-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               {/* Deposit */}
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                Security Deposit
+                Security Deposit <span className="text-gray-500 font-normal">(suggested: 1 month rent)</span>
               </label>
               <input
                 type="number"
                 placeholder="Enter deposit amount"
                 value={approveDeposit}
                 onChange={(e) => setApproveDeposit(e.target.value)}
-                className="w-full border p-2 rounded mb-4"
+                className="w-full border border-gray-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="0"
+                step="0.01"
               />
 
               <div className="flex justify-end gap-2 mt-4">

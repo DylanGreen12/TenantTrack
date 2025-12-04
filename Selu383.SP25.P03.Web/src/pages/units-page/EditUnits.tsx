@@ -46,6 +46,8 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkUnitNumbers, setBulkUnitNumbers] = useState("");
 
   // Check if user is Admin
   const isAdmin = currentUser?.roles?.includes("Admin") || false;
@@ -113,7 +115,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!currentUser) {
       setError("Please log in to manage units");
       setMessage("Please log in to manage units.");
@@ -129,6 +131,35 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
       if (editingId) {
         await axios.put(`/api/units/${editingId}`, formData);
         setMessage("Unit updated successfully!");
+      } else if (bulkMode) {
+        // Parse unit numbers from text input
+        const unitNumbers = bulkUnitNumbers
+          .split(/[,\n]/)
+          .map(num => num.trim())
+          .filter(num => num.length > 0);
+
+        if (unitNumbers.length === 0) {
+          setError("Please enter at least one unit number");
+          setMessage("Please enter at least one unit number");
+          setShowMessage(true);
+          setLoading(false);
+          return;
+        }
+
+        const bulkData = {
+          unitNumbers,
+          propertyId: formData.propertyId,
+          description: formData.description,
+          imageUrl: formData.imageUrl,
+          bedrooms: formData.bedrooms,
+          bathrooms: formData.bathrooms,
+          squareFeet: formData.squareFeet,
+          rent: formData.rent,
+          status: formData.status
+        };
+
+        const response = await axios.post("/api/units/bulk", bulkData);
+        setMessage(response.data.message || `Created ${unitNumbers.length} units successfully!`);
       } else {
         await axios.post("/api/units", formData);
         setMessage("Unit added successfully!");
@@ -162,6 +193,8 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
     setEditingId(null);
     setError("");
     setShowMessage(false);
+    setBulkMode(false);
+    setBulkUnitNumbers("");
   };
 
   if (!currentUser) {
@@ -199,7 +232,7 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             </div>
           )}
         </div>
-        
+
         {editingId && isAdmin && (
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <p className="text-yellow-800 text-sm">
@@ -207,21 +240,57 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
             </p>
           </div>
         )}
-        
-        <div className="mb-20px">
-          <label htmlFor="unitNumber" className="block mb-6px font-medium text-gray-700">
-            Unit Number
-          </label>
-          <input
-            type="text"
-            id="unitNumber"
-            name="unitNumber"
-            value={formData.unitNumber}
-            onChange={handleInputChange}
-            className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
-            required
-          />
-        </div>
+
+        {!editingId && (
+          <div className="mb-20px">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bulkMode}
+                onChange={(e) => setBulkMode(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Create multiple units with same details (bulk creation)
+              </span>
+            </label>
+          </div>
+        )}
+
+        {bulkMode && !editingId ? (
+          <div className="mb-20px">
+            <label htmlFor="bulkUnitNumbers" className="block mb-6px font-medium text-gray-700">
+              Unit Numbers (comma-separated or one per line)
+            </label>
+            <textarea
+              id="bulkUnitNumbers"
+              value={bulkUnitNumbers}
+              onChange={(e) => setBulkUnitNumbers(e.target.value)}
+              rows={5}
+              className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              placeholder="Example: 101, 102, 103 or one per line"
+              required
+            />
+            <p className="text-sm text-gray-600 mt-1">
+              Preview: {bulkUnitNumbers.split(/[,\n]/).map(n => n.trim()).filter(n => n.length > 0).length} unit(s) will be created
+            </p>
+          </div>
+        ) : (
+          <div className="mb-20px">
+            <label htmlFor="unitNumber" className="block mb-6px font-medium text-gray-700">
+              Unit Number
+            </label>
+            <input
+              type="text"
+              id="unitNumber"
+              name="unitNumber"
+              value={formData.unitNumber}
+              onChange={handleInputChange}
+              className="w-217 px-3 py-2 text-black border border-gray-300 rounded-lg shadow-inner bg-white focus:(outline-none ring-2 ring-blue-400)"
+              required
+            />
+          </div>
+        )}
 
         <div className="mb-20px">
           <label htmlFor="propertyId" className="block mb-6px font-medium text-gray-700">
@@ -378,12 +447,12 @@ const EditUnits: React.FC<EditUnitsProps> = ({ currentUser }) => {
         )}
 
         <div className="flex flex-wrap gap-12px mt-24px">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="bg-blue-500 text-white py-10px px-20px rounded-8px text-14px hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Saving..." : editingId ? "Update Unit" : "Add Unit"}
+            {loading ? "Saving..." : editingId ? "Update Unit" : bulkMode ? "Create Multiple Units" : "Add Unit"}
           </button>
           {editingId && (
             <button 

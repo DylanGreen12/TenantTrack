@@ -24,6 +24,7 @@ interface LeaseDto {
   id: number;
   status: string;
   rent: number;
+  deposit: number;
 }
 
 interface MakePaymentProps {
@@ -35,7 +36,12 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
   const stripe = useStripe();
   const elements = useElements();
 
-  const [amount, setAmount] = useState<string>(lease.rent.toString());
+  // For first payment (Approved-AwaitingPayment status), include deposit + rent
+  const initialAmount = lease.status === "Approved-AwaitingPayment"
+    ? (lease.rent + lease.deposit).toString()
+    : lease.rent.toString();
+
+  const [amount, setAmount] = useState<string>(initialAmount);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -172,6 +178,14 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
             <strong>Name:</strong> {tenant.firstName} {tenant.lastName}<br />
             <strong>Unit:</strong> {tenant.unitNumber}<br />
             <strong>Monthly Rent:</strong> ${lease.rent.toFixed(2)}
+            {lease.status === "Approved-AwaitingPayment" && lease.deposit > 0 && (
+              <>
+                <br />
+                <strong>Security Deposit:</strong> ${lease.deposit.toFixed(2)}
+                <br />
+                <strong className="text-blue-900">First Payment Total:</strong> ${(lease.rent + lease.deposit).toFixed(2)}
+              </>
+            )}
           </p>
         </div>
       )}
@@ -203,7 +217,9 @@ function PaymentForm({ lease, tenant }: { lease: LeaseDto; tenant: TenantDto }) 
             />
           </div>
           <p className="text-xs text-gray-600 mt-1">
-            Default amount is your monthly rent. You can adjust if making a partial payment.
+            {lease.status === "Approved-AwaitingPayment" && lease.deposit > 0
+              ? "First payment includes security deposit + monthly rent. You can adjust if making a partial payment."
+              : "Default amount is your monthly rent. You can adjust if making a partial payment."}
           </p>
         </div>
 

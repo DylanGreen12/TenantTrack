@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { UserDto } from "../models/UserDto";
+import { HomeIcon } from '@heroicons/react/24/solid';
 
 interface PropertyDto {
   id: number;
@@ -247,19 +248,21 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
         firstName: rentalFormData.firstName,
         lastName: rentalFormData.lastName,
         phoneNumber: rentalFormData.phoneNumber,
-        email: rentalFormData.email
+        email: rentalFormData.email,
+        requestedMoveInDate: rentalFormData.moveInDate || undefined
       };
 
       await axios.post("/api/tenants", tenantData);
-      
-      setRentalMessage("🎉 Rental application submitted successfully! We'll contact you soon.");
+
+      setRentalMessage("success");
+      // Keep the loading state to show the success message
       setTimeout(() => {
         closeRentalForm();
-      }, 3000);
-      
+        setSubmittingRental(false);
+      }, 2500);
+
     } catch (err: any) {
       setRentalMessage(err.response?.data?.message || "Failed to submit rental application. Please try again.");
-    } finally {
       setSubmittingRental(false);
     }
   };
@@ -386,7 +389,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                     />
                   ) : (
                     <div className="w-full h-full bg-white bg-opacity-10 flex items-center justify-center border-2 border-dashed border-white border-opacity-30">
-                      <span className="text-3xl opacity-70">🏠</span>
+                      <HomeIcon className="h-12 w-12 text-white opacity-70" />
                     </div>
                   )}
                 </div>
@@ -501,9 +504,10 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                             <div className="mt-4 pt-4 border-t border-gray-200">
                               <button
                                 onClick={() => openRentalForm(unit, property)}
-                                className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+                                className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                               >
-                                🏠 Rent This Unit
+                                <HomeIcon className="h-6 w-6" />
+                                Rent This Unit
                               </button>
                             </div>
                           )}
@@ -671,9 +675,20 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                 <button
                   type="submit"
                   disabled={submittingRental}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
+                  className={`flex-1 text-white py-4 px-6 rounded-lg font-bold text-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                    rentalMessage === "success"
+                      ? "bg-gradient-to-r from-green-600 to-green-700"
+                      : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  }`}
                 >
-                  {submittingRental ? (
+                  {rentalMessage === "success" ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Application Submitted! Redirecting...
+                    </span>
+                  ) : submittingRental ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -682,7 +697,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       Submitting Application...
                     </span>
                   ) : (
-                    "📝 Submit Rental Application"
+                    "Submit Rental Application"
                   )}
                 </button>
                 <button

@@ -9,8 +9,8 @@ namespace Selu383.SP25.P03.Api.Features.Tenants
         public required string LastName { get; set; }
         public required string PhoneNumber { get; set; }
         public required string Email { get; set; }
+        public DateOnly? RequestedMoveInDate { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        public DateTime UpdatedAt { get; set; } 
+        public DateTime UpdatedAt { get; set; }
     }
 }

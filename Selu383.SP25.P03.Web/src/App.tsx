@@ -160,6 +160,7 @@ function App() {
   const handleLogout = () => {
     authService.logout();
     setCurrentUser(null);
+    window.location.href = '/properties';
   };
 
   // Handle user updates from EditContactInfo

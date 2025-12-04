@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { UserDto } from "../models/UserDto";
 import "../styles/LandlordDashboard.css";
 
@@ -84,27 +85,34 @@ interface LandlordDashboardProps {
 }
 
 const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchDashboardData();
-    }
-  }, [currentUser]);
+    fetchDashboardData();
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get<LandlordDashboardData>("/api/landlord/dashboard");
+      const response = await axios.get<LandlordDashboardData>("/api/landlord/dashboard", { withCredentials: true });
       setDashboardData(response.data);
       setLoading(false);
+
+      // If landlord has no properties, redirect to properties page to create one
+      if (response.data.properties.length === 0) {
+        navigate("/properties");
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load dashboard data");
-      setLoading(false);
       console.error("Error fetching dashboard:", err);
+      console.error("Error response:", err.response);
+      console.error("Error status:", err.response?.status);
+      console.error("Error data:", err.response?.data);
+      setError(err.response?.data?.message || err.message || "Failed to load dashboard data");
+      setLoading(false);
     }
   };
 

@@ -63,7 +63,7 @@ namespace Selu383.SP25.P03.Api.Controllers
             // Get all leases for units in these properties
             var unitNumbers = units.Select(u => u.UnitNumber).ToList();
             var leases = await _context.Leases
-                .Where(l => unitNumbers.Contains(l.UnitNumber))
+                .Where(l => unitNumbers.Contains(l.UnitNumber) && l.Tenant != null)
                 .Include(l => l.Tenant)
                 .Select(l => new LeaseDetailsDto
                 {
@@ -72,8 +72,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                     TenantId = l.TenantId,
                     TenantFirstName = l.FirstName,
                     TenantLastName = l.LastName,
-                    TenantEmail = l.Tenant.Email,
-                    TenantPhone = l.Tenant.PhoneNumber,
+                    TenantEmail = l.Tenant != null ? l.Tenant.Email : "",
+                    TenantPhone = l.Tenant != null ? l.Tenant.PhoneNumber : "",
                     StartDate = l.StartDate,
                     EndDate = l.EndDate,
                     Rent = l.Rent,
@@ -85,14 +85,14 @@ namespace Selu383.SP25.P03.Api.Controllers
             // Get maintenance requests for tenants in these properties
             var tenantIds = leases.Select(l => l.TenantId).Distinct().ToList();
             var maintenanceRequests = await _context.MaintenanceRequests
-                .Where(mr => tenantIds.Contains(mr.TenantId))
+                .Where(mr => tenantIds.Contains(mr.TenantId) && mr.Tenant != null)
                 .Include(mr => mr.Tenant)
                 .Select(mr => new MaintenanceRequestSummaryDto
                 {
                     Id = mr.Id,
                     TenantId = mr.TenantId,
-                    TenantName = mr.Tenant.FirstName + " " + mr.Tenant.LastName,
-                    UnitNumber = mr.Tenant.UnitNumber,
+                    TenantName = mr.Tenant != null ? mr.Tenant.FirstName + " " + mr.Tenant.LastName : "Unknown",
+                    UnitNumber = mr.Tenant != null ? mr.Tenant.UnitNumber : "",
                     Description = mr.Description,
                     Status = mr.Status,
                     Priority = mr.Priority,

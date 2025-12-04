@@ -258,6 +258,15 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest("Current password is incorrect");
             }
 
+            // Validate new password against password policy
+            var passwordValidator = new PasswordValidator<User>();
+            var validationResult = await passwordValidator.ValidateAsync(userManager, user, dto.NewPassword);
+            if (!validationResult.Succeeded)
+            {
+                var errorMessages = string.Join("; ", validationResult.Errors.Select(e => e.Description));
+                return BadRequest(new { message = errorMessages });
+            }
+
             // Generate verification token
             var token = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
             token = token.Replace("-", "");
@@ -343,7 +352,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return Ok(new { message = "Email address updated successfully!" });
             }
 
-            return BadRequest(result.Errors);
+            var errorMessages = string.Join("; ", result.Errors.Select(e => e.Description));
+            return BadRequest(new { message = errorMessages });
         }
 
         // Verify and apply password change
@@ -381,7 +391,8 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return Ok(new { message = "Password updated successfully!" });
             }
 
-            return BadRequest(result.Errors);
+            var errorMessages = string.Join("; ", result.Errors.Select(e => e.Description));
+            return BadRequest(new { message = errorMessages });
         }
 
         [HttpGet]
