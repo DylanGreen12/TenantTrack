@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Selu383.SP25.P03.Api.Features.Users;
+using Selu383.SP25.P03.Api.Features.Email;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -17,11 +18,15 @@ namespace Selu383.SP25.P03.Api.Controllers
     {
         private readonly DataContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<TenantsController> _logger;
 
-        public TenantsController(DataContext context, UserManager<User> userManager)
+        public TenantsController(DataContext context, UserManager<User> userManager, IEmailService emailService, ILogger<TenantsController> logger)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         private bool IsValidEmail(string email)
@@ -128,7 +133,8 @@ namespace Selu383.SP25.P03.Api.Controllers
 
             var lease = await _context.Leases
                 .Include(l => l.Tenant)
-                .FirstOrDefaultAsync(l => l.TenantId == tenant.Id);
+                .Where(l => l.TenantId == tenant.Id && l.Status != "Denied") // Exclude denied leases
+                .FirstOrDefaultAsync();
 
             if (lease == null)
             {
@@ -436,24 +442,56 @@ namespace Selu383.SP25.P03.Api.Controllers
                 await _context.SaveChangesAsync();
 
                 // Auto-create a pending lease for this tenant application
-                var unit = await _context.Units.FindAsync(dto.UnitId);
+                var unit = await _context.Units
+                    .Include(u => u.Property)
+                        .ThenInclude(p => p.User)
+                    .FirstOrDefaultAsync(u => u.Id == dto.UnitId);
+
                 if (unit != null)
                 {
+                    // Use tenant's requested move-in date or default to 1 week from now
+                    var startDate = dto.RequestedMoveInDate ?? DateOnly.FromDateTime(DateTime.Now.AddDays(7));
+
                     var lease = new Lease
                     {
                         TenantId = tenant.Id,
                         UnitNumber = unit.UnitNumber,
                         FirstName = tenant.FirstName,
                         LastName = tenant.LastName,
-                        StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(7)), // Default: 1 week from now
-                        EndDate = DateOnly.FromDateTime(DateTime.Now.AddYears(1)), // Default: 1 year lease
+                        StartDate = startDate,
+                        EndDate = startDate.AddYears(1), // Default: 1 year from start date
                         Rent = unit.Rent,
-                        Deposit = unit.Rent, // Default: 1 month rent as deposit
+                        Deposit = 0, // Landlord will set deposit amount upon approval
                         Status = "Pending"
                     };
 
                     _context.Leases.Add(lease);
                     await _context.SaveChangesAsync();
+
+                    // Send email notification to landlord
+                    try
+                    {
+                        var landlord = unit.Property?.User;
+                        if (landlord != null && !string.IsNullOrEmpty(landlord.Email))
+                        {
+                            var tenantFullName = $"{tenant.FirstName} {tenant.LastName}";
+                            var landlordName = landlord.UserName ?? "Landlord";
+
+                            await _emailService.SendApplicationSubmittedEmailAsync(
+                                landlord.Email,
+                                landlordName,
+                                tenantFullName,
+                                tenant.UnitNumber
+                            );
+
+                            _logger.LogInformation($"Application notification sent to landlord {landlord.Email} for tenant {tenantFullName}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send application notification email");
+                        // Don't fail the tenant creation if email fails
+                    }
                 }
             }
             catch (DbUpdateException ex)

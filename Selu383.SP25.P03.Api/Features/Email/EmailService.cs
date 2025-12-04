@@ -142,7 +142,7 @@ namespace Selu383.SP25.P03.Api.Features.Email
                         <li><strong>Monthly Rent:</strong> ${rent:N2}</li>
                     </ul>
                     <p>Please log in to your TenantTrack account to view the complete lease agreement and make payments.</p>
-                    <p><a href='{_baseUrl}/leases' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>View Lease Details</a></p>
+                    <p><a href='{_baseUrl}/' style='background-color: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Go to Dashboard</a></p>
                     <br/>
                     <p>Best regards,<br/>The TenantTrack Team</p>
                 </body>

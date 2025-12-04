@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -9,6 +9,27 @@ export default function AwaitingVerification() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [initialEmailSent, setInitialEmailSent] = useState(false);
+
+  // Auto-send verification email on page load
+  useEffect(() => {
+    if (email && !initialEmailSent) {
+      sendVerificationEmail();
+      setInitialEmailSent(true);
+    }
+  }, [email]);
+
+  const sendVerificationEmail = async () => {
+    if (!email) return;
+
+    try {
+      await axios.post("/api/users/resend-verification", { email });
+      setMessage("Verification email sent! Please check your inbox.");
+    } catch (err: any) {
+      console.error("Error sending initial verification email:", err);
+      // Don't show error for initial send, user can manually resend if needed
+    }
+  };
 
   const handleResend = async () => {
     if (!email) {

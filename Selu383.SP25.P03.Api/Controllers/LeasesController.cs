@@ -432,11 +432,7 @@ namespace Selu383.SP25.P03.Api.Controllers
                 return BadRequest(new { message = "Only pending leases can be denied" });
             }
 
-            lease.Status = "Denied";
-            _context.Leases.Update(lease);
-            await _context.SaveChangesAsync();
-
-            // Send denial email to tenant
+            // Send denial email to tenant first
             try
             {
                 var tenant = lease.Tenant;
@@ -461,6 +457,29 @@ namespace Selu383.SP25.P03.Api.Controllers
                 _logger.LogError(ex, "Failed to send denial notification email");
                 // Don't fail the denial if email fails
             }
+
+            // Delete the lease and tenant record instead of marking as denied
+            var tenantId = lease.TenantId;
+            _context.Leases.Remove(lease);
+
+            // For pending lease denials, always remove the tenant record so they can reapply
+            // Check if this tenant has any active leases, payments, or maintenance requests
+            var tenantRecord = await _context.Tenants.FindAsync(tenantId);
+            if (tenantRecord != null)
+            {
+                var hasActiveLeases = await _context.Leases.AnyAsync(l => l.TenantId == tenantId && l.Id != id && l.Status == "Active");
+                var hasPayments = await _context.Payments.AnyAsync(p => p.TenantId == tenantId);
+                var hasMaintenanceRequests = await _context.MaintenanceRequests.AnyAsync(m => m.TenantId == tenantId);
+
+                // Only keep tenant if they have active leases or related records (not just pending applications)
+                if (!hasActiveLeases && !hasPayments && !hasMaintenanceRequests)
+                {
+                    _context.Tenants.Remove(tenantRecord);
+                    _logger.LogInformation($"Removed tenant record {tenantId} after lease denial to allow reapplication");
+                }
+            }
+
+            await _context.SaveChangesAsync();
 
             var dto = new LeaseDto
             {

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { UserDto } from "../models/UserDto";
+import { HomeIcon } from '@heroicons/react/24/solid';
 
 interface PropertyDto {
   id: number;
@@ -247,7 +248,8 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
         firstName: rentalFormData.firstName,
         lastName: rentalFormData.lastName,
         phoneNumber: rentalFormData.phoneNumber,
-        email: rentalFormData.email
+        email: rentalFormData.email,
+        requestedMoveInDate: rentalFormData.moveInDate || undefined
       };
 
       await axios.post("/api/tenants", tenantData);
@@ -386,7 +388,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                     />
                   ) : (
                     <div className="w-full h-full bg-white bg-opacity-10 flex items-center justify-center border-2 border-dashed border-white border-opacity-30">
-                      <span className="text-3xl opacity-70">🏠</span>
+                      <HomeIcon className="h-12 w-12 text-white opacity-70" />
                     </div>
                   )}
                 </div>
@@ -501,9 +503,10 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                             <div className="mt-4 pt-4 border-t border-gray-200">
                               <button
                                 onClick={() => openRentalForm(unit, property)}
-                                className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+                                className="w-full bg-green-500 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-green-600 transition-colors duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                               >
-                                🏠 Rent This Unit
+                                <HomeIcon className="h-6 w-6" />
+                                Rent This Unit
                               </button>
                             </div>
                           )}

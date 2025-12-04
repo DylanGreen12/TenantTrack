@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { UserDto } from "../../models/UserDto";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface UnitDto {
   id: number;
@@ -37,6 +37,7 @@ interface TenantDashboardProps {
 }
 
 const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
+  const navigate = useNavigate();
   const [unit, setUnit] = useState<UnitDto | null>(null);
   const [lease, setLease] = useState<LeaseDto | null>(null);
   const [error, setError] = useState("");
@@ -108,6 +109,11 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
       console.error("Error fetching tenant data:", err);
       const msg = err.response?.data?.message || "Failed to fetch your data.";
       setError(msg);
+
+      // If tenant has no lease/unit, redirect to properties page to apply
+      if (err.response?.status === 404 || msg.includes("not found") || msg.includes("No tenant")) {
+        navigate("/properties");
+      }
     } finally {
       setLoading(false);
     }
@@ -122,6 +128,91 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
       <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg max-w-lg mx-auto">
         <p className="font-semibold">Error:</p>
         <p>{error}</p>
+      </div>
+    );
+  }
+
+  // Show pending application view if lease is pending or awaiting payment
+  if (lease && (lease.status === "Pending" || lease.status === "Approved-AwaitingPayment")) {
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">Home</h1>
+
+        <div className="max-w-2xl mx-auto">
+          {lease.status === "Pending" ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 mx-auto mb-4 bg-amber-500 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Pending</h2>
+                <p className="text-gray-600">Your lease application is under review by the landlord.</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 className="font-semibold text-gray-800 mb-4">Application Details</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><strong>Unit:</strong> {lease.unitNumber}</p>
+                  <p><strong>Requested Start Date:</strong> {new Date(lease.startDate).toLocaleDateString()}</p>
+                  <p><strong>Requested End Date:</strong> {new Date(lease.endDate).toLocaleDateString()}</p>
+                  <p><strong>Monthly Rent:</strong> ${lease.rent}</p>
+                  <p><strong>Security Deposit:</strong> ${lease.deposit}</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700">
+                  <strong className="text-blue-800">What happens next?</strong> The landlord will review your application and either approve or deny it.
+                  You'll receive an email notification once a decision has been made. If approved, you'll be able to make your payment to activate the lease.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Approved!</h2>
+                <p className="text-gray-600">Your lease application has been approved. Complete payment to activate your lease.</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                <h3 className="font-semibold text-gray-800 mb-4">Lease Details</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p><strong>Unit:</strong> {lease.unitNumber}</p>
+                  <p><strong>Start Date:</strong> {new Date(lease.startDate).toLocaleDateString()}</p>
+                  <p><strong>End Date:</strong> {new Date(lease.endDate).toLocaleDateString()}</p>
+                  <p><strong>Monthly Rent:</strong> ${lease.rent}</p>
+                  <p><strong>Security Deposit:</strong> ${lease.deposit}</p>
+                  <p className="text-lg font-bold text-blue-600 pt-2 border-t border-gray-200 mt-4">
+                    <strong>Total Due:</strong> ${(lease.rent + lease.deposit).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Link
+                  to="/makepayment"
+                  className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  Make Payment
+                </Link>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
+                <p className="text-sm text-gray-700">
+                  <strong className="text-amber-800">Important:</strong> Your lease will not be activated until payment is received.
+                  Once payment is complete, you'll have full access to your tenant dashboard.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

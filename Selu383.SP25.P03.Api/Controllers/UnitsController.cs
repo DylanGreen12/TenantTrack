@@ -101,6 +101,15 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
                 return NotFound(new { message = "Property not found" });
             }
 
+            // Check for duplicate unit number in the property
+            var existingUnit = await _context.Units
+                .FirstOrDefaultAsync(u => u.PropertyId == unitDto.PropertyId && u.UnitNumber == unitDto.UnitNumber);
+
+            if (existingUnit != null)
+            {
+                return BadRequest(new { message = $"Unit number {unitDto.UnitNumber} already exists in this property" });
+            }
+
             var unit = new Unit
             {
                 UnitNumber = unitDto.UnitNumber,
@@ -119,6 +128,73 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
 
             unitDto.Id = unit.Id;
             return CreatedAtAction("GetUnit", new { id = unit.Id }, unitDto);
+        }
+
+        // POST: api/units/bulk
+        [HttpPost("bulk")]
+        public async Task<ActionResult> PostBulkUnits(BulkUnitCreateDto bulkDto)
+        {
+            // Verify property exists
+            var property = await _context.Properties.FindAsync(bulkDto.PropertyId);
+            if (property == null)
+            {
+                return NotFound(new { message = "Property not found" });
+            }
+
+            // Validate unit numbers are provided
+            if (bulkDto.UnitNumbers == null || !bulkDto.UnitNumbers.Any())
+            {
+                return BadRequest(new { message = "At least one unit number is required" });
+            }
+
+            // Check for duplicate unit numbers in the property
+            var existingUnitNumbers = await _context.Units
+                .Where(u => u.PropertyId == bulkDto.PropertyId && bulkDto.UnitNumbers.Contains(u.UnitNumber))
+                .Select(u => u.UnitNumber)
+                .ToListAsync();
+
+            if (existingUnitNumbers.Any())
+            {
+                return BadRequest(new { message = $"Unit numbers already exist: {string.Join(", ", existingUnitNumbers)}" });
+            }
+
+            // Create units
+            var createdUnits = new List<Unit>();
+            foreach (var unitNumber in bulkDto.UnitNumbers)
+            {
+                var unit = new Unit
+                {
+                    UnitNumber = unitNumber,
+                    PropertyId = bulkDto.PropertyId,
+                    Description = bulkDto.Description,
+                    ImageUrl = bulkDto.ImageUrl,
+                    Bedrooms = bulkDto.Bedrooms,
+                    Bathrooms = bulkDto.Bathrooms,
+                    SquareFeet = bulkDto.SquareFeet,
+                    Rent = bulkDto.Rent,
+                    Status = bulkDto.Status ?? "Available"
+                };
+                createdUnits.Add(unit);
+            }
+
+            _context.Units.AddRange(createdUnits);
+            await _context.SaveChangesAsync();
+
+            var createdDtos = createdUnits.Select(u => new UnitDto
+            {
+                Id = u.Id,
+                UnitNumber = u.UnitNumber,
+                PropertyId = u.PropertyId,
+                Description = u.Description,
+                ImageUrl = u.ImageUrl,
+                Bedrooms = u.Bedrooms,
+                Bathrooms = u.Bathrooms,
+                SquareFeet = u.SquareFeet,
+                Rent = u.Rent,
+                Status = u.Status
+            }).ToList();
+
+            return Ok(new { message = $"Created {createdUnits.Count} units successfully", units = createdDtos });
         }
 
         // PUT: api/units/5
@@ -146,6 +222,10 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
                 }
             }
 
+            // Track if unit number is changing for cascade update
+            var oldUnitNumber = unit.UnitNumber;
+            var unitNumberChanged = oldUnitNumber != unitDto.UnitNumber;
+
             unit.UnitNumber = unitDto.UnitNumber;
             unit.PropertyId = unitDto.PropertyId;
             unit.Description = unitDto.Description;
@@ -157,6 +237,23 @@ namespace Selu383.SP25.P03.Api.Features.Units.Controllers
             unit.Status = unitDto.Status;
 
             _context.Entry(unit).State = EntityState.Modified;
+
+            // Cascade update unit number to related tenants and leases
+            if (unitNumberChanged)
+            {
+                var tenants = await _context.Tenants.Where(t => t.UnitNumber == oldUnitNumber).ToListAsync();
+                foreach (var tenant in tenants)
+                {
+                    tenant.UnitNumber = unitDto.UnitNumber;
+                }
+
+                var leases = await _context.Leases.Where(l => l.UnitNumber == oldUnitNumber).ToListAsync();
+                foreach (var lease in leases)
+                {
+                    lease.UnitNumber = unitDto.UnitNumber;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return NoContent();

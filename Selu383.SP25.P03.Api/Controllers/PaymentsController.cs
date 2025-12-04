@@ -5,6 +5,7 @@ using Selu383.SP25.P03.Api.Features.Payments;
 using Microsoft.AspNetCore.Identity;
 using Selu383.SP25.P03.Api.Features.Users;
 using Selu383.SP25.P03.Api.Features.Leases;
+using Selu383.SP25.P03.Api.Features.Email;
 
 namespace Selu383.SP25.P03.Api.Controllers
 {
@@ -16,13 +17,15 @@ namespace Selu383.SP25.P03.Api.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IStripeService _stripeService;
         private readonly ILogger<PaymentsController> _logger;
+        private readonly IEmailService _emailService;
 
-        public PaymentsController(DataContext context, UserManager<User> userManager, IStripeService stripeService, ILogger<PaymentsController> logger)
+        public PaymentsController(DataContext context, UserManager<User> userManager, IStripeService stripeService, ILogger<PaymentsController> logger, IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
             _stripeService = stripeService;
             _logger = logger;
+            _emailService = emailService;
         }
 
         // GET: api/payments
@@ -364,10 +367,13 @@ namespace Selu383.SP25.P03.Api.Controllers
                 };
 
                 _context.Payments.Add(payment);
+
+                var leaseActivated = false;
                 if (lease.Status == "Approved-AwaitingPayment")
                     {
                         lease.Status = "Active";
                         _context.Leases.Update(lease);
+                        leaseActivated = true;
 
                         // Mark unit as Rented
                         var unit = await _context.Units.FirstOrDefaultAsync(u => u.Id == tenant.UnitId);
@@ -378,6 +384,35 @@ namespace Selu383.SP25.P03.Api.Controllers
                         }
                     }
                 await _context.SaveChangesAsync();
+
+                // Send lease confirmation email if lease was just activated
+                if (leaseActivated)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(tenant.Email))
+                        {
+                            var tenantFullName = $"{tenant.FirstName} {tenant.LastName}";
+                            var landlord = await _context.Units
+                                .Where(u => u.Id == tenant.UnitId)
+                                .Select(u => u.Property.User)
+                                .FirstOrDefaultAsync();
+
+                            var landlordName = landlord != null && !string.IsNullOrEmpty(landlord.UserName)
+                                ? landlord.UserName
+                                : "Landlord";
+
+                            await _emailService.SendLeaseConfirmationEmailAsync(
+                                tenant.Email, tenantFullName, landlordName,
+                                lease.UnitNumber, lease.StartDate, lease.EndDate, lease.Rent
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send lease confirmation email");
+                    }
+                }
 
                 _logger.LogInformation($"Rent payment confirmed for tenant {tenant.Id}, payment intent: {request.PaymentIntentId}");
 
@@ -452,6 +487,33 @@ namespace Selu383.SP25.P03.Api.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Send lease confirmation email to tenant with landlord info
+                try
+                {
+                    var tenant = lease.Tenant;
+                    if (tenant != null && !string.IsNullOrEmpty(tenant.Email))
+                    {
+                        var tenantFullName = $"{tenant.FirstName} {tenant.LastName}";
+                        var landlord = await _context.Units
+                            .Where(u => u.Id == tenant.UnitId)
+                            .Select(u => u.Property.User)
+                            .FirstOrDefaultAsync();
+
+                        var landlordName = landlord != null && !string.IsNullOrEmpty(landlord.UserName)
+                            ? landlord.UserName
+                            : "Landlord";
+
+                        await _emailService.SendLeaseConfirmationEmailAsync(
+                            tenant.Email, tenantFullName, landlordName,
+                            lease.UnitNumber, lease.StartDate, lease.EndDate, lease.Rent
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send lease confirmation email");
+                }
 
                 _logger.LogInformation($"Payment confirmed for lease {leaseId}, payment intent: {request.PaymentIntentId}");
 
