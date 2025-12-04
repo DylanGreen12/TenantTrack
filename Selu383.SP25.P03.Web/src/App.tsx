@@ -234,7 +234,7 @@ function App() {
         <div className="flex flex-1 min-h-0">
 
           {/* Sidebar */}
-          <aside className={`bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex flex-col shadow-lg overflow-y-auto transition-all duration-300
+          <aside className={`bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white flex flex-col shadow-lg overflow-y-auto transition-all duration-300 sticky top-0 h-screen
             ${isSidebarOpen ? 'w-60' : 'w-24'}`}>
 
             <nav className="flex-1 p-4 space-y-2">
