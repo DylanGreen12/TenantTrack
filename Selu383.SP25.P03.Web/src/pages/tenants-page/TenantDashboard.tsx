@@ -53,14 +53,18 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
 
   const fetchTenantData = async () => {
     try {
-      const [unitRes, leaseRes, balanceRes] = await Promise.all([
+      // First check if tenant has a lease (lightest check)
+      // If this fails with 404, user hasn't applied for a lease yet
+      const leaseRes = await axios.get<LeaseDto>("/api/tenants/lease", { withCredentials: true });
+      setLease(leaseRes.data);
+
+      // If we have a lease, fetch the rest of the data in parallel
+      const [unitRes, balanceRes] = await Promise.all([
         axios.get<UnitDto>("/api/tenants/unit", { withCredentials: true }),
-        axios.get<LeaseDto>("/api/tenants/lease", { withCredentials: true }),
         axios.get<BalanceDto>("/api/tenants/balance", { withCredentials: true }),
       ]);
 
       setUnit(unitRes.data);
-      setLease(leaseRes.data);
 
       // Determine if it is the first month of the lease
       const isFirstMonth = (() => {
@@ -108,11 +112,12 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ currentUser }) => {
     } catch (err: any) {
       console.error("Error fetching tenant data:", err);
       const msg = err.response?.data?.message || "Failed to fetch your data.";
-      setError(msg);
 
       // If tenant has no lease/unit, redirect to properties page to apply
       if (err.response?.status === 404 || msg.includes("not found") || msg.includes("No tenant")) {
         navigate("/properties");
+      } else {
+        setError(msg);
       }
     } finally {
       setLoading(false);

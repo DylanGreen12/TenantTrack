@@ -253,15 +253,16 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
       };
 
       await axios.post("/api/tenants", tenantData);
-      
-      setRentalMessage("🎉 Rental application submitted successfully! We'll contact you soon.");
+
+      setRentalMessage("success");
+      // Keep the loading state to show the success message
       setTimeout(() => {
         closeRentalForm();
-      }, 3000);
-      
+        setSubmittingRental(false);
+      }, 2500);
+
     } catch (err: any) {
       setRentalMessage(err.response?.data?.message || "Failed to submit rental application. Please try again.");
-    } finally {
       setSubmittingRental(false);
     }
   };
@@ -674,9 +675,20 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                 <button
                   type="submit"
                   disabled={submittingRental}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
+                  className={`flex-1 text-white py-4 px-6 rounded-lg font-bold text-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                    rentalMessage === "success"
+                      ? "bg-gradient-to-r from-green-600 to-green-700"
+                      : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  }`}
                 >
-                  {submittingRental ? (
+                  {rentalMessage === "success" ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Application Submitted! Redirecting...
+                    </span>
+                  ) : submittingRental ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -685,7 +697,7 @@ export default function PropertiesView({ currentUser }: PropertiesViewProps) {
                       Submitting Application...
                     </span>
                   ) : (
-                    "📝 Submit Rental Application"
+                    "Submit Rental Application"
                   )}
                 </button>
                 <button
