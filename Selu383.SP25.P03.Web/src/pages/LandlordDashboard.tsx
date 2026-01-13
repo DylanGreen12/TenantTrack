@@ -87,6 +87,7 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
   const [dashboardData, setDashboardData] = useState<LandlordDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusUpdateMessage, setStatusUpdateMessage] = useState("");
   
   const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
 
@@ -105,6 +106,37 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
       setError(err.response?.data?.message || "Failed to load dashboard data");
       setLoading(false);
       console.error("Error fetching dashboard:", err);
+    }
+  };
+
+  const handleStatusUpdate = async (requestId: number, newStatus: string) => {
+    try {
+      // Find the maintenance request
+      const request = dashboardData?.maintenanceRequests.find(mr => mr.id === requestId);
+      if (!request) return;
+
+      // Update the status via API
+      await axios.put(`/api/maintenancerequests/${requestId}`, {
+        id: request.id,
+        tenantId: request.tenantId,
+        unitNumber: request.unitNumber,
+        description: request.description,
+        priority: request.priority,
+        status: newStatus,
+        requestedAt: request.requestedAt,
+        completedAt: newStatus === 'Completed' ? new Date().toISOString() : request.completedAt
+      });
+
+      // Show success message
+      setStatusUpdateMessage(`Status updated to ${newStatus}`);
+      setTimeout(() => setStatusUpdateMessage(""), 3000);
+
+      // Refresh dashboard data
+      await fetchDashboardData();
+    } catch (err) {
+      console.error("Error updating maintenance request status:", err);
+      setStatusUpdateMessage("Failed to update status");
+      setTimeout(() => setStatusUpdateMessage(""), 3000);
     }
   };
 
@@ -170,8 +202,8 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
 
   const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'open':
-        return 'status-open';
+      case 'pending':
+        return 'status-pending';
       case 'in progress':
         return 'status-in-progress';
       case 'completed':
@@ -201,6 +233,13 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
   return (
     <div className="landlord-dashboard">
       <h1>Home</h1>
+
+      {/* Status Update Message */}
+      {statusUpdateMessage && (
+        <div className="status-update-message">
+          {statusUpdateMessage}
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="summary-cards">
@@ -346,9 +385,19 @@ const LandlordDashboard: React.FC<LandlordDashboardProps> = ({ currentUser }) =>
                                             <span className={`priority-badge ${getPriorityClass(mr.priority)}`}>
                                               {mr.priority}
                                             </span>
-                                            <span className={`status-badge-small ${getStatusClass(mr.status)}`}>
-                                              {mr.status}
-                                            </span>
+                                            <select
+                                              value={mr.status}
+                                              onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleStatusUpdate(mr.id, e.target.value);
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              className={`status-dropdown ${getStatusClass(mr.status)}`}
+                                            >
+                                              <option value="Pending">Pending</option>
+                                              <option value="In Progress">In Progress</option>
+                                              <option value="Completed">Completed</option>
+                                            </select>
                                           </div>
                                           <p className="maintenance-desc">{mr.description}</p>
                                           <p className="maintenance-meta">
